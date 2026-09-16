@@ -129,8 +129,10 @@ export async function sendMessageAction(
         .where(eq(conversations.id, conversationId));
     });
 
-    revalidatePath("/tin-nhan");
-    revalidatePath(`/tin-nhan/${conversationId}`);
+    // Không revalidate: khung chat tự quản lý danh sách tin ở phía máy
+    // người dùng và tự hỏi tin mới. Revalidate ở đây sẽ dựng lại route
+    // đang mở sau mỗi tin nhắn — vừa chậm, vừa gây vòng lặp gắn lại.
+    // Trang danh sách /tin-nhan là route động nên vào lại là đã mới.
     return success();
   });
 }
@@ -179,13 +181,24 @@ export async function fetchNewMessagesAction(
 /* Danh dau da doc                                                     */
 /* ------------------------------------------------------------------ */
 
+/**
+ * CỐ Ý KHÔNG gọi revalidatePath ở đây.
+ *
+ * Hàm này chạy từ trong trang /tin-nhan/[id]. Gọi revalidatePath("/tin-nhan")
+ * sẽ làm Next dựng lại cây route đang mở, component chat gắn lại, effect
+ * chạy lại, lại gọi hàm này — thành vòng lặp tự nuôi, bắn request liên tục
+ * và làm hỏng phản hồi của các server action khác.
+ *
+ * Đổi lại, chấm báo tin chưa đọc trên thanh trên sẽ cập nhật ở lần chuyển
+ * trang kế tiếp chứ không tức thì. Đánh đổi này rẻ hơn nhiều so với vòng lặp.
+ */
 export async function markConversationReadAction(
   conversationId: string,
-): Promise<void> {
+): Promise<{ ok: boolean }> {
   try {
     const actor = await requireActor();
     const conversation = await getConversation(conversationId, actor.id);
-    if (!conversation) return;
+    if (!conversation) return { ok: false };
 
     await db
       .update(conversations)
@@ -196,9 +209,10 @@ export async function markConversationReadAction(
       )
       .where(eq(conversations.id, conversationId));
 
-    revalidatePath("/tin-nhan");
+    return { ok: true };
   } catch {
     // Đánh dấu đã đọc hỏng thì không nên làm hỏng cả khung chat.
+    return { ok: false };
   }
 }
 

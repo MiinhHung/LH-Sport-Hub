@@ -63,6 +63,15 @@ export function ChatThread({
   // Chỉ tự cuộn khi người dùng đang ở gần đáy — đang đọc lại tin cũ mà
   // bị kéo xuống thì rất khó chịu.
   const stickToBottom = useRef(true);
+  // Chốt chặn: dù component có bị gắn lại vì lý do gì, cũng chỉ gọi
+  // "đánh dấu đã đọc" một lần cho mỗi cuộc trò chuyện.
+  const markedRead = useRef<string | null>(null);
+
+  const markRead = useCallback(() => {
+    if (markedRead.current === conversationId) return;
+    markedRead.current = conversationId;
+    void markConversationReadAction(conversationId);
+  }, [conversationId]);
 
   const lastRealAt = items.reduce<string | null>(
     (acc, m) => (m.pending ? acc : !acc || m.createdAt > acc ? m.createdAt : acc),
@@ -78,8 +87,8 @@ export function ChatThread({
 
   useEffect(() => {
     scrollToBottom();
-    void markConversationReadAction(conversationId);
-  }, [conversationId, scrollToBottom]);
+    markRead();
+  }, [markRead, scrollToBottom]);
 
   useEffect(() => {
     if (stickToBottom.current) scrollToBottom(true);
@@ -100,7 +109,12 @@ export function ChatThread({
         if (fresh.length === 0) return current;
         return [...current.filter((m) => !m.pending), ...fresh];
       });
-      void markConversationReadAction(conversationId);
+
+      // Có tin mới từ người kia => mở lại chốt để đánh dấu đã đọc lần nữa.
+      if (result.messages.some((m) => m.senderId !== viewerId)) {
+        markedRead.current = null;
+        markRead();
+      }
     }
 
     const id = setInterval(poll, POLL_MS);
@@ -108,7 +122,7 @@ export function ChatThread({
       cancelled = true;
       clearInterval(id);
     };
-  }, [conversationId, lastRealAt]);
+  }, [conversationId, lastRealAt, markRead, viewerId]);
 
   function send(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
