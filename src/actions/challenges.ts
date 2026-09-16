@@ -1,0 +1,707 @@
+"use server";
+
+import { and, count, eq, inArray, sql } from "drizzle-orm";
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+
+import { db } from "@/db";
+import {
+  challengeParticipants,
+  challenges,
+  playSessions,
+  profiles,
+} from "@/db/schema";
+import { AppError, isModerator, requireActor } from "@/lib/auth";
+import { audit } from "@/lib/audit";
+import {
+  activeParticipants,
+  allAccepted,
+  canCancel,
+  canJoin,
+  canLeave,
+  canRespondToInvite,
+  isFull,
+  teamOf,
+  type ChallengeLike,
+  type ParticipantLike,
+  type TeamSide,
+} from "@/lib/challenge-logic";
+import { CHALLENGE_FORMATS, LIMITS, formatStake } from "@/lib/constants";
+import { notify } from "@/lib/notifications";
+import {
+  cancelChallengeSchema,
+  challengeSchema,
+  fieldErrors,
+  formDataToObject,
+  joinChallengeSchema,
+} from "@/lib/validation";
+import { failure, runAction, success, type ActionState } from "./types";
+
+/* ------------------------------------------------------------------ */
+/* Tien ich dung chung                                                 */
+/* ------------------------------------------------------------------ */
+
+type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
+
+/**
+ * Khoá hàng `challenges` rồi đọc lại danh sách người tham gia.
+ * Mọi thay đổi chỗ ngồi đều phải đi qua đây, nếu không hai người
+ * bấm "Nhận kèo" cùng lúc sẽ cùng chiếm được chỗ cuối.
+ */
+async function loadLocked(tx: Tx, challengeId: string) {
+  const [challenge] = await tx
+    .select()
+    .from(challenges)
+    .where(eq(challenges.id, challengeId))
+    .for("update");
+
+  if (!challenge) throw new AppError("Không tìm thấy kèo này.");
+
+  const participants = await tx
+    .select()
+    .from(challengeParticipants)
+    .where(eq(challengeParticipants.challengeId, challengeId));
+
+  return {
+    challenge,
+    participants,
+    asLogic: challenge as unknown as ChallengeLike,
+    asParticipants: participants as unknown as ParticipantLike[],
+  };
+}
+
+/** Sau mỗi thay đổi nhân sự: đủ người + tất cả đã nhận => chốt kèo. */
+async function syncLockState(
+  tx: Tx,
+  challenge: ChallengeLike,
+  participants: ParticipantLike[],
+): Promise<"locked" | "open" | "unchanged"> {
+  const shouldLock = isFull(challenge.format, participants) && allAccepted(participants);
+
+  if (shouldLock && challenge.status === "open") {
+    await tx
+      .update(challenges)
+      .set({ status: "locked", lockedAt: new Date(), updatedAt: new Date() })
+      .where(eq(challenges.id, challenge.id));
+    return "locked";
+  }
+
+  if (!shouldLock && challenge.status === "locked") {
+    await tx
+      .update(challenges)
+      .set({ status: "open", lockedAt: null, updatedAt: new Date() })
+      .where(eq(challenges.id, challenge.id));
+    return "open";
+  }
+
+  return "unchanged";
+}
+
+async function namesOf(ids: string[]): Promise<Map<string, string>> {
+  if (ids.length === 0) return new Map();
+  const rows = await db
+    .select({ id: profiles.id, fullName: profiles.fullName })
+    .from(profiles)
+    .where(inArray(profiles.id, ids));
+  return new Map(rows.map((r) => [r.id, r.fullName]));
+}
+
+function revalidateChallenge(id?: string) {
+  revalidatePath("/keo");
+  revalidatePath("/so-no");
+  revalidatePath("/bang-phong-than");
+  if (id) revalidatePath(`/keo/${id}`);
+}
+
+/* ------------------------------------------------------------------ */
+/* Tao keo                                                             */
+/* ------------------------------------------------------------------ */
+
+export async function createChallengeAction(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  let createdId: string | null = null;
+
+  const result = await runAction(async () => {
+    const actor = await requireActor();
+
+    const raw = formDataToObject(formData);
+    // Multi-select gửi 1 giá trị thì formDataToObject trả về chuỗi.
+    if (typeof raw.opponentIds === "string") {
+      raw.opponentIds = raw.opponentIds === "" ? [] : [raw.opponentIds];
+    }
+    if (raw.opponentIds === undefined) raw.opponentIds = [];
+    if (raw.partnerId === "") raw.partnerId = null;
+    if (raw.sessionId === "") raw.sessionId = null;
+
+    const parsed = challengeSchema.safeParse(raw);
+    if (!parsed.success) {
+      return failure("Kèo chưa hợp lệ.", fieldErrors(parsed.error));
+    }
+    const input = parsed.data;
+
+    // Chặn "nợ chồng nợ": giới hạn số kèo đang mở của mỗi người.
+    const [{ value: openCount }] = await db
+      .select({ value: count() })
+      .from(challenges)
+      .where(
+        and(
+          eq(challenges.creatorId, actor.id),
+          inArray(challenges.status, ["open", "locked"]),
+        ),
+      );
+
+    if (openCount >= LIMITS.maxOpenChallengesPerUser) {
+      return failure(
+        `Bạn đang có ${openCount} kèo chưa xong. Giải quyết bớt rồi hãy tạo kèo mới (tối đa ${LIMITS.maxOpenChallengesPerUser}).`,
+      );
+    }
+
+    if (input.opponentIds.includes(actor.id) || input.partnerId === actor.id) {
+      return failure("Không thể tự thách chính mình.");
+    }
+
+    const inviteeIds = [
+      ...input.opponentIds,
+      ...(input.partnerId ? [input.partnerId] : []),
+    ];
+
+    if (inviteeIds.length > 0) {
+      const found = await db
+        .select({ id: profiles.id })
+        .from(profiles)
+        .where(
+          and(
+            inArray(profiles.id, inviteeIds),
+            eq(profiles.status, "active"),
+          ),
+        );
+      if (found.length !== inviteeIds.length) {
+        return failure("Có người bạn chọn không còn hoạt động.");
+      }
+    }
+
+    if (input.sessionId) {
+      const session = await db.query.playSessions.findFirst({
+        where: eq(playSessions.id, input.sessionId),
+        columns: { id: true, status: true },
+      });
+      if (!session || session.status !== "open") {
+        return failure("Buổi tập được chọn không còn mở.");
+      }
+    }
+
+    const challengeId = await db.transaction(async (tx) => {
+      const [created] = await tx
+        .insert(challenges)
+        .values({
+          creatorId: actor.id,
+          sport: input.sport as never,
+          format: input.format as never,
+          kind: input.kind,
+          title: input.title,
+          description: input.description,
+          pointsTarget: input.pointsTarget,
+          stakeType: input.stakeType as never,
+          stakeQty: input.stakeQty,
+          stakeNote: input.stakeNote,
+          sessionId: input.sessionId,
+          playDeadline: input.playDeadline,
+          status: "open",
+        })
+        .returning({ id: challenges.id });
+
+      const rows = [
+        {
+          challengeId: created.id,
+          userId: actor.id,
+          team: "A" as const,
+          isCreator: true,
+          status: "accepted" as const,
+        },
+        ...(input.partnerId
+          ? [
+              {
+                challengeId: created.id,
+                userId: input.partnerId,
+                team: "A" as const,
+                isCreator: false,
+                status: "invited" as const,
+              },
+            ]
+          : []),
+        ...input.opponentIds.map((userId) => ({
+          challengeId: created.id,
+          userId,
+          team: "B" as const,
+          isCreator: false,
+          status: "invited" as const,
+        })),
+      ];
+
+      await tx.insert(challengeParticipants).values(rows);
+
+      await notify(
+        tx,
+        inviteeIds.map((recipientId) => ({
+          recipientId,
+          actorId: actor.id,
+          type: "challenge_invited" as const,
+          title: `${actor.fullName} thách bạn: ${input.title}`,
+          message: `Ăn ${formatStake(
+            input.stakeType as never,
+            input.stakeQty,
+            input.stakeNote,
+          )}. Bấm để nhận hoặc từ chối.`,
+          href: `/keo/${created.id}`,
+        })),
+      );
+
+      await audit(tx, {
+        actorId: actor.id,
+        action: "challenge.create",
+        targetType: "challenge",
+        targetId: created.id,
+        metadata: {
+          format: input.format,
+          kind: input.kind,
+          stake: input.stakeType,
+        },
+      });
+
+      return created.id;
+    });
+
+    createdId = challengeId;
+    revalidateChallenge(challengeId);
+    return success("Đã tạo kèo.");
+  });
+
+  if (createdId) redirect(`/keo/${createdId}`);
+  return result;
+}
+
+/* ------------------------------------------------------------------ */
+/* Nhan keo mo                                                         */
+/* ------------------------------------------------------------------ */
+
+export async function joinChallengeAction(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  return runAction(async () => {
+    const actor = await requireActor();
+
+    const parsed = joinChallengeSchema.safeParse(formDataToObject(formData));
+    if (!parsed.success) {
+      return failure("Yêu cầu không hợp lệ.", fieldErrors(parsed.error));
+    }
+    const { challengeId, team } = parsed.data;
+
+    const outcome = await db.transaction(async (tx) => {
+      const { challenge, asLogic, asParticipants } = await loadLocked(
+        tx,
+        challengeId,
+      );
+
+      const decision = canJoin(asLogic, asParticipants, actor.id, team);
+      if (!decision.ok) return { error: decision.reason };
+
+      await tx.insert(challengeParticipants).values({
+        challengeId,
+        userId: actor.id,
+        team,
+        isCreator: false,
+        status: "accepted",
+      });
+
+      const nextParticipants: ParticipantLike[] = [
+        ...asParticipants,
+        {
+          userId: actor.id,
+          team,
+          status: "accepted",
+          isCreator: false,
+        },
+      ];
+
+      const lockState = await syncLockState(tx, asLogic, nextParticipants);
+
+      const others = activeParticipants(nextParticipants)
+        .map((p) => p.userId)
+        .filter((id) => id !== actor.id);
+
+      await notify(
+        tx,
+        others.map((recipientId) => ({
+          recipientId,
+          actorId: actor.id,
+          type:
+            lockState === "locked"
+              ? ("challenge_locked" as const)
+              : ("challenge_accepted" as const),
+          title:
+            lockState === "locked"
+              ? `Kèo "${challenge.title}" đã đủ người!`
+              : `${actor.fullName} đã nhận kèo "${challenge.title}"`,
+          message:
+            lockState === "locked"
+              ? "Đánh xong nhớ vào nhập kết quả nhé."
+              : null,
+          href: `/keo/${challengeId}`,
+        })),
+      );
+
+      await audit(tx, {
+        actorId: actor.id,
+        action: "challenge.join",
+        targetType: "challenge",
+        targetId: challengeId,
+        metadata: { team },
+      });
+
+      return { lockState };
+    });
+
+    if ("error" in outcome && outcome.error) return failure(outcome.error);
+
+    revalidateChallenge(challengeId);
+    return success(
+      outcome.lockState === "locked"
+        ? "Đã nhận kèo — kèo đủ người rồi!"
+        : "Đã nhận kèo.",
+    );
+  });
+}
+
+/* ------------------------------------------------------------------ */
+/* Phan hoi loi thach dich danh                                        */
+/* ------------------------------------------------------------------ */
+
+export async function respondInviteAction(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  return runAction(async () => {
+    const actor = await requireActor();
+
+    const challengeId = String(formData.get("challengeId") ?? "");
+    const answer = String(formData.get("answer") ?? "");
+    if (!challengeId || (answer !== "accept" && answer !== "decline")) {
+      return failure("Yêu cầu không hợp lệ.");
+    }
+
+    const outcome = await db.transaction(async (tx) => {
+      const { challenge, asLogic, asParticipants } = await loadLocked(
+        tx,
+        challengeId,
+      );
+
+      const decision = canRespondToInvite(asLogic, asParticipants, actor.id);
+      if (!decision.ok) return { error: decision.reason };
+
+      if (answer === "decline") {
+        await tx
+          .update(challengeParticipants)
+          .set({ status: "declined", leftAt: new Date() })
+          .where(
+            and(
+              eq(challengeParticipants.challengeId, challengeId),
+              eq(challengeParticipants.userId, actor.id),
+            ),
+          );
+
+        // Thách đích danh mà bị từ chối thì kèo kết thúc.
+        // Kèo mở chỉ đơn giản là trống lại một chỗ.
+        if (challenge.kind === "direct") {
+          await tx
+            .update(challenges)
+            .set({ status: "declined", updatedAt: new Date() })
+            .where(eq(challenges.id, challengeId));
+        }
+
+        await notify(tx, {
+          recipientId: challenge.creatorId,
+          actorId: actor.id,
+          type: "challenge_declined",
+          title: `${actor.fullName} từ chối kèo "${challenge.title}"`,
+          href: `/keo/${challengeId}`,
+        });
+
+        await audit(tx, {
+          actorId: actor.id,
+          action: "challenge.decline",
+          targetType: "challenge",
+          targetId: challengeId,
+        });
+
+        return { answer: "decline" as const };
+      }
+
+      await tx
+        .update(challengeParticipants)
+        .set({ status: "accepted", joinedAt: new Date() })
+        .where(
+          and(
+            eq(challengeParticipants.challengeId, challengeId),
+            eq(challengeParticipants.userId, actor.id),
+          ),
+        );
+
+      const nextParticipants = asParticipants.map((p) =>
+        p.userId === actor.id ? { ...p, status: "accepted" as const } : p,
+      );
+
+      const lockState = await syncLockState(tx, asLogic, nextParticipants);
+
+      const others = activeParticipants(nextParticipants)
+        .map((p) => p.userId)
+        .filter((id) => id !== actor.id);
+
+      await notify(
+        tx,
+        others.map((recipientId) => ({
+          recipientId,
+          actorId: actor.id,
+          type:
+            lockState === "locked"
+              ? ("challenge_locked" as const)
+              : ("challenge_accepted" as const),
+          title:
+            lockState === "locked"
+              ? `Kèo "${challenge.title}" đã đủ người!`
+              : `${actor.fullName} đã nhận kèo "${challenge.title}"`,
+          href: `/keo/${challengeId}`,
+        })),
+      );
+
+      await audit(tx, {
+        actorId: actor.id,
+        action: "challenge.accept",
+        targetType: "challenge",
+        targetId: challengeId,
+      });
+
+      return { answer: "accept" as const, lockState };
+    });
+
+    if ("error" in outcome && outcome.error) return failure(outcome.error);
+
+    revalidateChallenge(challengeId);
+    if (outcome.answer === "decline") return success("Đã từ chối kèo.");
+    return success(
+      outcome.lockState === "locked"
+        ? "Đã nhận kèo — kèo đủ người rồi!"
+        : "Đã nhận kèo.",
+    );
+  });
+}
+
+/* ------------------------------------------------------------------ */
+/* Roi keo                                                             */
+/* ------------------------------------------------------------------ */
+
+export async function leaveChallengeAction(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  return runAction(async () => {
+    const actor = await requireActor();
+    const challengeId = String(formData.get("challengeId") ?? "");
+    if (!challengeId) return failure("Yêu cầu không hợp lệ.");
+
+    const outcome = await db.transaction(async (tx) => {
+      const { challenge, asLogic, asParticipants } = await loadLocked(
+        tx,
+        challengeId,
+      );
+
+      const decision = canLeave(asLogic, asParticipants, actor.id);
+      if (!decision.ok) return { error: decision.reason };
+
+      await tx
+        .update(challengeParticipants)
+        .set({ status: "left", leftAt: new Date() })
+        .where(
+          and(
+            eq(challengeParticipants.challengeId, challengeId),
+            eq(challengeParticipants.userId, actor.id),
+          ),
+        );
+
+      const nextParticipants = asParticipants.map((p) =>
+        p.userId === actor.id ? { ...p, status: "left" as const } : p,
+      );
+
+      await syncLockState(tx, asLogic, nextParticipants);
+
+      const others = activeParticipants(nextParticipants).map((p) => p.userId);
+
+      await notify(
+        tx,
+        others.map((recipientId) => ({
+          recipientId,
+          actorId: actor.id,
+          type: "challenge_left" as const,
+          title: `${actor.fullName} đã rời kèo "${challenge.title}"`,
+          message: "Kèo đang trống chỗ trở lại.",
+          href: `/keo/${challengeId}`,
+        })),
+      );
+
+      await audit(tx, {
+        actorId: actor.id,
+        action: "challenge.leave",
+        targetType: "challenge",
+        targetId: challengeId,
+      });
+
+      return {};
+    });
+
+    if ("error" in outcome && outcome.error) return failure(outcome.error);
+
+    revalidateChallenge(challengeId);
+    return success("Đã rời kèo.");
+  });
+}
+
+/* ------------------------------------------------------------------ */
+/* Huy keo                                                             */
+/* ------------------------------------------------------------------ */
+
+export async function cancelChallengeAction(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  return runAction(async () => {
+    const actor = await requireActor();
+
+    const parsed = cancelChallengeSchema.safeParse(formDataToObject(formData));
+    if (!parsed.success) {
+      return failure("Yêu cầu không hợp lệ.", fieldErrors(parsed.error));
+    }
+    const { challengeId, reason } = parsed.data;
+
+    const outcome = await db.transaction(async (tx) => {
+      const { challenge, asLogic, asParticipants } = await loadLocked(
+        tx,
+        challengeId,
+      );
+
+      const decision = canCancel(asLogic, actor.id, isModerator(actor));
+      if (!decision.ok) return { error: decision.reason };
+
+      await tx
+        .update(challenges)
+        .set({
+          status: "cancelled",
+          cancellationReason: reason,
+          cancelledAt: new Date(),
+          updatedAt: new Date(),
+        })
+        .where(eq(challenges.id, challengeId));
+
+      const others = activeParticipants(asParticipants)
+        .map((p) => p.userId)
+        .filter((id) => id !== actor.id);
+
+      await notify(
+        tx,
+        others.map((recipientId) => ({
+          recipientId,
+          actorId: actor.id,
+          type: "challenge_cancelled" as const,
+          title: `Kèo "${challenge.title}" đã bị huỷ`,
+          message: reason ?? null,
+          href: `/keo/${challengeId}`,
+        })),
+      );
+
+      await audit(tx, {
+        actorId: actor.id,
+        action: "challenge.cancel",
+        targetType: "challenge",
+        targetId: challengeId,
+        metadata: { reason, byModerator: challenge.creatorId !== actor.id },
+      });
+
+      return {};
+    });
+
+    if ("error" in outcome && outcome.error) return failure(outcome.error);
+
+    revalidateChallenge(challengeId);
+    return success("Đã huỷ kèo.");
+  });
+}
+
+/* ------------------------------------------------------------------ */
+/* Doi doi (nguoi tao sap xep lai doi hinh 2v2)                        */
+/* ------------------------------------------------------------------ */
+
+export async function movePlayerTeamAction(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  return runAction(async () => {
+    const actor = await requireActor();
+    const challengeId = String(formData.get("challengeId") ?? "");
+    const userId = String(formData.get("userId") ?? "");
+    const team = String(formData.get("team") ?? "") as TeamSide;
+
+    if (!challengeId || !userId || (team !== "A" && team !== "B")) {
+      return failure("Yêu cầu không hợp lệ.");
+    }
+
+    const outcome = await db.transaction(async (tx) => {
+      const { challenge, asParticipants } = await loadLocked(tx, challengeId);
+
+      if (challenge.creatorId !== actor.id && !isModerator(actor)) {
+        return { error: "Chỉ người tạo kèo mới xếp lại đội." };
+      }
+      if (challenge.status !== "open" && challenge.status !== "locked") {
+        return { error: "Kèo đã qua giai đoạn xếp đội." };
+      }
+
+      const target = asParticipants.find(
+        (p) => p.userId === userId && (p.status === "accepted" || p.status === "invited"),
+      );
+      if (!target) return { error: "Người này không ở trong kèo." };
+      if (target.team === team) return { error: "Người này đã ở đội đó rồi." };
+
+      const capacity = CHALLENGE_FORMATS[challenge.format].playersPerTeam;
+      const filled = asParticipants.filter(
+        (p) =>
+          p.team === team && (p.status === "accepted" || p.status === "invited"),
+      ).length;
+      if (filled >= capacity) return { error: `Đội ${team} đã đủ người.` };
+
+      await tx
+        .update(challengeParticipants)
+        .set({ team })
+        .where(
+          and(
+            eq(challengeParticipants.challengeId, challengeId),
+            eq(challengeParticipants.userId, userId),
+          ),
+        );
+
+      await audit(tx, {
+        actorId: actor.id,
+        action: "challenge.move_team",
+        targetType: "challenge",
+        targetId: challengeId,
+        metadata: { userId, from: target.team, to: team },
+      });
+
+      return {};
+    });
+
+    if ("error" in outcome && outcome.error) return failure(outcome.error);
+
+    revalidateChallenge(challengeId);
+    return success("Đã xếp lại đội.");
+  });
+}

@@ -1,0 +1,309 @@
+@import "tailwindcss";
+
+/* ==================================================================
+   LIGHT HUMAN — HỆ MÀU
+   ------------------------------------------------------------------
+   Lấy từ logo: navy #001A4A (chữ) + gradient gold (biểu tượng).
+
+   LƯU Ý QUAN TRỌNG VỀ THANG `ink`:
+   Thang này ĐẢO so với quy ước thông thường — số CÀNG LỚN thì CÀNG SÁNG:
+
+     ink-950  = nền trang (sáng nhất)
+     ink-900  = mặt thẻ
+     ink-800  = đường viền
+     ink-500  = chữ phụ
+     ink-100  = chữ tiêu đề (tối nhất, chính là navy thương hiệu)
+
+   Sở dĩ giữ cách đặt tên ngược này vì ~40 file đang dùng nó.
+   Khi thêm code mới: nhớ ink số lớn = sáng, số nhỏ = tối.
+   ================================================================== */
+
+@theme {
+  /* --- Navy thương hiệu --- */
+  --color-navy-950: #000d26;
+  --color-navy-900: #001a4a;
+  --color-navy-800: #052a63;
+  --color-navy-700: #0d3f8a;
+  --color-navy-600: #1656ac;
+  --color-navy-100: #e6ecf6;
+  --color-navy-50: #f2f5fb;
+
+  /* --- Gold thương hiệu --- */
+  --color-gold-50: #fdf9ee;
+  --color-gold-100: #faf0d3;
+  --color-gold-200: #f3dfa4;
+  --color-gold-300: #e8c56a;
+  --color-gold-400: #dcae42;
+  --color-gold-500: #c8951a;
+  --color-gold-600: #a87813;
+  --color-gold-700: #855c12;
+
+  /* --- Thang trung tính (ĐẢO: số lớn = sáng) --- */
+  --color-ink-950: #f6f8fc; /* nền trang */
+  --color-ink-900: #ffffff; /* mặt thẻ */
+  --color-ink-850: #f1f4fa; /* nền ô nhập, vùng chìm */
+  --color-ink-800: #e4e9f2; /* viền */
+  --color-ink-700: #ccd5e4; /* viền đậm / hover */
+  --color-ink-600: #9aa6bb; /* icon mờ, chữ vô hiệu */
+  --color-ink-500: #69768d; /* chữ phụ      – 4.7:1 trên trắng */
+  --color-ink-400: #4c5a72; /* chữ thứ cấp  – 7.4:1 */
+  --color-ink-300: #33415a; /* chữ nội dung – 10.8:1 */
+  --color-ink-200: #1b2942; /* chữ đậm */
+  --color-ink-100: #001a4a; /* tiêu đề = navy thương hiệu */
+
+  /* --- Điểm nhấn.
+         `lime-glow` là tên cũ từ theme tối, nay ánh xạ sang gold.
+         Dùng mức 600 để chữ vàng trên nền trắng vẫn đạt 4.8:1. --- */
+  --color-lime-glow: #a87813;
+  --color-lime-deep: #855c12;
+
+  /* --- Chữ --- */
+  --font-sans:
+    var(--font-be-vietnam), ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-display:
+    var(--font-playfair), ui-serif, Georgia, Cambria, "Times New Roman", serif;
+
+  /* --- Bo góc --- */
+  --radius-xl2: 1.25rem;
+
+  /* --- Đổ bóng ám sắc navy, không dùng đen thuần --- */
+  --shadow-soft: 0 1px 2px rgba(0, 26, 74, 0.04);
+  --shadow-card:
+    0 1px 2px rgba(0, 26, 74, 0.04), 0 10px 28px -12px rgba(0, 26, 74, 0.1);
+  --shadow-lift:
+    0 2px 4px rgba(0, 26, 74, 0.05), 0 18px 40px -16px rgba(0, 26, 74, 0.18);
+  --shadow-pop: 0 20px 50px -18px rgba(0, 26, 74, 0.28);
+
+  /* --- Thang z-index, tránh số 9999 tuỳ hứng --- */
+  --z-base: 1;
+  --z-sticky: 30;
+  --z-nav: 40;
+  --z-overlay: 50;
+  --z-toast: 60;
+}
+
+:root {
+  color-scheme: light;
+  scroll-behavior: smooth;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background-color: var(--color-ink-950);
+  /* Ánh sáng ấm rất nhẹ phía trên, gợi lại gradient của logo. */
+  background-image:
+    radial-gradient(
+      ellipse 70% 40% at 50% -5%,
+      rgba(200, 149, 26, 0.09),
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse 50% 40% at 95% 5%,
+      rgba(0, 26, 74, 0.025),
+      transparent 70%
+    );
+  color: var(--color-ink-300);
+  font-family: var(--font-sans);
+  font-feature-settings: "cv02", "cv03";
+  min-height: 100dvh;
+  padding-bottom: env(safe-area-inset-bottom);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Lớp nhiễu rất mảnh phá cảm giác phẳng lì của màu đặc. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.03;
+  /* Tach thanh lop rieng de cuon khong phai ve lai. */
+  will-change: transform;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 240 240' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Kiểu chữ nền.
+   BẮT BUỘC nằm trong @layer base: CSS không phân lớp sẽ thắng utility
+   của Tailwind, khiến những chỗ như "text-white" trên nền tối bị màu
+   tiêu đề mặc định đè mất. */
+@layer base {
+  h1,
+  h2,
+  h3 {
+    color: var(--color-ink-100);
+    text-wrap: balance;
+  }
+
+  h1 {
+    letter-spacing: -0.025em;
+  }
+
+  h2,
+  h3 {
+    letter-spacing: -0.015em;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+}
+
+/* Số liệu (tỉ số, thống kê) dùng chữ số đều bề ngang. */
+.tabular {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+/* Chữ gold chuyển sắc — chỉ dùng cho chữ lớn, không dùng cho body. */
+.text-gradient-gold {
+  background: linear-gradient(
+    135deg,
+    var(--color-gold-300) 0%,
+    var(--color-gold-500) 45%,
+    var(--color-gold-600) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.bg-gradient-gold {
+  background: linear-gradient(
+    135deg,
+    var(--color-gold-300) 0%,
+    var(--color-gold-500) 55%,
+    var(--color-gold-600) 100%
+  );
+}
+
+.bg-gradient-navy {
+  background: linear-gradient(
+    135deg,
+    var(--color-navy-800) 0%,
+    var(--color-navy-900) 60%,
+    var(--color-navy-950) 100%
+  );
+}
+
+::selection {
+  background: var(--color-gold-200);
+  color: var(--color-navy-900);
+}
+
+/* Vòng focus thống nhất toàn app — yêu cầu tiếp cận, không phải tuỳ chọn. */
+:focus-visible {
+  outline: 2px solid var(--color-gold-500);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Link "bỏ qua tới nội dung" cho người dùng bàn phím. */
+.skip-link {
+  position: absolute;
+  left: 50%;
+  top: 0.5rem;
+  z-index: var(--z-toast);
+  translate: -50% -200%;
+  border-radius: 0.75rem;
+  background: var(--color-navy-900);
+  padding: 0.6rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #fff;
+  transition: translate 180ms ease;
+}
+.skip-link:focus {
+  translate: -50% 0;
+}
+
+/* Ẩn nút tăng giảm của input number. */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+/* Icon lịch: nền sáng nên KHÔNG đảo màu (theme tối cũ có invert, đã bỏ). */
+input[type="datetime-local"]::-webkit-calendar-picker-indicator,
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator {
+  opacity: 0.55;
+  cursor: pointer;
+  transition: opacity 150ms ease;
+}
+input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover,
+input[type="date"]::-webkit-calendar-picker-indicator:hover,
+input[type="time"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
+/* Thanh cuộn mảnh, ám sắc navy. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-ink-700) transparent;
+}
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--color-ink-700);
+  border: 3px solid transparent;
+  background-clip: content-box;
+  border-radius: 999px;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--color-ink-600);
+  background-clip: content-box;
+}
+
+/* Ẩn thanh cuộn ngang ở dải lọc/chip. */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Xuất hiện dần theo bậc — dùng cho danh sách thẻ. */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.animate-rise {
+  animation: rise 520ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

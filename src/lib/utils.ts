@@ -1,0 +1,158 @@
+import { clsx, type ClassValue } from "clsx";
+import { twMerge } from "tailwind-merge";
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
+
+/* ------------------------------------------------------------------ */
+/* Ngay gio                                                            */
+/* ------------------------------------------------------------------ */
+
+const TIME_ZONE = process.env.NEXT_PUBLIC_TIME_ZONE || "Asia/Ho_Chi_Minh";
+
+const WEEKDAYS = [
+  "Chủ nhật",
+  "Thứ 2",
+  "Thứ 3",
+  "Thứ 4",
+  "Thứ 5",
+  "Thứ 6",
+  "Thứ 7",
+];
+
+function parts(date: Date) {
+  const fmt = new Intl.DateTimeFormat("vi-VN", {
+    timeZone: TIME_ZONE,
+    weekday: "short",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+  const map: Record<string, string> = {};
+  for (const p of fmt.formatToParts(date)) map[p.type] = p.value;
+  return map;
+}
+
+/** "Thứ 7, 19/09 • 19:00" */
+export function formatDateTime(date: Date | string | null): string {
+  if (!date) return "Chưa xác định";
+  const d = typeof date === "string" ? new Date(date) : date;
+  if (Number.isNaN(d.getTime())) return "Chưa xác định";
+  const p = parts(d);
+  const weekday = WEEKDAYS[dayIndexInZone(d)];
+  return `${weekday}, ${p.day}/${p.month} • ${p.hour}:${p.minute}`;
+}
+
+/** "19/09/2026" */
+export function formatDate(date: Date | string | null): string {
+  if (!date) return "—";
+  const d = typeof date === "string" ? new Date(date) : date;
+  if (Number.isNaN(d.getTime())) return "—";
+  const p = parts(d);
+  return `${p.day}/${p.month}/${p.year}`;
+}
+
+/** "19:00" */
+export function formatTime(date: Date | string | null): string {
+  if (!date) return "—";
+  const d = typeof date === "string" ? new Date(date) : date;
+  if (Number.isNaN(d.getTime())) return "—";
+  const p = parts(d);
+  return `${p.hour}:${p.minute}`;
+}
+
+function dayIndexInZone(date: Date): number {
+  const weekday = new Intl.DateTimeFormat("en-US", {
+    timeZone: TIME_ZONE,
+    weekday: "short",
+  }).format(date);
+  return ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].indexOf(weekday);
+}
+
+/** "3 phút trước", "2 ngày trước", "vừa xong" */
+export function timeAgo(date: Date | string): string {
+  const d = typeof date === "string" ? new Date(date) : date;
+  const diffMs = Date.now() - d.getTime();
+  const sec = Math.round(diffMs / 1000);
+
+  if (sec < 45) return "vừa xong";
+  if (sec < 90) return "1 phút trước";
+  const min = Math.round(sec / 60);
+  if (min < 60) return `${min} phút trước`;
+  const hour = Math.round(min / 60);
+  if (hour < 24) return `${hour} giờ trước`;
+  const day = Math.round(hour / 24);
+  if (day < 30) return `${day} ngày trước`;
+  const month = Math.round(day / 30);
+  if (month < 12) return `${month} tháng trước`;
+  return `${Math.round(month / 12)} năm trước`;
+}
+
+/** Khoảng cách tới tương lai: "còn 2 ngày", "đã qua" */
+export function timeUntil(date: Date | string): string {
+  const d = typeof date === "string" ? new Date(date) : date;
+  const diffMs = d.getTime() - Date.now();
+  if (diffMs <= 0) return "đã qua";
+  const min = Math.round(diffMs / 60000);
+  if (min < 60) return `còn ${min} phút`;
+  const hour = Math.round(min / 60);
+  if (hour < 24) return `còn ${hour} giờ`;
+  const day = Math.round(hour / 24);
+  return `còn ${day} ngày`;
+}
+
+/** Giá trị cho input type="datetime-local" (giờ địa phương). */
+export function toDateTimeLocalValue(date: Date): string {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(
+    date.getDate(),
+  )}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+/* ------------------------------------------------------------------ */
+/* Khac                                                                */
+/* ------------------------------------------------------------------ */
+
+export function formatVnd(amount: number | null): string {
+  if (amount === null || amount === undefined) return "—";
+  return `${amount.toLocaleString("vi-VN")}đ`;
+}
+
+export function initials(name: string): string {
+  const words = name.trim().split(/\s+/).filter(Boolean);
+  if (words.length === 0) return "?";
+  if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
+  return (words[0][0] + words[words.length - 1][0]).toUpperCase();
+}
+
+/** Màu nền avatar ổn định theo id, để mỗi người luôn cùng một màu. */
+export function avatarColor(seed: string): string {
+  const palette = [
+    "bg-rose-500",
+    "bg-orange-500",
+    "bg-amber-500",
+    "bg-lime-600",
+    "bg-emerald-500",
+    "bg-teal-500",
+    "bg-sky-500",
+    "bg-indigo-500",
+    "bg-violet-500",
+    "bg-fuchsia-500",
+  ];
+  let hash = 0;
+  for (let i = 0; i < seed.length; i++) {
+    hash = (hash * 31 + seed.charCodeAt(i)) >>> 0;
+  }
+  return palette[hash % palette.length];
+}
+
+/** Ghép danh sách tên kiểu tiếng Việt: "A, B và C". */
+export function joinNames(names: string[]): string {
+  if (names.length === 0) return "—";
+  if (names.length === 1) return names[0];
+  return `${names.slice(0, -1).join(", ")} và ${names[names.length - 1]}`;
+}
