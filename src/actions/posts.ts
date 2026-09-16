@@ -25,7 +25,7 @@ import {
 import { failure, runAction, success, type ActionState } from "./types";
 
 function revalidateFeed() {
-  revalidatePath("/");
+  revalidatePath("/bang-tin");
 }
 
 /** Cắt ngắn để nhét vào tiêu đề thông báo. */
@@ -123,7 +123,7 @@ export async function createPostAction(
             type: "post_mention" as const,
             title: `📢 ${actor.fullName} có thông báo`,
             message: excerpt(input.content, 120),
-            href: "/",
+            href: "/bang-tin",
           })),
         );
       }
@@ -265,7 +265,7 @@ export async function createCommentAction(
         type: "post_comment",
         title: `${actor.fullName} bình luận bài của bạn`,
         message: excerpt(content),
-        href: "/",
+        href: "/bang-tin",
       });
     });
 
@@ -404,7 +404,7 @@ export async function toggleReactionAction(
             type: "post_reaction",
             title: `${actor.fullName} đã thả ${REACTIONS[type as ReactionKey].icon} bài của bạn`,
             message: excerpt(post.content),
-            href: "/",
+            href: "/bang-tin",
           });
         }
       }

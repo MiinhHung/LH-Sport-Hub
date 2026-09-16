@@ -25,7 +25,7 @@ type Item = {
 function useItems(unread: number): Item[] {
   return [
     {
-      href: "/",
+      href: "/bang-tin",
       label: "Bảng tin",
       short: "Tin",
       icon: <Newspaper className="size-[18px]" strokeWidth={2} />,

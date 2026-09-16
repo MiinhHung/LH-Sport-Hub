@@ -24,7 +24,7 @@ export default async function AppLayout({
       <header className="sticky top-0 z-30 border-b border-ink-800 bg-ink-950/90 backdrop-blur-md">
         <div className="mx-auto flex h-16 max-w-6xl items-center gap-3 px-4 sm:gap-5">
           <Link
-            href="/"
+            href="/bang-tin"
             aria-label="Light Human Sport Hub — về bảng tin"
             className="group flex shrink-0 items-center gap-2.5"
           >

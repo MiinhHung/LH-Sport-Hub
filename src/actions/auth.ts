@@ -43,7 +43,7 @@ export async function signInAction(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  let target = "/";
+  let target = "/bang-tin";
 
   const result = await runAction(async () => {
     const parsed = signInSchema.safeParse(formDataToObject(formData));
@@ -110,7 +110,7 @@ export async function signUpAction(
     return success();
   });
 
-  if (shouldRedirect) redirect("/");
+  if (shouldRedirect) redirect("/bang-tin");
   return result;
 }
 

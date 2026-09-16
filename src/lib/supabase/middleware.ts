@@ -3,8 +3,14 @@ import { NextResponse, type NextRequest } from "next/server";
 
 import { publicEnv } from "@/lib/env";
 
-/** Đường dẫn không cần đăng nhập. */
-const PUBLIC_PATHS = ["/dang-nhap", "/dang-ky", "/auth", "/api/cron"];
+/**
+ * Đường dẫn không cần đăng nhập.
+ *
+ * "/" là trang giới thiệu công khai. Nó chỉ khớp tuyệt đối — `isPublicPath`
+ * so `pathname === p`, còn nhánh `startsWith(`${p}/`)` với p="/" sẽ là
+ * "//" nên không bao giờ khớp. Nhờ vậy mở "/" không vô tình mở cả app.
+ */
+const PUBLIC_PATHS = ["/", "/dang-nhap", "/dang-ky", "/auth", "/api/cron"];
 
 function isPublicPath(pathname: string) {
   return PUBLIC_PATHS.some(
@@ -63,7 +69,7 @@ export async function updateSession(request: NextRequest) {
 
   if (user && (pathname === "/dang-nhap" || pathname === "/dang-ky")) {
     const url = request.nextUrl.clone();
-    url.pathname = "/";
+    url.pathname = "/bang-tin";
     url.search = "";
     return NextResponse.redirect(url);
   }
