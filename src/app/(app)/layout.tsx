@@ -1,9 +1,11 @@
+import { MessagesSquare } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
 import { BottomNav, TopNav } from "@/components/nav";
 import { UserMenu } from "@/components/user-menu";
 import { requireProfile } from "@/lib/auth";
+import { unreadConversationCount } from "@/lib/chat";
 import { unreadCount } from "@/lib/notifications";
 
 export default async function AppLayout({
@@ -12,7 +14,10 @@ export default async function AppLayout({
   children: React.ReactNode;
 }) {
   const profile = await requireProfile();
-  const unread = await unreadCount(profile.id);
+  const [unread, unreadMessages] = await Promise.all([
+    unreadCount(profile.id),
+    unreadConversationCount(profile.id),
+  ]);
 
   return (
     <div className="relative isolate flex min-h-dvh flex-col">
@@ -47,6 +52,23 @@ export default async function AppLayout({
           <div className="flex-1">
             <TopNav unread={unread} />
           </div>
+
+          {/* Tin nhắn riêng nằm ở thanh trên thay vì thanh điều hướng —
+              thanh dưới trên điện thoại đã đủ 5 mục. */}
+          <Link
+            href="/tin-nhan"
+            aria-label={
+              unreadMessages > 0
+                ? `Tin nhắn — ${unreadMessages} cuộc chưa đọc`
+                : "Tin nhắn"
+            }
+            className="relative grid size-9 shrink-0 place-items-center rounded-xl text-ink-500 transition-colors hover:bg-ink-850 hover:text-navy-900"
+          >
+            <MessagesSquare className="size-[18px]" strokeWidth={2} />
+            {unreadMessages > 0 && (
+              <span className="absolute top-1 right-1 size-2.5 rounded-full bg-gold-500 ring-2 ring-ink-950" />
+            )}
+          </Link>
 
           <UserMenu
             id={profile.id}

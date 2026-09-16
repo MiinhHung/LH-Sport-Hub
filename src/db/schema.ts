@@ -535,6 +535,69 @@ export const reactions = pgTable(
 );
 
 /* ================================================================== */
+/* NHAN TIN RIENG (1-1)                                               */
+/* ================================================================== */
+
+/**
+ * Cuộc trò chuyện giữa ĐÚNG hai người.
+ *
+ * Quy ước: userAId luôn nhỏ hơn userBId khi so chuỗi. Nhờ vậy mỗi cặp
+ * chỉ có đúng một hàng, và tìm cuộc trò chuyện chỉ cần một lần so khớp
+ * thay vì phải kiểm tra cả hai chiều.
+ *
+ * Muốn chat nhóm sau này thì cần bảng participants riêng — đổi lúc đó,
+ * còn bây giờ giữ đơn giản cho đúng nhu cầu.
+ */
+export const conversations = pgTable(
+  "conversations",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userAId: uuid("user_a_id")
+      .notNull()
+      .references(() => profiles.id, { onDelete: "cascade" }),
+    userBId: uuid("user_b_id")
+      .notNull()
+      .references(() => profiles.id, { onDelete: "cascade" }),
+    /** Mốc để xếp danh sách, khỏi phải join bảng messages mỗi lần đọc. */
+    lastMessageAt: timestamp("last_message_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    lastMessagePreview: text("last_message_preview"),
+    lastSenderId: uuid("last_sender_id"),
+    /** Mỗi người tự nhớ đã đọc tới đâu. */
+    readAtA: timestamp("read_at_a", { withTimezone: true }),
+    readAtB: timestamp("read_at_b", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("conversations_pair_unique").on(t.userAId, t.userBId),
+    index("conversations_user_a_idx").on(t.userAId, t.lastMessageAt),
+    index("conversations_user_b_idx").on(t.userBId, t.lastMessageAt),
+  ],
+);
+
+export const messages = pgTable(
+  "messages",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    conversationId: uuid("conversation_id")
+      .notNull()
+      .references(() => conversations.id, { onDelete: "cascade" }),
+    senderId: uuid("sender_id")
+      .notNull()
+      .references(() => profiles.id, { onDelete: "cascade" }),
+    content: text("content").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    deletedAt: timestamp("deleted_at", { withTimezone: true }),
+  },
+  (t) => [index("messages_conversation_idx").on(t.conversationId, t.createdAt)],
+);
+
+/* ================================================================== */
 /* THONG BAO & AUDIT                                                  */
 /* ================================================================== */
 
@@ -720,6 +783,34 @@ export const reactionsRelations = relations(reactions, ({ one }) => ({
   }),
 }));
 
+export const conversationsRelations = relations(
+  conversations,
+  ({ one, many }) => ({
+    userA: one(profiles, {
+      fields: [conversations.userAId],
+      references: [profiles.id],
+      relationName: "conversationUserA",
+    }),
+    userB: one(profiles, {
+      fields: [conversations.userBId],
+      references: [profiles.id],
+      relationName: "conversationUserB",
+    }),
+    messages: many(messages),
+  }),
+);
+
+export const messagesRelations = relations(messages, ({ one }) => ({
+  conversation: one(conversations, {
+    fields: [messages.conversationId],
+    references: [conversations.id],
+  }),
+  sender: one(profiles, {
+    fields: [messages.senderId],
+    references: [profiles.id],
+  }),
+}));
+
 export const notificationsRelations = relations(notifications, ({ one }) => ({
   recipient: one(profiles, {
     fields: [notifications.recipientId],
@@ -748,3 +839,5 @@ export type Post = typeof posts.$inferSelect;
 export type PostMedia = typeof postMedia.$inferSelect;
 export type Comment = typeof comments.$inferSelect;
 export type Reaction = typeof reactions.$inferSelect;
+export type Conversation = typeof conversations.$inferSelect;
+export type Message = typeof messages.$inferSelect;

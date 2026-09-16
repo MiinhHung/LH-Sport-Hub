@@ -1,6 +1,7 @@
 import { Users } from "lucide-react";
 import type { Metadata } from "next";
 
+import { StartChatButton } from "@/components/chat/start-chat";
 import {
   Avatar,
   Badge,
@@ -107,6 +108,12 @@ export default async function MembersPage() {
                     </dd>
                   </div>
                 </dl>
+
+                {!isMe && (
+                  <div className="mt-3">
+                    <StartChatButton partnerId={m.id} className="w-full [&_button]:w-full" />
+                  </div>
+                )}
               </Card>
             );
           })}
