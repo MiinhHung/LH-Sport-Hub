@@ -337,18 +337,6 @@ export const cancelChallengeSchema = z.object({
 });
 
 /* ------------------------------------------------------------------ */
-/* So no                                                               */
-/* ------------------------------------------------------------------ */
-
-export const markDebtPaidSchema = z.object({
-  debtId: uuidField,
-});
-
-export const confirmDebtSchema = z.object({
-  debtId: uuidField,
-});
-
-/* ------------------------------------------------------------------ */
 /* Bang tin                                                            */
 /* ------------------------------------------------------------------ */
 

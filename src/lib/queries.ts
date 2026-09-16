@@ -33,7 +33,6 @@ const challengeWith = {
     orderBy: [asc(challengeParticipants.team), asc(challengeParticipants.joinedAt)] as any,
   },
   result: true as const,
-  debt: true as const,
 } as const;
 
 export type ChallengeDetail = NonNullable<
@@ -53,7 +52,6 @@ export async function getChallengeDetail(id: string) {
         orderBy: (p: any, { asc }: any) => [asc(p.team), asc(p.joinedAt)],
       },
       result: true,
-      debt: true,
     },
   });
 }
@@ -125,7 +123,6 @@ export async function listChallenges({
         orderBy: (p: any, { asc }: any) => [asc(p.team), asc(p.joinedAt)],
       },
       result: true,
-      debt: true,
     },
     orderBy: [desc(challenges.createdAt)],
     limit,
@@ -160,7 +157,6 @@ export async function getMyTodos(userId: string) {
         orderBy: (p: any, { asc }: any) => [asc(p.team), asc(p.joinedAt)],
       },
       result: true,
-      debt: true,
     },
     orderBy: [desc(challenges.updatedAt)],
     limit: 100,
@@ -228,7 +224,6 @@ export async function getSessionDetail(id: string) {
             orderBy: (p: any, { asc }: any) => [asc(p.team), asc(p.joinedAt)],
           },
           result: true,
-          debt: true,
         }
       } 
     },
