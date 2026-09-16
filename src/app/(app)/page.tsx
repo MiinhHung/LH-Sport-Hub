@@ -11,6 +11,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 
+import { CoverArt } from "@/components/handbook/cover-art";
 import { PostCard } from "@/components/feed/post-card";
 import { PostComposer } from "@/components/feed/post-composer";
 import {
@@ -213,6 +214,11 @@ async function SideRail({ viewerId }: { viewerId: string }) {
                 fill
                 sizes="320px"
                 className="object-cover transition-transform duration-700 group-hover:scale-105"
+              />
+            ) : tip.art ? (
+              <CoverArt
+                motif={tip.art}
+                className="transition-transform duration-700 group-hover:scale-105"
               />
             ) : (
               <div className="bg-gradient-navy size-full" />

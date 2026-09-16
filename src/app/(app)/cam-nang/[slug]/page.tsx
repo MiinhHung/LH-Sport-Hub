@@ -5,6 +5,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { ContentBlock } from "@/components/handbook/blocks";
+import { CoverArt } from "@/components/handbook/cover-art";
 import { requireProfile } from "@/lib/auth";
 import { ARTICLES, getArticle } from "@/content/cam-nang";
 
@@ -59,7 +60,7 @@ export default async function ArticlePage({
         </p>
       </header>
 
-      {article.cover && (
+      {article.cover ? (
         <Image
           src={article.cover}
           alt=""
@@ -69,7 +70,11 @@ export default async function ArticlePage({
           sizes="(max-width: 768px) 100vw, 704px"
           className="mt-4 h-auto w-full rounded-2xl object-cover ring-1 ring-ink-800"
         />
-      )}
+      ) : article.art ? (
+        <div className="mt-4 aspect-[16/9] overflow-hidden rounded-2xl ring-1 ring-ink-800">
+          <CoverArt motif={article.art} />
+        </div>
+      ) : null}
 
       <div className="pb-4">
         {article.blocks.map((block, i) => (

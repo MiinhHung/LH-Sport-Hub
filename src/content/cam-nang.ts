@@ -6,6 +6,8 @@
  * Muốn thêm bài thì viết thêm một phần tử vào mảng bên dưới.
  */
 
+import type { CoverMotif } from "@/components/handbook/cover-art";
+
 export type Block =
   | { type: "para"; text: string }
   | { type: "heading"; text: string }
@@ -29,8 +31,10 @@ export type Article = {
   category: "Chuẩn bị" | "Luật" | "Kỹ thuật" | "Trang bị" | "Sức khoẻ";
   /** Số phút đọc, ước lượng. */
   minutes: number;
-  /** Ảnh bìa; để trống thì dùng bìa chữ. */
+  /** Ảnh chụp làm bìa. Ưu tiên cao nhất. */
   cover?: string;
+  /** Bìa vẽ, dùng khi không có ảnh chụp phù hợp. Xem `CoverArt`. */
+  art?: CoverMotif;
   accent: "navy" | "gold" | "sky" | "rose" | "emerald";
   blocks: Block[];
 };
@@ -93,6 +97,7 @@ export const ARTICLES: Article[] = [
       "Năm phút cuối buổi quyết định hôm sau bạn đi lại bình thường hay lết từng bước.",
     category: "Sức khoẻ",
     minutes: 3,
+    art: "pulse",
     accent: "sky",
     blocks: [
       {
@@ -145,6 +150,7 @@ export const ARTICLES: Article[] = [
       "Tính điểm, giao cầu bên nào, khi nào là lỗi. Đủ để chốt kèo mà không phải tra Google giữa trận.",
     category: "Luật",
     minutes: 6,
+    art: "net",
     accent: "navy",
     blocks: [
       {
@@ -370,6 +376,7 @@ export const ARTICLES: Article[] = [
       "Không cần vợt mấy triệu. Nhưng chọn sai thông số thì đánh mỏi tay mà không ăn thua.",
     category: "Trang bị",
     minutes: 5,
+    art: "strings",
     accent: "gold",
     blocks: [
       {
@@ -487,7 +494,457 @@ export const ARTICLES: Article[] = [
       },
     ],
   },
-];
+  /* ---------------------------------------------------------------- */
+  {
+    slug: "di-chuyen",
+    title: "Sáu hướng chân: thứ quyết định bạn đánh được tới đâu",
+    summary:
+      "Đánh không tới cầu thì cú đánh đẹp cỡ nào cũng vô nghĩa. Bước chân mới là phần nâng trình nhanh nhất.",
+    category: "Kỹ thuật",
+    minutes: 6,
+    art: "footwork",
+    accent: "gold",
+    blocks: [
+      {
+        type: "para",
+        text: "Người mới thường nghĩ đánh hay là đập mạnh. Thật ra khoảng cách lớn nhất giữa người đánh vài tháng và người đánh vài năm nằm ở chân. Ai tới cầu sớm thì còn thời gian chọn cú đánh; ai tới trễ thì chỉ còn nước với đại.",
+      },
+      {
+        type: "para",
+        text: "Cả sân cầu lông quy về sáu điểm quanh một vị trí trung tâm: hai góc lưới, hai bên hông, hai góc cuối sân. Tập được sáu đường này là phủ kín sân.",
+      },
+      { type: "heading", text: "Vị trí trung tâm" },
+      {
+        type: "para",
+        text: "Sau mỗi cú đánh, quay về giữa sân, hơi lệch về sau vạch giao cầu ngắn chừng một mét. Chân rộng hơn vai, gối hơi khuỵu, trọng tâm dồn lên nửa bàn chân trước, vợt cầm cao ngang ngực. Đứng thẳng lưng gót chạm đất là đã chậm mất nửa nhịp.",
+      },
+      {
+        type: "note",
+        tone: "tip",
+        text: "Trước khi đối thủ chạm cầu, nhún nhẹ hai chân một cái — gọi là bước nhảy chuẩn bị. Nó không đưa bạn đi đâu cả, nhưng giúp cơ chân sẵn sàng bật theo bất kỳ hướng nào.",
+      },
+      { type: "heading", text: "Sáu đường chân" },
+      {
+        type: "steps",
+        items: [
+          {
+            title: "Hai góc lưới",
+            meta: "Bước đâm",
+            body: "Chân cùng bên tay cầm vợt bước dài lên trước, mũi chân hướng ra góc, gối không vượt quá mũi chân. Vươn vợt ra trước mặt, không phải ngang hông. Đạp chân trước để bật ngược về giữa.",
+          },
+          {
+            title: "Hai bên hông",
+            meta: "Bước ngang",
+            body: "Đây là hướng dễ sai nhất: đa số vặn cả người rồi mới đi. Thay vào đó bước chéo chân, thân giữ hướng ra lưới, tay đánh vươn ngang. Cầu bên trái thì với ngang bằng trái tay, đừng chạy vòng để đánh thuận tay.",
+          },
+          {
+            title: "Hai góc cuối sân",
+            meta: "Bước xoay lùi",
+            body: "Xoay hông mở ra sau, lùi bằng bước chéo hoặc bước nối, để cầu rơi vào phía trước vai đánh chứ đừng để nó rơi thẳng trên đầu. Đánh xong lấy đà chân sau đẩy người về giữa.",
+          },
+        ],
+      },
+      {
+        type: "note",
+        tone: "warn",
+        text: "Đừng bao giờ lùi bằng cách đi giật lùi kiểu bước đều. Gót vướng nhau là ngã ngửa, mà ngã ngửa trong cầu lông rất hay gãy cổ tay vì phản xạ chống tay xuống sàn.",
+      },
+      { type: "heading", text: "Bài tập không cần cầu" },
+      {
+        type: "list",
+        items: [
+          "Chạm sáu góc: đặt sáu vật ở sáu điểm, xuất phát từ giữa, chạm một điểm rồi về giữa, lặp lại. Ba hiệp, mỗi hiệp 30 giây.",
+          "Chỉ tay: nhờ người đứng ở lưới chỉ ngẫu nhiên một hướng, bạn di chuyển theo. Rèn phản xạ đọc hướng.",
+          "Nhảy dây 3 phút trước buổi đánh. Rẻ nhất, hiệu quả nhất cho độ nảy của cổ chân.",
+        ],
+      },
+      {
+        type: "para",
+        text: "Tập chân nghe chán hơn tập đập cầu rất nhiều. Nhưng sau một tháng bạn sẽ thấy mình tự nhiên đỡ được những quả trước đây chỉ biết đứng nhìn.",
+      },
+    ],
+  },
+
+  /* ---------------------------------------------------------------- */
+  {
+    slug: "giao-cau",
+    title: "Giao cầu: quả duy nhất bạn toàn quyền quyết định",
+    summary:
+      "Mỗi ván có hơn hai chục quả giao. Đánh hỏng quả giao là tự cho điểm, không ai ép cả.",
+    category: "Kỹ thuật",
+    minutes: 5,
+    art: "serve",
+    accent: "navy",
+    blocks: [
+      {
+        type: "para",
+        text: "Trong cả trận, giao cầu là tình huống duy nhất không ai gây sức ép cho bạn: cầu nằm yên trong tay, muốn đứng bao lâu cũng được. Vậy mà đây lại là chỗ cho điểm nhiều nhất của người mới.",
+      },
+      { type: "heading", text: "Giao cầu thấp — quả dùng 80% thời gian" },
+      {
+        type: "para",
+        text: "Mục tiêu: cầu bay sát mép trên lưới rồi rơi ngay sau vạch giao cầu ngắn của đối phương. Đối thủ phải vươn lên đỡ ở tầm thấp, không thể đập.",
+      },
+      {
+        type: "steps",
+        items: [
+          {
+            title: "Đứng gần vạch giao cầu ngắn",
+            body: "Chân trước là chân ngược bên tay cầm vợt, mũi chân hướng vào ô cần giao. Trọng tâm dồn chân sau, khi đánh thì chuyển dần ra trước.",
+          },
+          {
+            title: "Thả cầu, đừng tung",
+            body: "Cầm cầu ở phần lông hoặc phần thân, giữ ngang tầm eo, thả rơi tự nhiên. Tung cầu lên là mất kiểm soát ngay.",
+          },
+          {
+            title: "Đẩy bằng cổ tay, không vung tay",
+            body: "Toàn bộ cú đánh là một cái đẩy ngắn từ cẳng tay và cổ tay. Vai gần như đứng yên. Vung cả cánh tay thì cầu bay cao quá lưới, đối thủ đập ngay.",
+          },
+          {
+            title: "Giao xong là vào thế thủ",
+            body: "Đừng đứng ngắm quả giao của mình. Bước lùi nửa bước về tư thế chuẩn bị, vợt cầm cao — quả trả lưới sẽ tới rất nhanh.",
+          },
+        ],
+      },
+      {
+        type: "court",
+        highlight: "service-doubles",
+        caption:
+          "Ô cần rơi vào khi đánh đôi. Nhắm điểm cách vạch giao cầu ngắn chừng 20 cm là vừa đẹp.",
+      },
+      { type: "heading", text: "Giao cầu cao — dành cho đánh đơn" },
+      {
+        type: "para",
+        text: "Đánh mạnh cho cầu bay thật cao và rơi thẳng đứng sát biên cuối sân đối phương. Cầu rơi càng dựng thì đối thủ càng khó đập. Trong đánh đôi hầu như không dùng, vì ô giao cầu ngắn hơn nên đối phương lùi ra đập rất dễ.",
+      },
+      {
+        type: "note",
+        tone: "tip",
+        text: "Đánh đôi mà đối thủ đứng dí sát vạch chờ vồ quả giao thấp? Thỉnh thoảng lùa một quả nhanh và phẳng qua vai họ. Không cần ăn điểm, chỉ cần họ lùi lại nửa bước là quả giao thấp của bạn lại dễ thở.",
+      },
+      { type: "heading", text: "Ba lỗi bị bắt nhiều nhất" },
+      {
+        type: "list",
+        items: [
+          "Cầu cao quá 1,15 m lúc vợt chạm — tương đương ngang xương sườn dưới của phần lớn người Việt.",
+          "Đầu vợt ngóc lên cao hơn tay cầm. Đầu vợt phải chúc xuống thấy rõ.",
+          "Nhấc chân hoặc lê chân trong lúc đánh. Hai chân phải có phần chạm sàn cho tới khi vợt chạm cầu.",
+        ],
+      },
+      {
+        type: "para",
+        text: "Ở sân phong trào ít ai bắt mấy lỗi này, nhưng tập đúng ngay từ đầu thì sau này có đánh giải cũng không phải sửa.",
+      },
+    ],
+  },
+
+  /* ---------------------------------------------------------------- */
+  {
+    slug: "loi-hay-cai",
+    title: "Tám tình huống hay cãi nhau nhất trên sân",
+    summary:
+      "Cầu chạm vạch, chạm người, vợt qua lưới, cùng đội chạm hai lần. Thống nhất trước cho đỡ mất vui.",
+    category: "Luật",
+    minutes: 5,
+    art: "lines",
+    accent: "rose",
+    blocks: [
+      {
+        type: "para",
+        text: "Sân phong trào không có trọng tài, nên luật chỉ hữu ích khi cả hai bên cùng biết. Dưới đây là những chỗ hay lời qua tiếng lại nhất, kèm câu trả lời gọn.",
+      },
+      {
+        type: "steps",
+        items: [
+          {
+            title: "Cầu chạm vạch",
+            meta: "TRONG",
+            body: "Vạch là một phần của sân. Chạm vạch dù chỉ mép ngoài cũng tính trong. Người nhìn rõ nhất là người ở phía cầu rơi, không phải người đánh — thông lệ là bên đỡ gọi.",
+          },
+          {
+            title: "Cầu chạm người hoặc quần áo",
+            meta: "MẤT ĐIỂM",
+            body: "Chạm bất kỳ phần nào của người là bên đó thua pha cầu ngay, kể cả khi cầu rõ ràng đang bay ra ngoài. Đây là chỗ nhiều người tiếc nhất: thấy cầu ra thì tránh ra, đừng lấy người chắn.",
+          },
+          {
+            title: "Vợt chạm lưới",
+            meta: "MẤT ĐIỂM",
+            body: "Người, áo hay vợt chạm lưới khi cầu còn trong cuộc đều là lỗi. Nhưng đà vợt đi qua phía trên lưới sau khi đã đánh trúng cầu bên sân mình thì hợp lệ.",
+          },
+          {
+            title: "Với vợt qua lưới đánh cầu",
+            meta: "TUỲ LÚC",
+            body: "Sang sân đối phương đánh cầu trước khi cầu bay qua là lỗi. Nhưng nếu cầu đã sang sân bạn rồi mới bị xoáy kéo ngược lại, bạn được với qua để đánh, miễn không chạm lưới.",
+          },
+          {
+            title: "Hai người cùng đội cùng chạm",
+            meta: "MẤT ĐIỂM",
+            body: "Một pha cầu mỗi bên chỉ được chạm một lần. Cả hai cùng vụt một quả là lỗi, dù chỉ một người trúng cầu còn người kia chạm nhẹ.",
+          },
+          {
+            title: "Cầu dính vợt rồi mới bay đi",
+            meta: "HỢP LỆ",
+            body: "Cú đánh kéo lê trên mặt vợt trông rất xấu nhưng vẫn hợp lệ, miễn là một động tác liên tục. Chỉ khi cầu dừng hẳn rồi hất tiếp mới là lỗi.",
+          },
+          {
+            title: "Cầu mắc trên lưới hoặc chui qua lưới",
+            meta: "MẤT ĐIỂM",
+            body: "Giao cầu mắc trên mép lưới thì bên giao thua pha đó. Cầu chui dưới lưới hoặc lọt qua lỗ thủng cũng vậy.",
+          },
+          {
+            title: "Cầu chạm trần nhà",
+            meta: "THOẢ THUẬN",
+            body: "Theo luật thì bên đánh thua pha cầu. Nhưng nhiều sân trong nhà ở Việt Nam trần thấp nên có lệ đánh lại. Cứ hỏi trước khi vào ván đầu.",
+          },
+        ],
+      },
+      {
+        type: "note",
+        tone: "tip",
+        text: "Không ai nhìn rõ thì đánh lại. Đây không phải luật, mà là cách giữ cho buổi đánh còn vui. Không pha cầu nào đáng để mất lòng nhau.",
+      },
+      { type: "heading", text: "Vài chi tiết ít người biết" },
+      {
+        type: "list",
+        items: [
+          "Đánh đôi, khi đang giao cầu thì người nhận là người đứng ô chéo; hai người còn lại đứng đâu cũng được, miễn không che tầm nhìn.",
+          "Ở ván thứ ba, đổi sân khi một bên chạm 11 điểm.",
+          "Đánh đôi thắng pha cầu thì hai người tự đổi ô cho nhau, đối phương giữ nguyên vị trí.",
+          "Được nghỉ 60 giây khi một bên tới 11 điểm, và 120 giây giữa các ván.",
+        ],
+      },
+    ],
+  },
+
+  /* ---------------------------------------------------------------- */
+  {
+    slug: "chon-giay",
+    title: "Giày cầu lông: món đáng tiền nhất trong túi đồ",
+    summary:
+      "Đi giày chạy bộ vào sân cầu là lý do số một của những cái cổ chân lật. Nâng cấp giày trước khi nâng cấp vợt.",
+    category: "Trang bị",
+    minutes: 4,
+    art: "sole",
+    accent: "emerald",
+    blocks: [
+      {
+        type: "para",
+        text: "Hỏi mười người mới chơi thì chín người tính đổi vợt xịn hơn. Nhưng nếu chỉ được nâng cấp một món, hãy nâng cấp giày. Vợt sai chỉ làm cầu bay không như ý; giày sai làm bạn nghỉ đánh hai tháng.",
+      },
+      { type: "heading", text: "Vì sao giày chạy bộ lại nguy hiểm" },
+      {
+        type: "para",
+        text: "Giày chạy bộ được thiết kế cho chuyển động một chiều về trước, nên đế rất dày và mềm để giảm sốc. Cầu lông thì gần như không chạy thẳng: toàn dừng gấp, đạp ngang, xoay người. Đế cao và mềm khiến bàn chân bập bênh, và khi bạn đạp ngang mạnh thì cổ chân lật trước khi đế kịp bám.",
+      },
+      {
+        type: "facts",
+        items: [
+          { label: "Đế giày cầu", value: "Cao su gum" },
+          { label: "Độ cao đế", value: "Thấp, sát sàn" },
+          { label: "Gia cố", value: "Hai bên hông" },
+          { label: "Tuổi thọ", value: "Khoảng 1 năm" },
+        ],
+      },
+      { type: "heading", text: "Bốn thứ cần kiểm tra khi mua" },
+      {
+        type: "steps",
+        items: [
+          {
+            title: "Đế cao su gum",
+            body: "Loại cao su vàng nâu trong mờ, bám rất tốt trên sàn gỗ và thảm PU. Đế đen của giày thể thao thường vừa trơn vừa để lại vệt đen trên sàn, nhiều sân cấm.",
+          },
+          {
+            title: "Đế thấp, ôm sàn",
+            body: "Càng sát sàn càng khó lật cổ chân. Đứng thử thấy mình hơi thấp xuống so với giày thường là đúng.",
+          },
+          {
+            title: "Gia cố hai bên hông",
+            body: "Bóp thử phần hông giày, phải thấy cứng chứ không mềm oặt. Đây là phần chống đỡ khi bạn đạp ngang.",
+          },
+          {
+            title: "Đệm ở gót và mũi",
+            body: "Cầu lông tiếp đất bằng gót rất nhiều, còn bước đâm lên lưới thì dồn hết vào mũi. Hai chỗ này cần đệm dày.",
+          },
+        ],
+      },
+      {
+        type: "note",
+        tone: "tip",
+        text: "Thử giày vào buổi tối, đi kèm đôi tất bạn hay dùng khi đánh. Chân cuối ngày nở hơn sáng, mua vừa lúc sáng thì tối đi chật.",
+      },
+      { type: "heading", text: "Khi nào phải thay" },
+      {
+        type: "list",
+        items: [
+          "Nhìn nghiêng thấy rãnh đế đã mòn nhẵn — hết bám, trượt lúc dừng gấp.",
+          "Đặt giày lên bàn phẳng thấy nó nghiêng sang một bên.",
+          "Bóp hông giày thấy mềm oặt so với lúc mới.",
+          "Đánh xong thấy đau gót hoặc đau lòng bàn chân mà trước không bị.",
+        ],
+      },
+      {
+        type: "para",
+        text: "Đánh mỗi tuần một buổi thì một đôi dùng được khoảng một năm. Đừng đợi tới lúc đế rách mới thay — phần đệm chết trước khi đế rách, mà chính phần đệm mới là thứ bảo vệ đầu gối.",
+      },
+    ],
+  },
+
+  /* ---------------------------------------------------------------- */
+  {
+    slug: "danh-toi-sau-gio-lam",
+    title: "Đánh tối sau giờ làm: ăn gì, uống bao nhiêu, thở thế nào",
+    summary:
+      "Ngồi bàn phím tám tiếng rồi vào sân đánh hai tiếng là một cú sốc cho cơ thể. Có cách làm nó dễ chịu hơn.",
+    category: "Sức khoẻ",
+    minutes: 5,
+    art: "night",
+    accent: "sky",
+    blocks: [
+      {
+        type: "para",
+        text: "Buổi đánh của team thường rơi vào tối, sau một ngày ngồi bàn. Đây là kiểu vận động khó nhất cho cơ thể: hông cứng vì ngồi lâu, bụng thì hoặc quá đói hoặc quá no, và đầu vẫn còn căng chuyện công việc.",
+      },
+      { type: "heading", text: "Ăn" },
+      {
+        type: "list",
+        items: [
+          "Bữa chính nên xong trước giờ đánh 2–3 tiếng. Vào sân với bụng đầy là xóc bụng và nặng chân.",
+          "Nếu bữa trưa đã lâu, ăn nhẹ trước 30–60 phút: một quả chuối, ổ bánh mì không, hộp sữa. Đủ đường để không tụt sức giữa ván.",
+          "Tránh đồ chiên rán ngay trước khi đánh — tiêu hoá chậm, dễ đau bụng.",
+          "Sau buổi đánh, ăn gì đó có đạm trong vòng một tiếng. Bữa khuya của team hoàn toàn chính đáng về mặt khoa học.",
+        ],
+      },
+      { type: "heading", text: "Uống" },
+      {
+        type: "para",
+        text: "Sai lầm phổ biến là chỉ uống khi thấy khát. Lúc thấy khát thì cơ thể đã thiếu nước một lúc rồi, mà biểu hiện đầu tiên của thiếu nước không phải khát — là chân nặng và phản xạ chậm.",
+      },
+      {
+        type: "facts",
+        items: [
+          { label: "Trước 2 tiếng", value: "400–500 ml" },
+          { label: "Trong lúc đánh", value: "150 ml mỗi 15 phút" },
+          { label: "Buổi trên 90 phút", value: "Thêm điện giải" },
+          { label: "Sau khi đánh", value: "Uống tới khi hết khát" },
+        ],
+      },
+      {
+        type: "note",
+        tone: "warn",
+        text: "Nước ngọt có ga và cà phê không thay được nước lọc trong lúc đánh. Bia sau trận thì tuỳ bạn, nhưng uống một cốc nước lọc trước đã.",
+      },
+      { type: "heading", text: "Gỡ cái lưng đã ngồi cả ngày" },
+      {
+        type: "para",
+        text: "Ngồi tám tiếng khiến cơ gập hông co ngắn và cơ mông gần như ngủ quên. Vào sân đánh ngay thì phần việc của mông bị lưng dưới gánh hộ, và đó là lý do nhiều người đau thắt lưng sau buổi đánh chứ không phải do đánh sai kỹ thuật.",
+      },
+      {
+        type: "steps",
+        items: [
+          {
+            title: "Mở hông",
+            meta: "1 phút",
+            body: "Quỳ một chân, chân kia chống trước, đẩy hông về trước tới khi thấy căng mặt trước đùi chân quỳ. Giữ 30 giây mỗi bên.",
+          },
+          {
+            title: "Đánh thức cơ mông",
+            meta: "1 phút",
+            body: "Nằm ngửa gập gối, nâng hông lên tạo đường thẳng vai–hông–gối, siết mông ở đỉnh. Mười lăm cái.",
+          },
+          {
+            title: "Mở ngực và vai",
+            meta: "1 phút",
+            body: "Chống tay vào khung cửa hoặc tường, xoay người ra xa để căng ngực. Ngồi gõ phím cả ngày làm vai cuộn vào trong, ảnh hưởng trực tiếp tới tầm vung tay khi đập cầu.",
+          },
+        ],
+      },
+      { type: "heading", text: "Thở" },
+      {
+        type: "para",
+        text: "Giữa các pha cầu, thở bằng bụng chứ đừng thở gấp bằng ngực: hít vào bằng mũi thấy bụng phình ra, thở ra bằng miệng dài hơn nhịp hít. Hai ba nhịp như vậy trong lúc nhặt cầu hồi sức nhanh hơn hẳn việc đứng thở hồng hộc.",
+      },
+      {
+        type: "note",
+        tone: "tip",
+        text: "Đánh tối xong khó ngủ là chuyện thường: nhịp tim và thân nhiệt còn cao. Tắm nước ấm, tránh màn hình sáng, và đừng uống cà phê sau buổi chiều nếu tối có lịch đánh.",
+      },
+    ],
+  },
+
+  /* ---------------------------------------------------------------- */
+  {
+    slug: "phep-lich-su-san",
+    title: "Luật bất thành văn ở sân",
+    summary:
+      "Những thứ không có trong quyển luật nhưng quyết định người ta có muốn rủ bạn đánh tuần sau hay không.",
+    category: "Chuẩn bị",
+    minutes: 4,
+    art: "shuttle",
+    accent: "gold",
+    blocks: [
+      {
+        type: "para",
+        text: "Luật thi đấu nói cho bạn biết pha cầu đó ai được điểm. Nhưng thứ quyết định một buổi đánh vui hay nhạt lại nằm ngoài quyển luật. Team mình 19 người, xoay tua nhau trên vài sân, nên mấy chuyện dưới đây đáng nói rõ một lần.",
+      },
+      { type: "heading", text: "Trước buổi đánh" },
+      {
+        type: "list",
+        items: [
+          "Xác nhận đi hay không trước, đừng để người đặt sân phải đoán. Sân đã đặt mà thiếu người thì phần tiền đó ai đó phải gánh.",
+          "Bận đột xuất thì báo sớm nhất có thể, kèm một câu xin lỗi là đủ. Báo trước hai tiếng khác hẳn với im lặng rồi không tới.",
+          "Tới sớm 10 phút để còn thay đồ và khởi động, thay vì vào sân là đánh luôn.",
+        ],
+      },
+      { type: "heading", text: "Trong lúc đánh" },
+      {
+        type: "steps",
+        items: [
+          {
+            title: "Cầu bên mình thì mình nhặt",
+            body: "Quả rơi ở sân nào thì bên đó nhặt, đánh nhẹ trả về cho người giao cầu chứ đừng để họ chạy sang lấy. Chuyện nhỏ nhưng làm cả buổi đánh trôi nhanh hơn nhiều.",
+          },
+          {
+            title: "Cầu lạc sang sân khác thì hô lên và đợi",
+            body: "Đừng chạy vụt sang sân người ta khi họ đang trong pha cầu — vừa nguy hiểm vừa phá trận của họ. Hô một tiếng rồi đợi họ đánh xong.",
+          },
+          {
+            title: "Bên đỡ gọi trong hay ngoài",
+            body: "Người nhìn rõ nhất là người ở phía cầu rơi. Đã gọi thì bên kia tin, không tranh cãi. Không ai chắc thì đánh lại.",
+          },
+          {
+            title: "Đánh đôi thì phải nói với nhau",
+            body: "Hô Tôi, Của bạn, Ra — ba chữ đó tránh được gần hết những pha hai người cùng lao vào một quả rồi va vợt nhau.",
+          },
+          {
+            title: "Đánh với người yếu hơn thì đừng đập mặt",
+            body: "Thắng một pha cầu bằng cú đập vào người mới chơi không chứng minh được gì. Đánh vào góc, nhẹ tay lại một chút — họ mới muốn đi đánh tiếp.",
+          },
+          {
+            title: "Xin lỗi khi ăn điểm may",
+            body: "Cầu chạm mép lưới rồi rơi qua, hay trúng cạnh vợt mà thành điểm — giơ tay một cái là đủ. Thông lệ của môn này, không phải khách sáo.",
+          },
+        ],
+      },
+      {
+        type: "note",
+        tone: "warn",
+        text: "Đừng vào sân khi đang bực chuyện ở công ty. Cầu lông có vợt và có lưới ngăn nhưng vẫn là môn dễ va chạm, và một pha đập hết sức trong lúc bực mình rất dễ thành chấn thương cho người khác.",
+      },
+      { type: "heading", text: "Sau buổi đánh" },
+      {
+        type: "list",
+        items: [
+          "Gom cầu hỏng và vỏ chai, đừng để lại cho người sân sau dọn.",
+          "Chia tiền sân ngay trong tối hôm đó. Để sang tuần là quên, mà người ứng tiền thì ngại nhắc.",
+          "Thua kèo thì trả kèo. Cả đội thua bao cả đội thắng — đã chốt thì vui vẻ trả, đừng để phải nhắc.",
+        ],
+      },
+      {
+        type: "para",
+        text: "Tóm lại chỉ có một nguyên tắc: làm sao để mọi người còn muốn quay lại vào tối thứ 7 tuần sau.",
+      },
+    ],
+  },];
 
 export function getArticle(slug: string): Article | undefined {
   return ARTICLES.find((a) => a.slug === slug);

@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 
+import { CoverArt } from "@/components/handbook/cover-art";
 import { HeroVideo } from "@/components/hero-video";
 import { requireProfile } from "@/lib/auth";
 import { ARTICLES, CATEGORIES, type Article } from "@/content/cam-nang";
@@ -34,6 +35,11 @@ function FeaturedCard({ article }: { article: Article }) {
             priority
             sizes="(max-width: 1024px) 100vw, 900px"
             className="object-cover transition-transform duration-[900ms] ease-out group-hover:scale-[1.04]"
+          />
+        ) : article.art ? (
+          <CoverArt
+            motif={article.art}
+            className="transition-transform duration-[900ms] ease-out group-hover:scale-[1.04]"
           />
         ) : (
           <div
@@ -76,6 +82,11 @@ function ArticleCard({ article }: { article: Article }) {
             fill
             sizes="(max-width: 640px) 100vw, 360px"
             className="object-cover transition-transform duration-700 group-hover:scale-105"
+          />
+        ) : article.art ? (
+          <CoverArt
+            motif={article.art}
+            className="transition-transform duration-700 group-hover:scale-105"
           />
         ) : (
           <div
@@ -131,8 +142,7 @@ export default async function HandbookPage() {
             Đánh cho đúng, giữ cho bền
           </h1>
           <p className="mt-3.5 max-w-[46ch] text-[14.5px] leading-relaxed text-white/70 sm:text-[15px]">
-            Luật, kỹ thuật, khởi động và trang bị — gom lại một chỗ để khỏi
-            phải hỏi nhau mãi trong group.
+            Tất cả những gì cần biết về luật chơi, kỹ thuật, khởi động và trang bị — gom lại một chỗ để tiện tham khảo.
           </p>
         </div>
       </header>
@@ -163,8 +173,8 @@ export default async function HandbookPage() {
       </div>
 
       <p className="border-t border-ink-800 pt-6 text-center text-[13px] text-ink-500">
-        Thiếu nội dung nào hoặc thấy chỗ nào chưa đúng? Nhắn trong bảng tin để
-        bổ sung.
+        Thiếu nội dung nào hoặc thấy chỗ nào chưa đúng? Mọi người nhắn trong bảng tin để em
+        bổ sung nhaaaaaa.
       </p>
     </div>
   );
