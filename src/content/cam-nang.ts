@@ -98,6 +98,7 @@ export const ARTICLES: Article[] = [
     category: "Sức khoẻ",
     minutes: 3,
     art: "pulse",
+    cover: "/images/cam-nang/gian-co.webp",
     accent: "sky",
     blocks: [
       {
@@ -151,6 +152,7 @@ export const ARTICLES: Article[] = [
     category: "Luật",
     minutes: 6,
     art: "net",
+    cover: "/images/cam-nang/luat-co-ban.webp",
     accent: "navy",
     blocks: [
       {
@@ -246,7 +248,7 @@ export const ARTICLES: Article[] = [
       "Đa số người mới cầm vợt như cầm chảo. Sửa được cái này là lên trình ngay lập tức.",
     category: "Kỹ thuật",
     minutes: 5,
-    cover: "/images/feed-3.jpg",
+    cover: "/images/cam-nang/cam-vot-va-cu-danh.webp",
     accent: "gold",
     blocks: [
       {
@@ -314,7 +316,7 @@ export const ARTICLES: Article[] = [
       "Team mình đánh đôi là chính. Nắm được nguyên tắc xoay vị trí là đỡ giẫm chân nhau hẳn.",
     category: "Kỹ thuật",
     minutes: 5,
-    cover: "/images/feed-1.jpg",
+    cover: "/images/cam-nang/danh-doi.webp",
     accent: "navy",
     blocks: [
       {
@@ -377,6 +379,7 @@ export const ARTICLES: Article[] = [
     category: "Trang bị",
     minutes: 5,
     art: "strings",
+    cover: "/images/cam-nang/chon-vot-chon-cau.webp",
     accent: "gold",
     blocks: [
       {
@@ -444,7 +447,7 @@ export const ARTICLES: Article[] = [
       "Cổ chân, gân gót, vai, khuỷu. Biết trước để không phải nghỉ đánh cả tháng.",
     category: "Sức khoẻ",
     minutes: 5,
-    cover: "/images/feed-4.jpg",
+    cover: "/images/cam-nang/chan-thuong.webp",
     accent: "rose",
     blocks: [
       {
@@ -503,6 +506,7 @@ export const ARTICLES: Article[] = [
     category: "Kỹ thuật",
     minutes: 6,
     art: "footwork",
+    cover: "/images/cam-nang/di-chuyen.webp",
     accent: "gold",
     blocks: [
       {
@@ -574,6 +578,7 @@ export const ARTICLES: Article[] = [
     category: "Kỹ thuật",
     minutes: 5,
     art: "serve",
+    cover: "/images/cam-nang/giao-cau.webp",
     accent: "navy",
     blocks: [
       {
@@ -647,6 +652,7 @@ export const ARTICLES: Article[] = [
     category: "Luật",
     minutes: 5,
     art: "lines",
+    cover: "/images/cam-nang/loi-hay-cai.webp",
     accent: "rose",
     blocks: [
       {
@@ -725,6 +731,7 @@ export const ARTICLES: Article[] = [
     category: "Trang bị",
     minutes: 4,
     art: "sole",
+    cover: "/images/cam-nang/chon-giay.webp",
     accent: "emerald",
     blocks: [
       {
@@ -920,6 +927,7 @@ export const ARTICLES: Article[] = [
     category: "Chuẩn bị",
     minutes: 4,
     art: "shuttle",
+    cover: "/images/cam-nang/phep-lich-su-san.webp",
     accent: "gold",
     blocks: [
       {
