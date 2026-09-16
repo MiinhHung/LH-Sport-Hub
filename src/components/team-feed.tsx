@@ -1,12 +1,16 @@
-"use client";
-
 import { Camera } from "lucide-react";
 import Image from "next/image";
-import { motion } from "motion/react";
 
 /**
  * Ảnh tĩnh trong `public/images`, chưa nối với database.
  * Khi làm tính năng đăng ảnh thật thì thay mảng này bằng dữ liệu từ bảng posts.
+ *
+ * Trước đây khối này dùng `motion/react` với `whileInView`: ảnh bắt đầu ở
+ * opacity 0 rồi chờ cuộn tới mới hiện. Nhược điểm là nếu bộ theo dõi tầm
+ * nhìn không kịp chạy — tải chậm, chụp ảnh màn hình, trình duyệt lạ — thì
+ * cả dải nằm vô hình và trang trông như bị trống. Đổi sang animation CSS
+ * chạy ngay khi dựng: không phụ thuộc JS, và gỡ luôn `motion` khỏi gói
+ * JavaScript của phần app đã đăng nhập.
  */
 const IMAGES = [
   {
@@ -37,33 +41,26 @@ const IMAGES = [
 
 export function TeamFeed() {
   return (
-    <section aria-labelledby="khoanh-khac" className="space-y-3">
-      <div className="flex items-end justify-between gap-3">
+    <section aria-labelledby="khoanh-khac" className="space-y-4">
+      <div className="flex items-end justify-between gap-3 border-b border-ink-800 pb-3">
         <h2
           id="khoanh-khac"
-          className="flex items-center gap-2 text-[13px] font-semibold text-ink-400"
+          className="flex items-center gap-2 text-[11px] font-semibold tracking-[0.16em] text-ink-400 uppercase"
         >
           <Camera className="size-4 text-gold-500" aria-hidden />
           Khoảnh khắc của team
         </h2>
-        <span className="text-[11px] font-medium text-ink-500">
+        <span className="text-[11px] text-ink-500">
           Ảnh từ những buổi gần đây
         </span>
       </div>
 
       <div className="grid auto-rows-[112px] grid-cols-4 gap-2.5 sm:auto-rows-[150px] sm:gap-3">
         {IMAGES.map((img, i) => (
-          <motion.figure
+          <figure
             key={img.src}
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-40px" }}
-            transition={{
-              delay: i * 0.07,
-              duration: 0.55,
-              ease: [0.16, 1, 0.3, 1],
-            }}
-            className={`group relative overflow-hidden rounded-2xl bg-ink-850 ring-1 ring-ink-800 ${img.span}`}
+            className={`animate-rise group relative overflow-hidden rounded-2xl bg-ink-850 ring-1 ring-ink-800 ${img.span}`}
+            style={{ animationDelay: `${i * 70}ms` }}
           >
             <Image
               src={img.src}
@@ -77,7 +74,7 @@ export function TeamFeed() {
             <figcaption className="absolute inset-x-0 bottom-0 truncate px-3 pb-2.5 text-[11.5px] font-semibold text-white/95">
               {img.caption}
             </figcaption>
-          </motion.figure>
+          </figure>
         ))}
       </div>
     </section>

@@ -1,7 +1,7 @@
 import { CalendarClock, Clock, MapPin, Trophy } from "lucide-react";
 import Link from "next/link";
 
-import { Avatar, Badge, Card, Dot } from "@/components/ui";
+import { Avatar, Card, Dot, MetaLine } from "@/components/ui";
 import {
   CHALLENGE_STATUS_META,
   teamCounts,
@@ -141,54 +141,55 @@ export function ChallengeCard({
 
   const body = (
     <>
-      {/* Hàng trạng thái */}
-      <div className="flex flex-wrap items-center gap-1.5">
-        <Badge tone={statusMeta.tone}>
-          <Dot tone={statusMeta.tone} />
-          {statusMeta.label}
-        </Badge>
-        <Badge tone="slate">
-          {sport.icon} {CHALLENGE_FORMATS[format].label}
-        </Badge>
-        {challenge.pointsTarget && (
-          <Badge tone="slate" className="tabular">
-            {challenge.pointsTarget} điểm
-          </Badge>
-        )}
-        {challenge.kind === "direct" && <Badge tone="violet">Thách đấu</Badge>}
-        {myTeam && <Badge tone="navy">Có bạn</Badge>}
-        <span className="ml-auto shrink-0 text-[11px] text-ink-500">
+      {/* Dòng nhận dạng. Trước đây chỗ này là năm viên badge xếp ngang —
+          một mảng màu tranh hết sự chú ý với tiêu đề. */}
+      <div className="flex items-start justify-between gap-3">
+        <MetaLine
+          items={[
+            <span
+              key="status"
+              className={cn(
+                "flex items-center gap-1.5",
+                challenge.status === "open" && "text-gold-700",
+                challenge.status === "disputed" && "text-rose-600",
+                challenge.status === "completed" && "text-emerald-700",
+              )}
+            >
+              <Dot tone={statusMeta.tone} />
+              {statusMeta.label}
+            </span>,
+            <span key="format">
+              {sport.icon} {CHALLENGE_FORMATS[format].label}
+            </span>,
+            challenge.pointsTarget ? (
+              <span key="points" className="tabular">
+                {challenge.pointsTarget} điểm
+              </span>
+            ) : null,
+            challenge.kind === "direct" ? (
+              <span key="kind">Thách đấu</span>
+            ) : null,
+          ]}
+        />
+        <span className="shrink-0 text-[10.5px] tracking-wide text-ink-600">
           {timeAgo(challenge.createdAt)}
         </span>
       </div>
 
-      {/* Tiêu đề */}
-      <h3 className="mt-2.5 text-[17px] leading-snug font-bold text-ink-100 transition-colors group-hover:text-navy-700">
+      {/* Tiêu đề — cỡ chữ lớn hơn và dùng font serif, để nó là thứ đập vào
+          mắt đầu tiên thay vì hàng nhãn phía trên. */}
+      <h3 className="font-display mt-2 text-[21px] leading-[1.15] font-bold text-ink-100 transition-colors group-hover:text-navy-700 sm:text-[23px]">
         {challenge.title}
       </h3>
       {challenge.description && (
-        <p className="mt-1 line-clamp-2 text-[13.5px] leading-relaxed text-ink-500">
+        <p className="mt-1.5 line-clamp-2 text-[13.5px] leading-relaxed text-ink-500">
           {challenge.description}
         </p>
       )}
 
-      {/* Phần thưởng — thứ quan trọng nhất của một cái kèo */}
-      <div className="mt-3.5 flex items-center gap-3 rounded-xl border border-gold-200 bg-gold-50 px-3.5 py-2.5">
-        <span className="text-xl leading-none" aria-hidden>
-          {stake.icon}
-        </span>
-        <div className="min-w-0">
-          <p className="text-[10.5px] font-bold tracking-[0.08em] text-gold-600 uppercase">
-            Đội thua bao đội thắng
-          </p>
-          <p className="truncate text-[14.5px] font-bold text-gold-700">
-            {formatStake(stakeKey, challenge.stakeQty, challenge.stakeNote)}
-          </p>
-        </div>
-      </div>
-
-      {/* Đối đầu */}
-      <div className="mt-3.5 flex items-center gap-3 rounded-xl bg-ink-850 px-3.5 py-3">
+      {/* Đối đầu. Bỏ nền xám: một nét kẻ mảnh đủ để tách phần, mà không
+          biến nó thành cái thẻ lồng trong thẻ. */}
+      <div className="mt-4 flex items-center gap-3 border-t border-ink-800 pt-4">
         <TeamSide
           members={teamA}
           capacity={counts.A.capacity}
@@ -197,20 +198,23 @@ export function ChallengeCard({
           align="left"
         />
 
-        <div className="flex shrink-0 flex-col items-center gap-0.5">
+        <div className="flex shrink-0 flex-col items-center gap-1">
           {challenge.result?.status === "confirmed" &&
           challenge.result.scoreA !== null &&
           challenge.result.scoreB !== null ? (
-            <span className="tabular text-[15px] leading-none font-extrabold text-navy-900">
+            <span className="font-display tabular text-[19px] leading-none font-bold text-navy-900">
               {challenge.result.scoreA}–{challenge.result.scoreB}
             </span>
           ) : (
-            <span className="text-[10px] leading-none font-extrabold tracking-[0.1em] text-ink-600">
-              VS
+            <span className="font-display text-[13px] leading-none font-bold text-ink-600 italic">
+              vs
             </span>
           )}
           {winner && (
-            <Trophy className="size-3.5 text-gold-500" aria-label="Có đội thắng" />
+            <Trophy
+              className="size-3.5 text-gold-500"
+              aria-label="Có đội thắng"
+            />
           )}
         </div>
 
@@ -223,32 +227,55 @@ export function ChallengeCard({
         />
       </div>
 
-      {/* Chân thẻ */}
-      <div className="mt-3 flex flex-wrap items-center gap-x-3.5 gap-y-1 text-[11.5px] text-ink-500">
-        {challenge.session ? (
-          <span className="flex items-center gap-1">
-            <MapPin className="size-3.5 shrink-0" aria-hidden />
-            <span className="truncate">{challenge.session.title}</span>
-          </span>
-        ) : (
-          <span className="flex items-center gap-1">
-            <CalendarClock className="size-3.5 shrink-0" aria-hidden />
-            Đánh lúc nào cũng được
-          </span>
-        )}
-        {challenge.playDeadline && (
-          <span className="flex items-center gap-1">
-            <Clock className="size-3.5 shrink-0" aria-hidden />
-            Hạn {formatDateTime(challenge.playDeadline)} ·{" "}
-            {timeUntil(challenge.playDeadline)}
-          </span>
-        )}
+      {/* Phần thưởng — thứ quan trọng nhất của một cái kèo, nên cho nó
+          nguyên một dải riêng với gạch vàng dẫn mắt. */}
+      <div className="mt-4 flex items-center gap-3 border-t-2 border-gold-300 pt-3.5">
+        <span className="text-[22px] leading-none" aria-hidden>
+          {stake.icon}
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-[15.5px] leading-tight font-bold text-gold-700">
+            {formatStake(stakeKey, challenge.stakeQty, challenge.stakeNote)}
+          </p>
+          <p className="mt-0.5 text-[10.5px] font-semibold tracking-[0.12em] text-ink-500 uppercase">
+            Đội thua bao đội thắng
+          </p>
+        </div>
         {challenge.status === "open" && openSlots > 0 && (
-          <span className="ml-auto font-bold text-gold-700">
-            Còn {openSlots} chỗ
+          <span className="shrink-0 text-right text-[11.5px] leading-tight font-bold text-gold-700">
+            Còn {openSlots}
+            <br />
+            <span className="font-semibold text-ink-500">chỗ trống</span>
           </span>
         )}
       </div>
+
+      {/* Chân thẻ */}
+      {(challenge.session || challenge.playDeadline || myTeam) && (
+        <div className="mt-3 flex flex-wrap items-center gap-x-3.5 gap-y-1 text-[11.5px] text-ink-500">
+          {challenge.session ? (
+            <span className="flex items-center gap-1">
+              <MapPin className="size-3.5 shrink-0" aria-hidden />
+              <span className="truncate">{challenge.session.title}</span>
+            </span>
+          ) : (
+            <span className="flex items-center gap-1">
+              <CalendarClock className="size-3.5 shrink-0" aria-hidden />
+              Đánh lúc nào cũng được
+            </span>
+          )}
+          {challenge.playDeadline && (
+            <span className="flex items-center gap-1">
+              <Clock className="size-3.5 shrink-0" aria-hidden />
+              Hạn {formatDateTime(challenge.playDeadline)} ·{" "}
+              {timeUntil(challenge.playDeadline)}
+            </span>
+          )}
+          {myTeam && (
+            <span className="ml-auto font-bold text-navy-800">Có bạn</span>
+          )}
+        </div>
+      )}
     </>
   );
 

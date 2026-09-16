@@ -45,7 +45,7 @@ export const ARTICLES: Article[] = [
     slug: "khoi-dong",
     title: "Khởi động 10 phút trước khi vào sân",
     summary:
-      "Bỏ khởi động là cách nhanh nhất để nghỉ đánh vài tuần. Đây là bài 10 phút đủ dùng cho buổi tối thứ 7.",
+      "Bỏ khởi động là cách nhanh nhất để nghỉ đánh vài tuần. Đây là bài 10 phút đủ dùng cho buổi sáng thứ 7.",
     category: "Chuẩn bị",
     minutes: 4,
     cover: "/images/feed-2.jpg",
@@ -84,7 +84,7 @@ export const ARTICLES: Article[] = [
       {
         type: "note",
         tone: "tip",
-        text: "Đi làm về muộn, vào sân trễ? Cắt bước 1 xuống còn 1 phút, nhưng đừng bao giờ bỏ bước 2.",
+        text: "Ngủ nướng, vào sân trễ? Cắt bước 1 xuống còn 1 phút, nhưng đừng bao giờ bỏ bước 2.",
       },
     ],
   },
@@ -791,82 +791,122 @@ export const ARTICLES: Article[] = [
 
   /* ---------------------------------------------------------------- */
   {
-    slug: "danh-toi-sau-gio-lam",
-    title: "Đánh tối sau giờ làm: ăn gì, uống bao nhiêu, thở thế nào",
+    slug: "danh-sang-som",
+    title: "Đánh sáng sớm thứ 7: dậy, ăn, uống, khởi động",
     summary:
-      "Ngồi bàn phím tám tiếng rồi vào sân đánh hai tiếng là một cú sốc cho cơ thể. Có cách làm nó dễ chịu hơn.",
+      "Vừa ngủ dậy là cơ thể ở trạng thái tệ nhất trong ngày để vận động mạnh. Có cách xoay chuyển trong 30 phút.",
     category: "Sức khoẻ",
     minutes: 5,
-    art: "night",
+    art: "sunrise",
     accent: "sky",
     blocks: [
       {
         type: "para",
-        text: "Buổi đánh của team thường rơi vào tối, sau một ngày ngồi bàn. Đây là kiểu vận động khó nhất cho cơ thể: hông cứng vì ngồi lâu, bụng thì hoặc quá đói hoặc quá no, và đầu vẫn còn căng chuyện công việc.",
-      },
-      { type: "heading", text: "Ăn" },
-      {
-        type: "list",
-        items: [
-          "Bữa chính nên xong trước giờ đánh 2–3 tiếng. Vào sân với bụng đầy là xóc bụng và nặng chân.",
-          "Nếu bữa trưa đã lâu, ăn nhẹ trước 30–60 phút: một quả chuối, ổ bánh mì không, hộp sữa. Đủ đường để không tụt sức giữa ván.",
-          "Tránh đồ chiên rán ngay trước khi đánh — tiêu hoá chậm, dễ đau bụng.",
-          "Sau buổi đánh, ăn gì đó có đạm trong vòng một tiếng. Bữa khuya của team hoàn toàn chính đáng về mặt khoa học.",
-        ],
-      },
-      { type: "heading", text: "Uống" },
-      {
-        type: "para",
-        text: "Sai lầm phổ biến là chỉ uống khi thấy khát. Lúc thấy khát thì cơ thể đã thiếu nước một lúc rồi, mà biểu hiện đầu tiên của thiếu nước không phải khát — là chân nặng và phản xạ chậm.",
-      },
-      {
-        type: "facts",
-        items: [
-          { label: "Trước 2 tiếng", value: "400–500 ml" },
-          { label: "Trong lúc đánh", value: "150 ml mỗi 15 phút" },
-          { label: "Buổi trên 90 phút", value: "Thêm điện giải" },
-          { label: "Sau khi đánh", value: "Uống tới khi hết khát" },
-        ],
+        text: "Đánh sáng sớm thứ 7 là lựa chọn tốt: sân vắng, trời mát, đánh xong vẫn còn nguyên ngày để làm việc khác. Nhưng nó cũng là khung giờ cơ thể chưa sẵn sàng nhất. Sau một đêm nằm yên, thân nhiệt đang ở đáy, khớp khô dịch, cơ ngắn lại, và bạn vừa trải qua bảy tám tiếng không uống giọt nước nào.",
       },
       {
         type: "note",
         tone: "warn",
-        text: "Nước ngọt có ga và cà phê không thay được nước lọc trong lúc đánh. Bia sau trận thì tuỳ bạn, nhưng uống một cốc nước lọc trước đã.",
+        text: "Chấn thương buổi sáng hay rơi vào 15 phút đầu, và thường là gân gót hoặc cơ đùi sau. Lý do đơn giản: người chưa nóng mà đã lao vào đỡ quả cầu bất ngờ.",
       },
-      { type: "heading", text: "Gỡ cái lưng đã ngồi cả ngày" },
+      { type: "heading", text: "Đêm hôm trước mới là lúc chuẩn bị" },
+      {
+        type: "list",
+        items: [
+          "Ngủ đủ. Thiếu ngủ làm phản xạ chậm đi thấy rõ, và đó là thứ cầu lông cần nhất.",
+          "Uống một cốc nước trước khi đi ngủ. Bạn sẽ mất nước suốt đêm qua hơi thở và mồ hôi.",
+          "Soạn sẵn túi đồ tối hôm trước: vợt, giày, quần áo, nước. Sáng dậy đỡ cập rập, và đỡ cái cớ để ngủ nướng.",
+          "Đừng nhậu tối thứ 6. Cồn làm mất nước và phá giấc ngủ sâu — sáng hôm sau vào sân là biết ngay.",
+        ],
+      },
+      { type: "heading", text: "Ăn gì trước khi đánh" },
       {
         type: "para",
-        text: "Ngồi tám tiếng khiến cơ gập hông co ngắn và cơ mông gần như ngủ quên. Vào sân đánh ngay thì phần việc của mông bị lưng dưới gánh hộ, và đó là lý do nhiều người đau thắt lưng sau buổi đánh chứ không phải do đánh sai kỹ thuật.",
+        text: "Đánh lúc bụng rỗng hoàn toàn thì tới ván thứ ba là tụt đường huyết: chân nhũn, mắt hoa, đánh hỏng những quả bình thường ăn được. Nhưng ăn no rồi vào sân ngay cũng không xong.",
       },
       {
         type: "steps",
         items: [
           {
-            title: "Mở hông",
-            meta: "1 phút",
-            body: "Quỳ một chân, chân kia chống trước, đẩy hông về trước tới khi thấy căng mặt trước đùi chân quỳ. Giữ 30 giây mỗi bên.",
+            title: "Dậy trước giờ đánh 60–90 phút",
+            body: "Đủ để ăn nhẹ, đi vệ sinh và cho thân nhiệt lên. Dậy trước 20 phút rồi phóng thẳng ra sân là kiểu dễ chấn thương nhất.",
           },
           {
-            title: "Đánh thức cơ mông",
-            meta: "1 phút",
-            body: "Nằm ngửa gập gối, nâng hông lên tạo đường thẳng vai–hông–gối, siết mông ở đỉnh. Mười lăm cái.",
+            title: "Ăn nhẹ, dễ tiêu, trước 45–60 phút",
+            body: "Một quả chuối, lát bánh mì với mật ong, hộp sữa chua, hoặc chén xôi nhỏ. Mục tiêu là có đường trong máu, không phải ăn no.",
           },
           {
-            title: "Mở ngực và vai",
-            meta: "1 phút",
-            body: "Chống tay vào khung cửa hoặc tường, xoay người ra xa để căng ngực. Ngồi gõ phím cả ngày làm vai cuộn vào trong, ảnh hưởng trực tiếp tới tầm vung tay khi đập cầu.",
+            title: "Tránh đồ nhiều dầu mỡ và nhiều đạm",
+            body: "Bún bò, phở tái nạm, bánh mì thịt đầy đủ — để dành ăn sau buổi đánh. Tiêu hoá chậm, vào sân là xóc bụng.",
+          },
+          {
+            title: "Cà phê thì được, nhưng kèm nước",
+            body: "Một ly cà phê trước 45 phút giúp tỉnh táo và tăng sức bền thật. Nhưng nó lợi tiểu, nên uống thêm nước lọc cho bù.",
           },
         ],
       },
-      { type: "heading", text: "Thở" },
+      { type: "heading", text: "Uống" },
       {
         type: "para",
-        text: "Giữa các pha cầu, thở bằng bụng chứ đừng thở gấp bằng ngực: hít vào bằng mũi thấy bụng phình ra, thở ra bằng miệng dài hơn nhịp hít. Hai ba nhịp như vậy trong lúc nhặt cầu hồi sức nhanh hơn hẳn việc đứng thở hồng hộc.",
+        text: "Buổi sáng bạn bắt đầu với cơ thể đã thiếu nước sẵn, khác hẳn buổi chiều. Bù trước chứ đừng đợi khát, vì biểu hiện đầu tiên của thiếu nước không phải khát mà là chân nặng và phản xạ chậm.",
+      },
+      {
+        type: "facts",
+        items: [
+          { label: "Vừa ngủ dậy", value: "300–500 ml" },
+          { label: "Trước khi đánh", value: "Thêm 200 ml" },
+          { label: "Trong lúc đánh", value: "150 ml mỗi 15 phút" },
+          { label: "Buổi trên 90 phút", value: "Thêm điện giải" },
+        ],
       },
       {
         type: "note",
         tone: "tip",
-        text: "Đánh tối xong khó ngủ là chuyện thường: nhịp tim và thân nhiệt còn cao. Tắm nước ấm, tránh màn hình sáng, và đừng uống cà phê sau buổi chiều nếu tối có lịch đánh.",
+        text: "Trời mát nên ít thấy khát, nhưng mồ hôi vẫn ra như thường — chỉ là bay hơi nhanh hơn nên bạn không nhận ra. Cứ uống theo lịch, đừng chờ cảm giác.",
+      },
+      { type: "heading", text: "Khởi động buổi sáng phải dài hơn" },
+      {
+        type: "para",
+        text: "Bài khởi động 10 phút thông thường là cho cơ thể đã hoạt động cả ngày. Sáng sớm thì cộng thêm khoảng 5 phút nữa, và phần làm nóng chung phải kỹ hơn hẳn — mục tiêu số một là nâng thân nhiệt lên.",
+      },
+      {
+        type: "steps",
+        items: [
+          {
+            title: "Đánh thức cột sống ngay khi dậy",
+            meta: "2 phút, ở nhà",
+            body: "Quỳ bốn điểm, cong lưng lên rồi võng xuống chậm rãi mười nhịp. Sau đó đứng vươn hai tay lên trần, nghiêng sang từng bên. Đĩa đệm ngậm nước sau một đêm nằm nên rất dễ tổn thương nếu vặn mạnh đột ngột.",
+          },
+          {
+            title: "Làm nóng lâu hơn bình thường",
+            meta: "5 phút",
+            body: "Chạy bước nhỏ, nâng cao đùi, chạy ngang sân cho tới khi thật sự thấy ấm và hơi lấm tấm mồ hôi. Đừng bỏ qua vì thấy trời mát.",
+          },
+          {
+            title: "Cổ chân và gân gót thật kỹ",
+            meta: "3 phút",
+            body: "Xoay cổ chân, nhón gót lên xuống 20 cái, ngồi xổm đứng lên vài lần. Đây là nhóm dễ rách nhất vào buổi sáng.",
+          },
+          {
+            title: "Vào trận từ từ",
+            meta: "5 phút",
+            body: "Ván đầu đánh 70% sức, đừng đập hết lực. Coi ván một như phần khởi động có tính điểm.",
+          },
+        ],
+      },
+      { type: "heading", text: "Sau khi đánh" },
+      {
+        type: "list",
+        items: [
+          "Giãn cơ tĩnh 5 phút ngay tại sân, lúc người còn nóng.",
+          "Ăn sáng tử tế trong vòng một tiếng, có đạm — đây mới là lúc cho tô bún bò. Tiện thể là chỗ trả kèo.",
+          "Uống bù cho tới khi hết khát hẳn, đừng dừng ở ngụm đầu tiên.",
+          "Đừng về nhà ngủ tiếp ngay. Đi lại nhẹ nhàng nửa tiếng cho nhịp tim xuống từ từ.",
+        ],
+      },
+      {
+        type: "para",
+        text: "Đánh sáng xong là còn nguyên ngày thứ 7 phía trước. Đó là phần thưởng lớn nhất của khung giờ này — miễn là bạn dành cho nó 30 phút chuẩn bị tử tế.",
       },
     ],
   },
@@ -935,13 +975,13 @@ export const ARTICLES: Article[] = [
         type: "list",
         items: [
           "Gom cầu hỏng và vỏ chai, đừng để lại cho người sân sau dọn.",
-          "Chia tiền sân ngay trong tối hôm đó. Để sang tuần là quên, mà người ứng tiền thì ngại nhắc.",
+          "Chia tiền sân ngay trong buổi hôm đó. Để sang tuần là quên, mà người ứng tiền thì ngại nhắc.",
           "Thua kèo thì trả kèo. Cả đội thua bao cả đội thắng — đã chốt thì vui vẻ trả, đừng để phải nhắc.",
         ],
       },
       {
         type: "para",
-        text: "Tóm lại chỉ có một nguyên tắc: làm sao để mọi người còn muốn quay lại vào tối thứ 7 tuần sau.",
+        text: "Tóm lại chỉ có một nguyên tắc: làm sao để mọi người còn muốn dậy sớm vào thứ 7 tuần sau.",
       },
     ],
   },];

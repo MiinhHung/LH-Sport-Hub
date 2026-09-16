@@ -15,8 +15,11 @@ export function Card({
     <div
       className={cn(
         "rounded-2xl border border-ink-800 bg-ink-900 shadow-[var(--shadow-card)]",
+        // Liệt kê rõ thuộc tính thay vì transition-all: transition-all bắt
+        // trình duyệt theo dõi mọi thuộc tính đổi giá trị, kể cả những thứ
+        // buộc phải tính lại bố cục, nên rê chuột qua danh sách dài bị giật.
         interactive &&
-          "transition-all duration-300 hover:-translate-y-0.5 hover:border-ink-700 hover:shadow-[var(--shadow-lift)]",
+          "transition-[transform,border-color,box-shadow] duration-300 ease-out will-change-transform hover:-translate-y-0.5 hover:border-ink-700 hover:shadow-[var(--shadow-lift)]",
         className,
       )}
       {...props}
@@ -26,6 +29,46 @@ export function Card({
 
 export function CardBody({ className, ...props }: ComponentProps<"div">) {
   return <div className={cn("p-4 sm:p-5", className)} {...props} />;
+}
+
+/**
+ * Dòng thông tin phụ kiểu tạp chí: chữ hoa nhỏ, giãn cách, ngăn nhau bằng
+ * dấu chấm giữa.
+ *
+ * Dùng thay cho việc xếp một hàng badge. Bốn năm viên pill cạnh nhau tạo
+ * thành mảng màu loang lổ, hút mắt khỏi tiêu đề và làm mọi thẻ trông
+ * giống hệt nhau. Một dòng chữ nhỏ nói đúng chừng ấy thông tin mà không
+ * tranh chỗ với nội dung chính.
+ */
+export function MetaLine({
+  items,
+  className,
+}: {
+  items: ReactNode[];
+  className?: string;
+}) {
+  const shown = items.filter(Boolean);
+  if (shown.length === 0) return null;
+
+  return (
+    <p
+      className={cn(
+        "flex flex-wrap items-center gap-x-2 gap-y-1 text-[10.5px] font-semibold tracking-[0.14em] text-ink-500 uppercase",
+        className,
+      )}
+    >
+      {shown.map((item, i) => (
+        <span key={i} className="flex items-center gap-2">
+          {i > 0 && (
+            <span aria-hidden className="text-ink-700">
+              ·
+            </span>
+          )}
+          {item}
+        </span>
+      ))}
+    </p>
+  );
 }
 
 /** Vùng chìm bên trong thẻ — dùng cho thông tin phụ, không phải thẻ lồng thẻ. */
@@ -60,7 +103,9 @@ export function PageIntro({
   className?: string;
 }) {
   return (
-    <header className={cn("pb-8 sm:pb-10", className)}>
+    // Không tự chừa lề dưới: trang nào cũng đã bọc trong `space-y-8`, cộng
+    // thêm 40px nữa thành một khoảng trống chết giữa câu dẫn và nội dung.
+    <header className={cn("pb-1", className)}>
       <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-4">
         <div className="min-w-0">
           {eyebrow && (

@@ -21,7 +21,7 @@ export default function CreateSessionPage() {
       <PageIntro
         eyebrow="Lịch"
         title="Tạo buổi tập"
-        lead="Chốt sân, chốt giờ. Mặc định là thứ 7 tuần này 19h–21h."
+        lead="Chốt sân, chốt giờ. Mặc định là sáng thứ 7 tuần này, 7h–9h."
       />
 
       <Card>

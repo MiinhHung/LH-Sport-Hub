@@ -2,7 +2,13 @@ import { CalendarDays, MapPin, Plus, Users, Wallet } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import { AvatarStack, Badge, Card, EmptyState, PageIntro } from "@/components/ui";
+import {
+  AvatarStack,
+  Card,
+  EmptyState,
+  MetaLine,
+  PageIntro,
+} from "@/components/ui";
 import { LinkButton } from "@/components/ui/button";
 import { requireProfile } from "@/lib/auth";
 import { SPORTS, type SportKey } from "@/lib/constants";
@@ -69,18 +75,30 @@ export default async function SessionsPage() {
                       )}
                     />
 
-                    <div className="flex flex-wrap items-center gap-1.5">
-                      <Badge tone="slate">
-                        {sport.icon} {sport.label}
-                      </Badge>
-                      {isGoing && <Badge tone="lime">Bạn có đi</Badge>}
-                      {isFull && <Badge tone="rose">Đã đủ người</Badge>}
-                      <span className="ml-auto text-[11px] font-semibold text-gold-700">
+                    <div className="flex items-start justify-between gap-3">
+                      <MetaLine
+                        items={[
+                          <span key="sport">
+                            {sport.icon} {sport.label}
+                          </span>,
+                          isGoing ? (
+                            <span key="going" className="text-emerald-700">
+                              Bạn có đi
+                            </span>
+                          ) : null,
+                          isFull ? (
+                            <span key="full" className="text-rose-600">
+                              Đã đủ người
+                            </span>
+                          ) : null,
+                        ]}
+                      />
+                      <span className="shrink-0 text-[10.5px] font-semibold tracking-wide text-gold-700">
                         {timeUntil(session.startsAt)}
                       </span>
                     </div>
 
-                    <h3 className="mt-2.5 text-[17px] leading-snug font-bold text-ink-100 transition-colors group-hover:text-navy-700">
+                    <h3 className="font-display mt-2 text-[21px] leading-[1.15] font-bold text-ink-100 transition-colors group-hover:text-navy-700 sm:text-[23px]">
                       {session.title}
                     </h3>
 

@@ -188,19 +188,24 @@ export default async function ChallengesPage({
         </section>
       )}
 
-      {/* Bộ lọc */}
-      <section aria-label="Bộ lọc kèo" className="space-y-3">
-        <div className="no-scrollbar -mx-4 flex gap-1.5 overflow-x-auto px-4">
+      {/* Bộ lọc — tab gạch chân trên một nét kẻ, kiểu mục lục tạp chí.
+          Trước đây là hai tầng pill chồng lên nhau, vừa chiếm chỗ vừa
+          khiến mắt không biết tầng nào quan trọng hơn. */}
+      <section
+        aria-label="Bộ lọc kèo"
+        className="flex flex-wrap items-end justify-between gap-x-6 gap-y-2 border-b border-ink-800"
+      >
+        <div className="no-scrollbar -mx-4 flex gap-6 overflow-x-auto px-4">
           {TABS.map((t) => (
             <Link
               key={t.key}
               href={buildHref(t.key, sport)}
               aria-current={tab === t.key ? "page" : undefined}
               className={cn(
-                "rounded-lg px-3.5 py-2 text-[13.5px] font-semibold whitespace-nowrap transition-all duration-200",
+                "-mb-px border-b-2 pb-2.5 text-[14px] font-semibold whitespace-nowrap transition-colors duration-200",
                 tab === t.key
-                  ? "bg-navy-900 text-white shadow-[var(--shadow-card)]"
-                  : "bg-ink-900 text-ink-500 ring-1 ring-ink-800 hover:text-ink-200 hover:ring-ink-700",
+                  ? "border-navy-900 text-navy-900"
+                  : "border-transparent text-ink-500 hover:border-ink-700 hover:text-ink-200",
               )}
             >
               {t.label}
@@ -208,27 +213,27 @@ export default async function ChallengesPage({
           ))}
         </div>
 
-        <div className="no-scrollbar -mx-4 flex gap-1.5 overflow-x-auto px-4">
+        <div className="no-scrollbar -mx-4 flex items-center gap-3 overflow-x-auto px-4 pb-2.5">
           <Link
             href={buildHref(tab, null)}
             className={cn(
-              "rounded-md px-2.5 py-1 text-xs font-semibold whitespace-nowrap transition-colors",
+              "text-[11px] font-semibold tracking-[0.12em] whitespace-nowrap uppercase transition-colors",
               !sport
-                ? "bg-gold-100 text-gold-700"
-                : "text-ink-500 hover:bg-ink-850 hover:text-ink-300",
+                ? "text-gold-700"
+                : "text-ink-500 hover:text-ink-300",
             )}
           >
-            Tất cả môn
+            Tất cả
           </Link>
           {SPORT_KEYS.map((key) => (
             <Link
               key={key}
               href={buildHref(tab, key)}
               className={cn(
-                "rounded-md px-2.5 py-1 text-xs font-semibold whitespace-nowrap transition-colors",
+                "text-[11px] font-semibold tracking-[0.12em] whitespace-nowrap uppercase transition-colors",
                 sport === key
-                  ? "bg-gold-100 text-gold-700"
-                  : "text-ink-500 hover:bg-ink-850 hover:text-ink-300",
+                  ? "text-gold-700"
+                  : "text-ink-500 hover:text-ink-300",
               )}
             >
               {SPORTS[key].icon} {SPORTS[key].label}

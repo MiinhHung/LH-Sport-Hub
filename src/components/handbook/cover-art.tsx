@@ -24,7 +24,7 @@ export type CoverMotif =
   | "pulse" // nhịp tim, nước
   | "net" // lưới nhìn thẳng
   | "sole" // đế giày nhìn từ dưới
-  | "night"; // trăng, đánh buổi tối
+  | "sunrise"; // mặt trời mọc, đánh sáng sớm
 
 const GOLD = "var(--color-gold-400)";
 const GOLD_SOFT = "var(--color-gold-300)";
@@ -496,47 +496,60 @@ const Sole = (
   </g>
 );
 
-/** Trăng lưỡi liềm trên sân đêm. */
-const Night = (
+/** Mặt trời vừa lên khỏi đường chân trời, tia toả ra. */
+const Sunrise = (
   <g>
-    {/* Khoét một đĩa lệch ra khỏi đĩa tròn — cách vẽ lưỡi liềm chắc ăn
-        hơn hai cung nối nhau, vì cung có bán kính nhỏ hơn nửa dây cung sẽ
-        bị SVG tự phóng to và triệt tiêu mất hình. */}
+    {/* Cắt nửa dưới của đĩa mặt trời đi, để nó đúng là vừa nhô lên. */}
     <defs>
-      <mask id="ca-moon">
-        <rect x="-420" y="-420" width="840" height="840" fill="black" />
-        <circle cx="-40" cy="-20" r="196" fill="white" />
-        <circle cx="86" cy="-92" r="182" fill="black" />
-      </mask>
+      <clipPath id="ca-sun">
+        <rect x="-420" y="-420" width="840" height="500" />
+      </clipPath>
     </defs>
-    <circle
-      cx="-40"
-      cy="-20"
-      r="196"
-      fill={GOLD}
-      fillOpacity="0.92"
-      mask="url(#ca-moon)"
-    />
 
-    {/* Sao */}
-    <g fill={GOLD_SOFT} opacity="0.8">
-      {[
-        [232, -190, 15],
-        [310, -60, 10],
-        [268, 80, 12],
-        [180, -290, 9],
-      ].map(([x, y, r]) => (
-        <path
-          key={`${x},${y}`}
-          d={`M ${x} ${y - r * 2.4} L ${x + r * 0.62} ${y - r * 0.62} L ${x + r * 2.4} ${y} L ${x + r * 0.62} ${y + r * 0.62} L ${x} ${y + r * 2.4} L ${x - r * 0.62} ${y + r * 0.62} L ${x - r * 2.4} ${y} L ${x - r * 0.62} ${y - r * 0.62} Z`}
-        />
-      ))}
+    {/* Tia nắng */}
+    <g
+      clipPath="url(#ca-sun)"
+      stroke={GOLD}
+      strokeWidth="11"
+      strokeLinecap="round"
+      opacity="0.55"
+    >
+      {[-78, -54, -30, -6, 18, 42, 66].map((deg) => {
+        const r = (deg * Math.PI) / 180;
+        const sx = Math.sin(r);
+        const sy = -Math.cos(r);
+        return (
+          <line
+            key={deg}
+            x1={sx * 208}
+            y1={80 + sy * 208}
+            x2={sx * 300}
+            y2={80 + sy * 300}
+          />
+        );
+      })}
     </g>
 
-    {/* Sân phía dưới */}
-    <g stroke={GOLD_SOFT} strokeWidth="5" opacity="0.3" fill="none">
-      <line x1="-380" y1="252" x2="380" y2="252" />
-      <path d="M -250 330 L -120 252 M 250 330 L 120 252" />
+    {/* Đĩa mặt trời */}
+    <g clipPath="url(#ca-sun)">
+      <circle cx="0" cy="80" r="158" fill={GOLD} fillOpacity="0.92" />
+    </g>
+
+    {/* Đường chân trời, cũng chính là biên cuối sân */}
+    <line
+      x1="-390"
+      y1="80"
+      x2="390"
+      y2="80"
+      stroke={GOLD}
+      strokeWidth="9"
+      strokeLinecap="round"
+    />
+
+    {/* Vạch sân hút về phía xa */}
+    <g stroke={GOLD_SOFT} strokeWidth="5" opacity="0.32" fill="none">
+      <path d="M -300 300 L -110 80 M 300 300 L 110 80" />
+      <line x1="-205" y1="190" x2="205" y2="190" />
     </g>
   </g>
 );
@@ -550,5 +563,5 @@ const MOTIFS: Record<CoverMotif, React.ReactElement> = {
   pulse: Pulse,
   net: Net,
   sole: Sole,
-  night: Night,
+  sunrise: Sunrise,
 };

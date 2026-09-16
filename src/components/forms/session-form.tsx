@@ -13,14 +13,14 @@ import { SPORTS, SPORT_KEYS } from "@/lib/constants";
 import { mapEmbedSrc, parseMapUrl } from "@/lib/maps";
 import { cn, toDateTimeLocalValue } from "@/lib/utils";
 
-/** Thứ 7 gần nhất, 19:00–21:00 — lịch mặc định của team. */
+/** Thứ 7 gần nhất, 07:00–09:00 — lịch mặc định của team. */
 function nextSaturday() {
   const start = new Date();
-  start.setHours(19, 0, 0, 0);
+  start.setHours(7, 0, 0, 0);
   const daysUntilSat = (6 - start.getDay() + 7) % 7 || 7;
   start.setDate(start.getDate() + daysUntilSat);
   const end = new Date(start);
-  end.setHours(21, 0, 0, 0);
+  end.setHours(9, 0, 0, 0);
   return { start, end };
 }
 
@@ -91,7 +91,7 @@ export function SessionForm() {
             name="title"
             required
             maxLength={120}
-            placeholder="Cầu lông thứ 7"
+            placeholder="Cầu lông sáng thứ 7"
           />
         </Field>
       </div>
