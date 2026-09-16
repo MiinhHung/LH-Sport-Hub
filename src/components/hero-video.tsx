@@ -2,6 +2,16 @@ import { HERO_VIDEO } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
 /**
+ * Khử màu video rồi để lớp navy phủ bên trên nhuộm lại.
+ *
+ * Không phải để cho đẹp suông: video nền có thể mang bất kỳ tông màu nào
+ * (video hiện tại đỏ tím) và màu đó sẽ chửi nhau với navy + vàng của app.
+ * Bỏ màu đi thì video chỉ còn là chuyển động, còn màu do app quyết định —
+ * nên thay video khác vẫn không vỡ giao diện.
+ */
+const TINT = "grayscale contrast-[1.08] brightness-[0.92]";
+
+/**
  * Video chạy nền, phủ kín khung cha.
  *
  * Không phải client component: chỉ là thẻ <video> / <iframe> thuần nên
@@ -34,7 +44,7 @@ export function HeroVideo({
       <img
         src={poster}
         alt={label}
-        className="absolute inset-0 size-full object-cover"
+        className={cn("absolute inset-0 size-full object-cover", TINT)}
       />
 
       {file ? (
@@ -47,7 +57,12 @@ export function HeroVideo({
           poster={poster}
           aria-hidden
           tabIndex={-1}
-          className="absolute inset-0 size-full object-cover"
+          /* Ai bật "giảm chuyển động" trong hệ điều hành thì ẩn video đi,
+             ảnh poster nằm sẵn bên dưới sẽ lộ ra. Không cần JS. */
+          className={cn(
+            "absolute inset-0 size-full object-cover motion-reduce:hidden",
+            TINT,
+          )}
         >
           <source src={file} type="video/mp4" />
         </video>
@@ -67,7 +82,10 @@ export function HeroVideo({
           referrerPolicy="strict-origin-when-cross-origin"
           tabIndex={-1}
           aria-hidden
-          className="pointer-events-none absolute top-1/2 left-1/2 h-[max(100cqh,56.25cqw)] w-[max(100cqw,177.78cqh)] -translate-x-1/2 -translate-y-1/2 border-0"
+          className={cn(
+            "pointer-events-none absolute top-1/2 left-1/2 h-[max(100cqh,56.25cqw)] w-[max(100cqw,177.78cqh)] -translate-x-1/2 -translate-y-1/2 border-0",
+            TINT,
+          )}
         />
       ) : null}
     </div>

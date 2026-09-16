@@ -119,7 +119,9 @@ export default async function HandbookPage() {
           Tràn ra sát mép trên điện thoại, bo góc từ cỡ sm trở lên. */}
       <header className="relative -mx-4 h-[290px] overflow-hidden sm:mx-0 sm:h-[340px] sm:rounded-3xl">
         <HeroVideo label="Cảnh thi đấu cầu lông" />
-        <div className="absolute inset-0 bg-gradient-to-r from-navy-950 via-navy-950/85 to-navy-950/40" />
+        <div className="absolute inset-0 bg-gradient-to-r from-navy-950 via-navy-950/88 to-navy-900/65" />
+        {/* Ánh vàng chéo góc để dải bìa không phẳng lì một màu navy. */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_70%_90%_at_88%_10%,rgba(220,174,66,0.18),transparent_65%)]" />
 
         <div className="relative flex h-full max-w-2xl flex-col justify-end p-7 sm:p-10">
           <p className="text-[11px] font-semibold tracking-[0.2em] text-gold-300 uppercase">

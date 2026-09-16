@@ -26,8 +26,9 @@ export const APP_DESCRIPTION =
  * giong video de khong thay cu nhay.
  */
 export const HERO_VIDEO = {
-  /** Vi du: "/videos/hero.mp4" (tao thu muc `public/videos` roi bo file vao). */
-  file: null as string | null,
+  /** Dat trong `public/videos/`. Dat null de quay ve nhung tu YouTube. */
+  file: "/videos/hero.mp4" as string | null,
+  /** Chi dung khi `file` la null. */
   youtubeId: "J8X27fNXnaw" as string | null,
   poster: "/images/feed-1.jpg",
 };
