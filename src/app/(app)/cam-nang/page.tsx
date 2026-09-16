@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 
-import { PageIntro } from "@/components/ui";
+import { HeroVideo } from "@/components/hero-video";
 import { requireProfile } from "@/lib/auth";
 import { ARTICLES, CATEGORIES, type Article } from "@/content/cam-nang";
 import { cn } from "@/lib/utils";
@@ -115,11 +115,25 @@ export default async function HandbookPage() {
 
   return (
     <div className="space-y-10">
-      <PageIntro
-        eyebrow="Cẩm nang"
-        title="Đánh cho đúng, giữ cho bền"
-        lead="Luật, kỹ thuật, khởi động và trang bị — gom lại một chỗ để khỏi phải hỏi nhau mãi trong group."
-      />
+      {/* Bìa tạp chí: video chạy nền, chữ đè lên.
+          Tràn ra sát mép trên điện thoại, bo góc từ cỡ sm trở lên. */}
+      <header className="relative -mx-4 h-[290px] overflow-hidden sm:mx-0 sm:h-[340px] sm:rounded-3xl">
+        <HeroVideo label="Cảnh thi đấu cầu lông" />
+        <div className="absolute inset-0 bg-gradient-to-r from-navy-950 via-navy-950/85 to-navy-950/40" />
+
+        <div className="relative flex h-full max-w-2xl flex-col justify-end p-7 sm:p-10">
+          <p className="text-[11px] font-semibold tracking-[0.2em] text-gold-300 uppercase">
+            Cẩm nang
+          </p>
+          <h1 className="font-display mt-2.5 text-[34px] leading-[1.05] font-bold text-white sm:text-[46px]">
+            Đánh cho đúng, giữ cho bền
+          </h1>
+          <p className="mt-3.5 max-w-[46ch] text-[14.5px] leading-relaxed text-white/70 sm:text-[15px]">
+            Luật, kỹ thuật, khởi động và trang bị — gom lại một chỗ để khỏi
+            phải hỏi nhau mãi trong group.
+          </p>
+        </div>
+      </header>
 
       <FeaturedCard article={featured} />
 

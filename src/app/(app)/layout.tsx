@@ -43,7 +43,7 @@ export default async function AppLayout({
               <span className="font-display block text-[15px] font-bold text-navy-900">
                 Light Human
               </span>
-              <span className="mt-0.5 block text-[10.5px] font-semibold tracking-[0.16em] text-gold-600 uppercase">
+              <span className="mt-0.5 block text-[13px] font-semibold tracking-[0.14em] text-gold-600 uppercase">
                 Sport Hub
               </span>
             </span>

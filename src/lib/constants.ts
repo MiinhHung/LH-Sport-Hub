@@ -5,7 +5,32 @@
 
 export const APP_NAME = "LH Sport Hub";
 export const APP_DESCRIPTION =
-  "Cong dong the thao noi bo: buoi tap, keo thach dau va so no vui.";
+  "Cong dong the thao noi bo: buoi tap, keo thach dau va cam nang cau long.";
+
+/* ------------------------------------------------------------------ */
+/* Video nen                                                           */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Video chay nen o trang dang nhap / dang ky va dau trang Cam nang.
+ *
+ * Co hai che do, `file` duoc uu tien neu co:
+ *
+ *  - `file`      duong dan toi mp4 dat trong `public/`. Muot nhat: khong tai
+ *                JS ben ngoai, lap lien mach, khong bao gio bi chen quang cao.
+ *  - `youtubeId` nhung tu YouTube. Chay ngay khong can chuan bi gi, doi lai
+ *                phai tai trinh phat cua YouTube va YouTube co quyen chen
+ *                quang cao vao video cua nguoi khac.
+ *
+ * `poster` hien trong luc video chua kip chay nen hay chon mot khung hinh
+ * giong video de khong thay cu nhay.
+ */
+export const HERO_VIDEO = {
+  /** Vi du: "/videos/hero.mp4" (tao thu muc `public/videos` roi bo file vao). */
+  file: null as string | null,
+  youtubeId: "J8X27fNXnaw" as string | null,
+  poster: "/images/feed-1.jpg",
+};
 
 /* ------------------------------------------------------------------ */
 /* Mon the thao                                                        */

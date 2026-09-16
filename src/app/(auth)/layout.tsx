@@ -1,4 +1,5 @@
 import { AuthReveal } from "@/components/auth-reveal";
+import { HeroVideo } from "@/components/hero-video";
 
 export default function AuthLayout({
   children,
@@ -7,15 +8,14 @@ export default function AuthLayout({
 }) {
   return (
     <div className="grid min-h-dvh lg:grid-cols-[1.05fr_1fr]">
-      {/* Bảng thương hiệu — ảnh thật của team, phủ navy. */}
+      {/* Bảng thương hiệu — video cầu lông chạy nền, phủ navy. */}
       <aside className="relative hidden overflow-hidden lg:block">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/images/feed-1.jpg"
-          alt="Team Light Human trên sân cầu lông"
-          className="absolute inset-0 size-full object-cover"
-        />
-        <div className="bg-gradient-navy absolute inset-0 opacity-[0.93]" />
+        <HeroVideo label="Cảnh thi đấu cầu lông" />
+
+        {/* Phủ đậm: video chỉ còn là chuyển động mờ phía sau, chữ vẫn đọc
+            được và mọi thương hiệu của YouTube đều bị che. */}
+        <div className="bg-gradient-navy absolute inset-0 opacity-[0.88]" />
+        <div className="absolute inset-0 bg-navy-950/25" />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_50%_at_20%_15%,rgba(220,174,66,0.22),transparent_70%)]" />
 
         <div className="relative flex h-full flex-col justify-between p-12 xl:p-16">
@@ -25,8 +25,8 @@ export default function AuthLayout({
             <span className="font-display text-xl font-bold text-white">
               Light Human
             </span>
-            <span className="h-4 w-px bg-white/25" aria-hidden />
-            <span className="text-[10.5px] font-semibold tracking-[0.2em] text-gold-300 uppercase">
+            <span className="h-5 w-px bg-white/25" aria-hidden />
+            <span className="text-[15px] font-semibold tracking-[0.18em] text-gold-300 uppercase">
               Sport Hub
             </span>
           </div>
@@ -38,8 +38,9 @@ export default function AuthLayout({
               thua thì <span className="text-gradient-gold">bao</span>.
             </h2>
             <p className="mt-5 text-[15px] leading-relaxed text-white/70">
-              Chỗ để anh em chốt kèo cầu lông, đi bơi, ghi tỉ số và tra cứu
-              luật lẫn bài khởi động.
+              Chỗ để anh, chị, em trong công ty chốt kèo cầu lông, rủ nhau đi
+              bơi, ghi tỉ số sau mỗi trận và tra cứu luật lẫn bài khởi động —
+              tất cả gọn trong một nơi.
             </p>
           </div>
 
@@ -78,7 +79,7 @@ export default function AuthLayout({
               alt="Light Human"
               className="h-20 w-auto object-contain mix-blend-multiply"
             />
-            <p className="mt-1 text-[10.5px] font-semibold tracking-[0.2em] text-gold-600 uppercase">
+            <p className="mt-1.5 text-[15px] font-semibold tracking-[0.18em] text-gold-600 uppercase">
               Sport Hub
             </p>
           </div>
