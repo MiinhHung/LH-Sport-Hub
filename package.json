@@ -13,7 +13,9 @@
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
-    "db:setup": "tsx scripts/apply-sql.ts"
+    "db:setup": "tsx scripts/apply-sql.ts",
+    "storage:setup": "tsx scripts/ensure-bucket.ts",
+    "setup": "npm run db:setup && npm run storage:setup"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",

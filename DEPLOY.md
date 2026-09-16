@@ -6,22 +6,27 @@ Làm theo đúng thứ tự. Bước 1 bắt buộc phải xong trước khi dep
 
 Phần bảng tin dùng 4 bảng mới chưa có trong database.
 
-1. Mở Supabase Dashboard → **SQL Editor**
-2. Dán toàn bộ nội dung `supabase/01-them-bang-tin.sql`
-3. Bấm **Run**
+```bash
+npm run db:setup
+```
+
+Chạy `supabase/01-them-bang-tin.sql` lên database trong `DATABASE_URL`.
+Cả file chạy trong một transaction: hỏng thì không đổi gì.
 
 File này chỉ thêm mới, không sửa/xoá gì đang có, và chạy lại nhiều lần cũng không sao.
 
 Kiểm tra: chạy `select count(*) from posts;` — ra `0` là được.
 
-## 2. Tạo bucket ảnh
+## 2. Tạo kho ảnh
 
-Supabase Dashboard → **Storage** → New bucket:
+```bash
+npm run storage:setup
+```
 
-- Tên: `proofs`
-- **Public bucket: bật** (ảnh bài viết cần đọc công khai qua URL)
+Tạo bucket `media` ở chế độ công khai (ảnh bài viết và avatar cần đọc
+được qua URL). Chạy lại nhiều lần vô hại.
 
-Nếu đã có bucket này rồi thì bỏ qua.
+> Cả bước 1 và 2 gộp lại: `npm run setup`
 
 ## 3. Biến môi trường trên Vercel
 

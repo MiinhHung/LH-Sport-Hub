@@ -129,6 +129,20 @@ export async function uploadImage(
 
   if (error) {
     console.error("[storage] upload thất bại:", error);
+
+    // Nói thẳng khi thiếu bucket — nếu không thì lỗi cấu hình sẽ hiện ra
+    // như "thử lại đi", và có thử bao nhiêu lần cũng vẫn hỏng.
+    const details = error as { statusCode?: string; message?: string };
+    const missingBucket =
+      String(details.statusCode) === "404" ||
+      /bucket not found/i.test(details.message ?? "");
+
+    if (missingBucket) {
+      throw new AppError(
+        `Chưa có kho ảnh "${UPLOAD.bucket}" trên Supabase. Chạy: npm run storage:setup`,
+      );
+    }
+
     throw new AppError("Không tải được ảnh lên. Vui lòng thử lại.");
   }
 

@@ -195,7 +195,7 @@ export const LIMITS = {
 /* ------------------------------------------------------------------ */
 
 export const UPLOAD = {
-  bucket: "proofs",
+  bucket: "media",
   maxBytes: 5 * 1024 * 1024,
   allowedMimeTypes: ["image/jpeg", "image/png", "image/webp"] as const,
   allowedExtensions: ["jpg", "jpeg", "png", "webp"] as const,
