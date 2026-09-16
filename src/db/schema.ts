@@ -98,20 +98,6 @@ export const stakeEnum = pgEnum("stake_type", [
   "khac",
 ]);
 
-/**
- * Vong doi no (cap DOI, khong phai cap ca nhan):
- *  outstanding     - doi thua dang no doi thang
- *  pending_confirm - doi thua bao da tra, cho doi thang xac nhan
- *  paid            - da tra xong
- *  waived          - duoc xoa no
- */
-export const debtStatusEnum = pgEnum("debt_status", [
-  "outstanding",
-  "pending_confirm",
-  "paid",
-  "waived",
-]);
-
 export const notificationTypeEnum = pgEnum("notification_type", [
   "challenge_accepted",
   "challenge_locked",
@@ -371,50 +357,6 @@ export const challengeResults = pgTable(
   (t) => [
     uniqueIndex("challenge_results_challenge_unique").on(t.challengeId),
     index("challenge_results_status_idx").on(t.status),
-  ],
-);
-
-/* ================================================================== */
-/* SO NO                                                              */
-/* ================================================================== */
-
-/**
- * Mot keo sinh toi da MOT khoan no, o cap DOI:
- * ca doi thua bao ca doi thang.
- */
-export const debts = pgTable(
-  "debts",
-  {
-    id: uuid("id").primaryKey().defaultRandom(),
-    challengeId: uuid("challenge_id")
-      .notNull()
-      .references(() => challenges.id, { onDelete: "cascade" }),
-    debtorTeam: teamEnum("debtor_team").notNull(),
-    creditorTeam: teamEnum("creditor_team").notNull(),
-    /** Ban sao phan thuong tai thoi diem chot, de lich su khong doi. */
-    stakeType: stakeEnum("stake_type").notNull(),
-    stakeQty: integer("stake_qty").notNull().default(1),
-    stakeNote: text("stake_note"),
-    status: debtStatusEnum("status").notNull().default("outstanding"),
-    proofUrl: text("proof_url"),
-    markedPaidBy: uuid("marked_paid_by").references(() => profiles.id, {
-      onDelete: "set null",
-    }),
-    markedPaidAt: timestamp("marked_paid_at", { withTimezone: true }),
-    confirmedBy: uuid("confirmed_by").references(() => profiles.id, {
-      onDelete: "set null",
-    }),
-    confirmedAt: timestamp("confirmed_at", { withTimezone: true }),
-    createdAt: timestamp("created_at", { withTimezone: true })
-      .notNull()
-      .defaultNow(),
-    updatedAt: timestamp("updated_at", { withTimezone: true })
-      .notNull()
-      .defaultNow(),
-  },
-  (t) => [
-    uniqueIndex("debts_challenge_unique").on(t.challengeId),
-    index("debts_status_idx").on(t.status),
   ],
 );
 
@@ -704,10 +646,6 @@ export const challengesRelations = relations(challenges, ({ one, many }) => ({
     fields: [challenges.id],
     references: [challengeResults.challengeId],
   }),
-  debt: one(debts, {
-    fields: [challenges.id],
-    references: [debts.challengeId],
-  }),
 }));
 
 export const challengeParticipantsRelations = relations(
@@ -737,13 +675,6 @@ export const challengeResultsRelations = relations(
     }),
   }),
 );
-
-export const debtsRelations = relations(debts, ({ one }) => ({
-  challenge: one(challenges, {
-    fields: [debts.challengeId],
-    references: [challenges.id],
-  }),
-}));
 
 export const postsRelations = relations(posts, ({ one, many }) => ({
   author: one(profiles, {
@@ -836,7 +767,6 @@ export type PlaySessionAttendee = typeof playSessionAttendees.$inferSelect;
 export type Challenge = typeof challenges.$inferSelect;
 export type ChallengeParticipant = typeof challengeParticipants.$inferSelect;
 export type ChallengeResult = typeof challengeResults.$inferSelect;
-export type Debt = typeof debts.$inferSelect;
 export type Notification = typeof notifications.$inferSelect;
 export type AuditLog = typeof auditLogs.$inferSelect;
 export type Post = typeof posts.$inferSelect;

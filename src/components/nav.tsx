@@ -3,10 +3,10 @@
 import {
   Bell,
   CalendarDays,
+  BookOpen,
   Newspaper,
   Swords,
   Trophy,
-  Wallet,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -43,10 +43,10 @@ function useItems(unread: number): Item[] {
       icon: <CalendarDays className="size-[18px]" strokeWidth={2} />,
     },
     {
-      href: "/so-no",
-      label: "Sổ nợ",
-      short: "Sổ nợ",
-      icon: <Wallet className="size-[18px]" strokeWidth={2} />,
+      href: "/cam-nang",
+      label: "Cẩm nang",
+      short: "Cẩm nang",
+      icon: <BookOpen className="size-[18px]" strokeWidth={2} />,
     },
     {
       href: "/bang-phong-than",

@@ -244,48 +244,6 @@ export function canConfirmResult(
 }
 
 /* ------------------------------------------------------------------ */
-/* So no                                                               */
-/* ------------------------------------------------------------------ */
-
-export type DebtLike = {
-  debtorTeam: TeamSide;
-  creditorTeam: TeamSide;
-  status: "outstanding" | "pending_confirm" | "paid" | "waived";
-};
-
-/** Đội thua báo "đã trả". */
-export function canMarkDebtPaid(
-  debt: DebtLike,
-  participants: ParticipantLike[],
-  userId: string,
-): Decision {
-  if (debt.status !== "outstanding") {
-    return no("Khoản nợ này không ở trạng thái chờ trả.");
-  }
-  if (teamOf(participants, userId) !== debt.debtorTeam) {
-    return no("Chỉ đội thua mới báo đã trả được.");
-  }
-  return ok;
-}
-
-/** Đội thắng xác nhận đã nhận. */
-export function canConfirmDebt(
-  debt: DebtLike,
-  participants: ParticipantLike[],
-  userId: string,
-  isModerator: boolean,
-): Decision {
-  if (debt.status !== "pending_confirm") {
-    return no("Khoản nợ này chưa được báo đã trả.");
-  }
-  if (isModerator) return ok;
-  if (teamOf(participants, userId) !== debt.creditorTeam) {
-    return no("Chỉ đội thắng mới xác nhận đã nhận được.");
-  }
-  return ok;
-}
-
-/* ------------------------------------------------------------------ */
 /* Nhan trang thai                                                     */
 /* ------------------------------------------------------------------ */
 
@@ -299,9 +257,3 @@ export const CHALLENGE_STATUS_META = {
   cancelled: { label: "Đã huỷ", tone: "slate" },
 } as const;
 
-export const DEBT_STATUS_META = {
-  outstanding: { label: "Đang nợ", tone: "rose" },
-  pending_confirm: { label: "Chờ xác nhận đã trả", tone: "amber" },
-  paid: { label: "Đã trả", tone: "emerald" },
-  waived: { label: "Đã xoá nợ", tone: "slate" },
-} as const;

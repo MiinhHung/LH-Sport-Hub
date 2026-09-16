@@ -6,12 +6,10 @@ import { db } from "@/db";
 import {
   challengeParticipants,
   challenges,
-  debts,
   playSessionAttendees,
   playSessions,
   profiles,
 } from "@/db/schema";
-import { STAKES, type StakeKey } from "@/lib/constants";
 import type { TeamSide } from "@/lib/challenge-logic";
 
 /** Cột profile an toàn để hiển thị công khai trong nội bộ. */
@@ -304,52 +302,6 @@ export async function getProfileById(id: string) {
 }
 
 /* ------------------------------------------------------------------ */
-/* So no                                                               */
-/* ------------------------------------------------------------------ */
-
-const debtWith = {
-  challenge: {
-    with: {
-      creator: { columns: publicProfileColumns },
-      participants: { with: { user: { columns: publicProfileColumns } } },
-      result: true,
-    },
-  },
-} as const;
-
-export type DebtRow = Awaited<ReturnType<typeof listDebts>>[number];
-
-export async function listDebts(options?: { includeSettled?: boolean }) {
-  return db.query.debts.findMany({
-    where: options?.includeSettled
-      ? undefined
-      : inArray(debts.status, ["outstanding", "pending_confirm"]),
-    with: debtWith,
-    orderBy: [desc(debts.createdAt)],
-    limit: 200,
-  });
-}
-
-/** Tách một khoản nợ thành hai phía người cụ thể. */
-export function debtSides(row: DebtRow) {
-  const parts = row.challenge.participants.filter(
-    (p) => p.status === "accepted" || p.status === "invited",
-  );
-  return {
-    debtors: parts.filter((p) => p.team === (row.debtorTeam as TeamSide)),
-    creditors: parts.filter((p) => p.team === (row.creditorTeam as TeamSide)),
-  };
-}
-
-export function debtInvolves(row: DebtRow, userId: string) {
-  const { debtors, creditors } = debtSides(row);
-  return {
-    isDebtor: debtors.some((p) => p.userId === userId),
-    isCreditor: creditors.some((p) => p.userId === userId),
-  };
-}
-
-/* ------------------------------------------------------------------ */
 /* Bang phong than                                                     */
 /* ------------------------------------------------------------------ */
 
@@ -366,10 +318,6 @@ export type LeaderboardEntry = {
   winRate: number;
   currentStreak: number;
   bestStreak: number;
-  /** Số phần đang nợ, quy theo đơn vị phần thưởng. */
-  owedUnits: number;
-  owedSummary: string;
-  paidCount: number;
   /** Kèo nhận rồi nhưng bị huỷ / quá hạn chưa đánh. */
   ghosted: number;
 };
@@ -384,7 +332,7 @@ export type LeaderboardEntry = {
   // Bản trước nạp tới 2000 kèo và 2000 khoản nợ KÈM QUAN HỆ vào bộ nhớ
   // rồi mới cộng bằng JavaScript. Trang Thành viên và Hồ sơ cũng gọi hàm
   // này, nên mỗi lần mở là kéo về vài MB chỉ để hiện mấy con số.
-  const [members, playedRows, debtRows, ghostRows] = await Promise.all([
+  const [members, playedRows, ghostRows] = await Promise.all([
     listMembers(),
 
     // Từng lượt tham gia của kèo đã chốt: thắng hay thua, chốt lúc nào.
@@ -406,26 +354,6 @@ export type LeaderboardEntry = {
       order by c.completed_at asc nulls last
     `),
 
-    // Nợ gom sẵn theo người + loại phần thưởng + trạng thái.
-    db.execute<{
-      user_id: string;
-      stake_type: string;
-      status: string;
-      qty: number;
-      rows: number;
-    }>(sql`
-      select cp.user_id,
-             d.stake_type,
-             d.status,
-             sum(d.stake_qty)::int as qty,
-             count(*)::int as rows
-      from debts d
-      join challenge_participants cp
-        on cp.challenge_id = d.challenge_id
-       and cp.team = d.debtor_team
-       and cp.status = 'accepted'
-      group by cp.user_id, d.stake_type, d.status
-    `),
 
     // Kèo đã chốt người rồi nhưng bị huỷ => tính là "xù kèo".
     db.execute<{ user_id: string; total: number }>(sql`
@@ -454,9 +382,6 @@ export type LeaderboardEntry = {
       winRate: 0,
       currentStreak: 0,
       bestStreak: 0,
-      owedUnits: 0,
-      owedSummary: "",
-      paidCount: 0,
       ghosted: 0,
     });
   }
@@ -482,31 +407,6 @@ export type LeaderboardEntry = {
   for (const [userId, value] of streak) {
     const entry = stats.get(userId);
     if (entry) entry.currentStreak = value;
-  }
-
-  const owedByType = new Map<string, Map<StakeKey, number>>();
-  for (const row of debtRows) {
-    const entry = stats.get(row.user_id);
-    if (!entry) continue;
-
-    if (row.status === "outstanding" || row.status === "pending_confirm") {
-      entry.owedUnits += row.qty;
-      const byType = owedByType.get(row.user_id) ?? new Map<StakeKey, number>();
-      const key = row.stake_type as StakeKey;
-      byType.set(key, (byType.get(key) ?? 0) + row.qty);
-      owedByType.set(row.user_id, byType);
-    } else if (row.status === "paid") {
-      entry.paidCount += row.rows;
-    }
-  }
-
-  for (const [userId, byType] of owedByType) {
-    const entry = stats.get(userId);
-    if (!entry) continue;
-    entry.owedSummary = [...byType.entries()]
-      .sort((a, b) => b[1] - a[1])
-      .map(([type, qty]) => `${qty} ${STAKES[type].unit}`)
-      .join(", ");
   }
 
   for (const row of ghostRows) {

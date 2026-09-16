@@ -1,6 +1,6 @@
 import {
+  BookOpen,
   CalendarDays,
-  HandCoins,
   MapPin,
   MessageSquare,
   Plus,
@@ -8,6 +8,7 @@ import {
   Users,
 } from "lucide-react";
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 
 import { PostCard } from "@/components/feed/post-card";
@@ -23,8 +24,9 @@ import {
 import { LinkButton } from "@/components/ui/button";
 import { isModerator, requireProfile } from "@/lib/auth";
 import { STAKES, formatStake, type StakeKey } from "@/lib/constants";
+import { ARTICLES } from "@/content/cam-nang";
 import { listFeed } from "@/lib/feed";
-import { debtInvolves, listChallenges, listDebts, listUpcomingSessions } from "@/lib/queries";
+import { listChallenges, listUpcomingSessions } from "@/lib/queries";
 import { formatDateTime, timeUntil } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Bảng tin" };
@@ -34,13 +36,16 @@ export const metadata: Metadata = { title: "Bảng tin" };
 /* ------------------------------------------------------------------ */
 
 async function SideRail({ viewerId }: { viewerId: string }) {
-  const [sessions, openChallenges, debts] = await Promise.all([
+  // Đổi bài gợi ý theo ngày, khỏi lúc nào cũng thấy đúng một bài.
+  const tip =
+    ARTICLES[
+      Math.floor(Date.now() / 86_400_000) % ARTICLES.length
+    ];
+
+  const [sessions, openChallenges] = await Promise.all([
     listUpcomingSessions(2),
     listChallenges({ tab: "open", userId: viewerId, limit: 3 }),
-    listDebts(),
   ]);
-
-  const myDebts = debts.filter((d) => debtInvolves(d, viewerId).isDebtor);
 
   return (
     <aside className="space-y-5 lg:sticky lg:top-24">
@@ -180,39 +185,50 @@ async function SideRail({ viewerId }: { viewerId: string }) {
         )}
       </section>
 
-      {/* Nợ của tôi */}
-      {myDebts.length > 0 && (
-        <section aria-labelledby="no-cua-toi-rail">
-          <SectionTitle>
-            <HandCoins className="size-4 text-rose-500" aria-hidden />
-            <span id="no-cua-toi-rail">Bạn đang nợ</span>
-          </SectionTitle>
-          <Card className="border-rose-200 p-3.5">
-            <ul className="space-y-1.5">
-              {myDebts.slice(0, 3).map((d) => (
-                <li key={d.id} className="text-[13px] text-ink-300">
-                  <span aria-hidden>{STAKES[d.stakeType as StakeKey].icon}</span>{" "}
-                  <span className="font-bold text-rose-700">
-                    {formatStake(
-                      d.stakeType as StakeKey,
-                      d.stakeQty,
-                      d.stakeNote,
-                    )}
-                  </span>
-                </li>
-              ))}
-            </ul>
-            <LinkButton
-              href="/so-no"
-              variant="secondary"
-              size="sm"
-              className="mt-3 w-full"
+      {/* Cẩm nang — mỗi lần mở trang gợi một bài khác nhau */}
+      <section aria-labelledby="cam-nang-rail">
+        <SectionTitle
+          action={
+            <Link
+              href="/cam-nang"
+              className="text-[12px] font-bold text-navy-700 hover:underline"
             >
-              Mở sổ nợ
-            </LinkButton>
-          </Card>
-        </section>
-      )}
+              Tất cả
+            </Link>
+          }
+        >
+          <BookOpen className="size-4 text-gold-500" aria-hidden />
+          <span id="cam-nang-rail">Cẩm nang</span>
+        </SectionTitle>
+
+        <Link
+          href={`/cam-nang/${tip.slug}`}
+          className="group block overflow-hidden rounded-2xl ring-1 ring-ink-800"
+        >
+          <div className="relative aspect-[16/9]">
+            {tip.cover ? (
+              <Image
+                src={tip.cover}
+                alt=""
+                fill
+                sizes="320px"
+                className="object-cover transition-transform duration-700 group-hover:scale-105"
+              />
+            ) : (
+              <div className="bg-gradient-navy size-full" />
+            )}
+            <div className="absolute inset-0 bg-gradient-to-t from-navy-950 via-navy-950/50 to-transparent" />
+            <div className="absolute inset-x-0 bottom-0 p-3.5">
+              <p className="text-[10px] font-semibold tracking-[0.16em] text-gold-300 uppercase">
+                {tip.category}
+              </p>
+              <p className="font-display mt-1 text-[15px] leading-tight font-bold text-white">
+                {tip.title}
+              </p>
+            </div>
+          </div>
+        </Link>
+      </section>
     </aside>
   );
 }

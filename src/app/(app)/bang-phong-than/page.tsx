@@ -1,4 +1,4 @@
-import { Flame, Ghost, HandCoins, Medal, Trophy } from "lucide-react";
+import { Flame, Ghost, Medal, Swords, Trophy } from "lucide-react";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
@@ -116,9 +116,7 @@ export default async function LeaderboardPage() {
   const played = board.filter((e) => e.played > 0);
 
   const topWinner = played[0];
-  const topDebtor = [...board]
-    .filter((e) => e.owedUnits > 0)
-    .sort((a, b) => b.owedUnits - a.owedUnits)[0];
+  const topPlayer = [...played].sort((a, b) => b.played - a.played)[0];
   const topStreak = [...played]
     .filter((e) => e.currentStreak >= 2)
     .sort((a, b) => b.currentStreak - a.currentStreak)[0];
@@ -158,12 +156,12 @@ export default async function LeaderboardPage() {
                 tone="gold"
               />
               <Crown
-                title="Chúa nợ"
-                subtitle="Nợ nhiều nhất chưa trả"
-                entry={topDebtor}
-                value={topDebtor?.owedSummary || `${topDebtor?.owedUnits} phần`}
-                icon={<HandCoins className="size-4" />}
-                tone="rose"
+                title="Chăm nhất"
+                subtitle="Đánh nhiều kèo nhất"
+                entry={topPlayer}
+                value={`${topPlayer?.played ?? 0} trận đã đánh`}
+                icon={<Swords className="size-4" />}
+                tone="sky"
               />
               <Crown
                 title="Đang có phong độ"
@@ -197,7 +195,7 @@ export default async function LeaderboardPage() {
                 <span className="text-right">Thắng</span>
                 <span className="text-right">Thua</span>
                 <span className="text-right">Tỉ lệ</span>
-                <span className="text-right">Đang nợ</span>
+                <span className="text-right">Chuỗi</span>
               </div>
 
               <ul className="divide-y divide-ink-800">
@@ -251,8 +249,8 @@ export default async function LeaderboardPage() {
                         {Math.round(entry.winRate * 100)}%
                       </span>
                       <span className="hidden justify-end sm:flex">
-                        {entry.owedUnits > 0 ? (
-                          <Badge tone="rose">{entry.owedUnits}</Badge>
+                        {entry.currentStreak >= 2 ? (
+                          <Badge tone="lime">🔥 {entry.currentStreak}</Badge>
                         ) : (
                           <span className="text-[13px] text-ink-600">—</span>
                         )}
@@ -260,11 +258,9 @@ export default async function LeaderboardPage() {
 
                       {/* Cột gọn cho điện thoại */}
                       <span className="flex justify-end sm:hidden">
-                        {entry.owedUnits > 0 ? (
-                          <Badge tone="rose">nợ {entry.owedUnits}</Badge>
-                        ) : (
-                          <Badge tone="emerald">sạch</Badge>
-                        )}
+                        <Badge tone={entry.winRate >= 0.5 ? "emerald" : "slate"}>
+                          {Math.round(entry.winRate * 100)}%
+                        </Badge>
                       </span>
                     </li>
                   );

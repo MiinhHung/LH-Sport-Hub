@@ -38,16 +38,16 @@ export default function AuthLayout({
               thua thì <span className="text-gradient-gold">bao</span>.
             </h2>
             <p className="mt-5 text-[15px] leading-relaxed text-white/70">
-              Chỗ để anh em chốt kèo cầu lông, đi bơi, ghi tỉ số và theo dõi
-              xem ai còn nợ ai bữa sáng.
+              Chỗ để anh em chốt kèo cầu lông, đi bơi, ghi tỉ số và tra cứu
+              luật lẫn bài khởi động.
             </p>
           </div>
 
           <dl className="grid grid-cols-3 gap-6 border-t border-white/15 pt-8">
             {[
               { k: "Kèo 1v1 & 2v2", v: "Mở hoặc thách đích danh" },
-              { k: "Sổ nợ", v: "Cả đội thua bao cả đội thắng" },
-              { k: "Bảng phong thần", v: "Vua kèo, chúa nợ" },
+              { k: "Cẩm nang", v: "Luật, kỹ thuật, khởi động" },
+              { k: "Bảng phong thần", v: "Vua kèo, chuỗi thắng" },
             ].map((item) => (
               <div key={item.k}>
                 <dt className="text-[13px] font-bold text-gold-300">

@@ -1,4 +1,4 @@
-import { Flame, HandCoins, Swords, Trophy } from "lucide-react";
+import { Flame, Shield, Swords, Trophy } from "lucide-react";
 import type { Metadata } from "next";
 
 import { ChallengeCard } from "@/components/challenge-card";
@@ -71,11 +71,11 @@ export default async function ProfilePage() {
           tone="amber"
         />
         <Stat
-          label="Đang nợ"
-          value={me?.owedUnits ?? 0}
-          sub={me?.owedSummary || "sạch nợ"}
-          icon={<HandCoins className="size-3.5" />}
-          tone="rose"
+          label="Thua"
+          value={me?.losses ?? 0}
+          sub={me?.ghosted ? `${me.ghosted} kèo bỏ dở` : "chưa bỏ kèo nào"}
+          icon={<Shield className="size-3.5" />}
+          tone="slate"
         />
       </div>
 

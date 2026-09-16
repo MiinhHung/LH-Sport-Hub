@@ -191,8 +191,7 @@ export default async function ChallengeDetailPage({
   // Xoá hẳn chỉ mở khi chưa phát sinh kết quả/nợ — khớp với luật ở server.
   const canDelete =
     (challenge.creatorId === user.id || isMod) &&
-    challenge.result?.status !== "confirmed" &&
-    !challenge.debt;
+    challenge.result?.status !== "confirmed";
 
   const winner =
     challenge.result?.status === "confirmed"

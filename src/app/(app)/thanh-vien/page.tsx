@@ -95,17 +95,19 @@ export default async function MembersPage() {
                   </div>
                   <div>
                     <dt className="text-[10.5px] font-semibold tracking-wide text-ink-500 uppercase">
-                      Nợ
+                      Tỉ lệ
                     </dt>
                     <dd
                       className={cn(
                         "tabular text-[15px] font-bold",
-                        stats?.owedUnits
-                          ? "text-rose-600"
+                        (stats?.winRate ?? 0) >= 0.5
+                          ? "text-gold-700"
                           : "text-ink-600",
                       )}
                     >
-                      {stats?.owedUnits ?? 0}
+                      {stats?.played
+                        ? `${Math.round(stats.winRate * 100)}%`
+                        : "—"}
                     </dd>
                   </div>
                 </dl>

@@ -8,7 +8,6 @@ import {
   challengeParticipants,
   challengeResults,
   challenges,
-  debts,
 } from "@/db/schema";
 import { AppError, isModerator, requireActor } from "@/lib/auth";
 import { audit } from "@/lib/audit";
@@ -64,7 +63,6 @@ async function loadLocked(tx: Tx, challengeId: string) {
 function revalidateAll(challengeId: string) {
   revalidatePath("/keo");
   revalidatePath(`/keo/${challengeId}`);
-  revalidatePath("/so-no");
   revalidatePath("/bang-phong-than");
   revalidatePath("/ho-so");
 }
@@ -265,23 +263,8 @@ export async function settleChallenge(
     .where(eq(challenges.id, challengeId));
 
   const stakeType = challenge.stakeType as StakeKey;
-  let debtCreated = false;
-
-  if (STAKES[stakeType].createsDebt) {
-    await tx
-      .insert(debts)
-      .values({
-        challengeId,
-        debtorTeam: losingTeam,
-        creditorTeam: winningTeam,
-        stakeType: challenge.stakeType,
-        stakeQty: challenge.stakeQty,
-        stakeNote: challenge.stakeNote,
-        status: "outstanding",
-      })
-      .onConflictDoNothing({ target: debts.challengeId });
-    debtCreated = true;
-  }
+  // Kèo danh dự thì không ai phải bao ai.
+  const hasStake = STAKES[stakeType].createsDebt;
 
   const participants = (await tx
     .select()
@@ -309,17 +292,17 @@ export async function settleChallenge(
         : `Kèo "${challenge.title}" đã chốt kết quả`,
       message:
         p.team === winningTeam
-          ? debtCreated
+          ? hasStake
             ? `Bạn thắng! Đội kia nợ bạn ${stakeLabel}.`
             : "Bạn thắng!"
-          : debtCreated
+          : hasStake
             ? `Đội bạn thua, nợ ${stakeLabel}.`
             : "Đội bạn thua.",
-      href: debtCreated ? "/so-no" : `/keo/${challengeId}`,
+      href: `/keo/${challengeId}`,
     })),
   );
 
-  return { winningTeam, debtCreated };
+  return { winningTeam, hasStake };
 }
 
 export async function confirmResultAction(

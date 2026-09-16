@@ -108,7 +108,6 @@ async function namesOf(ids: string[]): Promise<Map<string, string>> {
 
 function revalidateChallenge(id?: string) {
   revalidatePath("/keo");
-  revalidatePath("/so-no");
   revalidatePath("/bang-phong-than");
   if (id) revalidatePath(`/keo/${id}`);
 }
@@ -662,7 +661,7 @@ export async function deleteChallengeAction(
     const challenge = await db.query.challenges.findFirst({
       where: eq(challenges.id, challengeId),
       columns: { id: true, title: true, creatorId: true, status: true },
-      with: { result: true, debt: true },
+      with: { result: true },
     });
 
     if (!challenge) return failure("Không tìm thấy kèo này.");
@@ -671,9 +670,9 @@ export async function deleteChallengeAction(
       return failure("Chỉ người tạo kèo mới xoá được.");
     }
 
-    if (challenge.result?.status === "confirmed" || challenge.debt) {
+    if (challenge.result?.status === "confirmed") {
       return failure(
-        "Kèo đã chốt kết quả nên không xoá được — xoá sẽ mất luôn khoản nợ đi kèm. Bạn chỉ có thể huỷ.",
+        "Kèo đã chốt kết quả nên không xoá được — xoá sẽ mất luôn lịch sử thắng thua. Bạn chỉ có thể huỷ.",
       );
     }
 

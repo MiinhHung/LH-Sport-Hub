@@ -1,10 +1,10 @@
 import { count, desc, eq } from "drizzle-orm";
-import { Activity, ShieldCheck, Swords, Users } from "lucide-react";
+import { ShieldCheck, Swords, Users } from "lucide-react";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
 import { db } from "@/db";
-import { auditLogs, challenges, debts, profiles } from "@/db/schema";
+import { auditLogs, challenges, profiles } from "@/db/schema";
 import {
   Avatar,
   Badge,
@@ -29,12 +29,11 @@ export default async function AdminPage() {
   // Chặn ở tầng trang; các server action vẫn tự kiểm tra quyền riêng.
   if (!isModerator(me)) redirect("/keo");
 
-  const [allProfiles, memberCount, openChallenges, openDebts, logs] =
+  const [allProfiles, memberCount, openChallenges, logs] =
     await Promise.all([
       db.query.profiles.findMany({ orderBy: [desc(profiles.createdAt)] }),
       db.select({ v: count() }).from(profiles).where(eq(profiles.status, "active")),
       db.select({ v: count() }).from(challenges).where(eq(challenges.status, "open")),
-      db.select({ v: count() }).from(debts).where(eq(debts.status, "outstanding")),
       db.query.auditLogs.findMany({
         orderBy: [desc(auditLogs.createdAt)],
         limit: 30,
@@ -52,7 +51,7 @@ export default async function AdminPage() {
         action={<Badge tone="navy">{ROLES[me.role].label}</Badge>}
       />
 
-      <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+      <div className="grid grid-cols-3 gap-2.5">
         <Stat
           label="Thành viên"
           value={memberCount[0]?.v ?? 0}
@@ -64,12 +63,6 @@ export default async function AdminPage() {
           value={openChallenges[0]?.v ?? 0}
           icon={<Swords className="size-3.5" />}
           tone="lime"
-        />
-        <Stat
-          label="Nợ chưa trả"
-          value={openDebts[0]?.v ?? 0}
-          icon={<Activity className="size-3.5" />}
-          tone="rose"
         />
         <Stat
           label="Tài khoản khoá"
