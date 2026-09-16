@@ -39,6 +39,7 @@ import { cn, formatDateTime, timeUntil } from "@/lib/utils";
 import {
   CancelChallengeForm,
   ConfirmResultActions,
+  DeleteChallengeForm,
   JoinChallengeForm,
   LeaveChallengeForm,
   RespondInviteForm,
@@ -186,6 +187,12 @@ export default async function ChallengeDetailPage({
       p.userId === user.id &&
       (p.status === "accepted" || p.status === "invited"),
   )?.team;
+
+  // Xoá hẳn chỉ mở khi chưa phát sinh kết quả/nợ — khớp với luật ở server.
+  const canDelete =
+    (challenge.creatorId === user.id || isMod) &&
+    challenge.result?.status !== "confirmed" &&
+    !challenge.debt;
 
   const winner =
     challenge.result?.status === "confirmed"
@@ -443,9 +450,10 @@ export default async function ChallengeDetailPage({
           </div>
         </div>
 
-        <div className="flex items-center gap-1">
+        <div className="flex flex-wrap items-center gap-1">
           {leaveDec.ok && <LeaveChallengeForm challengeId={challenge.id} />}
           {cancelDec.ok && <CancelChallengeForm challengeId={challenge.id} />}
+          {canDelete && <DeleteChallengeForm challengeId={challenge.id} />}
         </div>
       </footer>
     </div>

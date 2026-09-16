@@ -1,10 +1,11 @@
 "use client";
 
-import { Check, Flag, ShieldAlert, X } from "lucide-react";
+import { Check, Flag, ShieldAlert, Trash2, X } from "lucide-react";
 import { useActionState, useState } from "react";
 
 import {
   cancelChallengeAction,
+  deleteChallengeAction,
   joinChallengeAction,
   leaveChallengeAction,
   respondInviteAction,
@@ -175,6 +176,41 @@ export function CancelChallengeForm({ challengeId }: { challengeId: string }) {
         </form>
       </CardBody>
     </Card>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Xoá hẳn kèo                                                         */
+/* ------------------------------------------------------------------ */
+
+export function DeleteChallengeForm({ challengeId }: { challengeId: string }) {
+  const [state, action] = useActionState(deleteChallengeAction, idleState);
+
+  return (
+    <form
+      action={action}
+      onSubmit={(e) => {
+        if (
+          !window.confirm(
+            "Xoá hẳn kèo này? Không khôi phục lại được.\n\nNếu chỉ muốn báo là không đánh nữa thì dùng Huỷ kèo.",
+          )
+        ) {
+          e.preventDefault();
+        }
+      }}
+    >
+      <input type="hidden" name="challengeId" value={challengeId} />
+      <SubmitButton
+        variant="ghost"
+        size="sm"
+        className="text-rose-600 hover:bg-rose-50 hover:text-rose-700"
+        pendingText="Đang xoá…"
+      >
+        <Trash2 className="size-4" />
+        Xoá kèo
+      </SubmitButton>
+      <ErrorAlert state={state} />
+    </form>
   );
 }
 

@@ -638,6 +638,72 @@ export async function cancelChallengeAction(
 }
 
 /* ------------------------------------------------------------------ */
+/* Xoa han keo                                                         */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Xoá hẳn khỏi database — khác với "huỷ" (huỷ vẫn giữ lại để xem).
+ *
+ * Chặn khi kèo đã chốt kết quả: khoản nợ gắn với kèo sẽ bị xoá theo
+ * (khoá ngoại cascade), tức là xoá mất công nợ của người khác. Trường
+ * hợp đó chỉ cho huỷ, không cho xoá.
+ */
+export async function deleteChallengeAction(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  let deleted = false;
+
+  const result = await runAction(async () => {
+    const actor = await requireActor();
+    const challengeId = String(formData.get("challengeId") ?? "");
+    if (!challengeId) return failure("Yêu cầu không hợp lệ.");
+
+    const challenge = await db.query.challenges.findFirst({
+      where: eq(challenges.id, challengeId),
+      columns: { id: true, title: true, creatorId: true, status: true },
+      with: { result: true, debt: true },
+    });
+
+    if (!challenge) return failure("Không tìm thấy kèo này.");
+
+    if (challenge.creatorId !== actor.id && !isModerator(actor)) {
+      return failure("Chỉ người tạo kèo mới xoá được.");
+    }
+
+    if (challenge.result?.status === "confirmed" || challenge.debt) {
+      return failure(
+        "Kèo đã chốt kết quả nên không xoá được — xoá sẽ mất luôn khoản nợ đi kèm. Bạn chỉ có thể huỷ.",
+      );
+    }
+
+    await db.transaction(async (tx) => {
+      // Ghi log TRƯỚC khi xoá, vì audit_logs không giữ bản sao nội dung.
+      await audit(tx, {
+        actorId: actor.id,
+        action: "challenge.delete",
+        targetType: "challenge",
+        targetId: challengeId,
+        metadata: {
+          title: challenge.title,
+          status: challenge.status,
+          byModerator: challenge.creatorId !== actor.id,
+        },
+      });
+
+      await tx.delete(challenges).where(eq(challenges.id, challengeId));
+    });
+
+    deleted = true;
+    revalidateChallenge(challengeId);
+    return success("Đã xoá kèo.");
+  });
+
+  if (deleted) redirect("/keo");
+  return result;
+}
+
+/* ------------------------------------------------------------------ */
 /* Doi doi (nguoi tao sap xep lai doi hinh 2v2)                        */
 /* ------------------------------------------------------------------ */
 

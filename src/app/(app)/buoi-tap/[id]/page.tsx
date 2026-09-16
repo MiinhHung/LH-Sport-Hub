@@ -21,13 +21,14 @@ import {
   SectionTitle,
   Stat,
 } from "@/components/ui";
-import { requireProfile } from "@/lib/auth";
+import { isModerator, requireProfile } from "@/lib/auth";
 import { SPORTS, type SportKey } from "@/lib/constants";
 import { directionsUrl, mapEmbedSrc } from "@/lib/maps";
 import { getSessionDetail } from "@/lib/queries";
 import { formatDateTime, formatTime, formatVnd, timeUntil } from "@/lib/utils";
 
 import { AttendanceButtons } from "./attendance";
+import { SessionOwnerActions } from "./session-actions";
 
 export async function generateMetadata({
   params,
@@ -60,6 +61,7 @@ export default async function SessionDetailPage({
   const notGoing = session.attendees.filter((a) => a.status === "not_going");
   const sport = SPORTS[session.sport as SportKey];
   const status = STATUS_LABEL[session.status];
+  const isOwner = session.creatorId === profile.id || isModerator(profile);
 
   const directions = directionsUrl(
     session.venueName,
@@ -287,6 +289,32 @@ export default async function SessionDetailPage({
           </p>
         )}
       </section>
+
+      {/* Chân trang: người tạo + hành động của chủ buổi */}
+      <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-ink-800 pt-5">
+        <div className="flex items-center gap-2.5">
+          <Avatar
+            name={session.creator.fullName}
+            src={session.creator.avatarUrl}
+            seed={session.creator.id}
+            size="sm"
+          />
+          <div className="text-[12.5px]">
+            <p className="font-semibold text-ink-300">
+              {session.creator.fullName}
+            </p>
+            <p className="text-ink-500">đứng ra tổ chức</p>
+          </div>
+        </div>
+
+        {isOwner && (
+          <SessionOwnerActions
+            sessionId={session.id}
+            canCancel={session.status === "open"}
+            goingCount={going.length}
+          />
+        )}
+      </footer>
 
       {/* Kèo gắn với buổi này */}
       {session.challenges.length > 0 && (

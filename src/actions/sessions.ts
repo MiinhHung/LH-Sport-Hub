@@ -203,6 +203,87 @@ export async function setAttendanceAction(
 }
 
 /* ------------------------------------------------------------------ */
+/* Xoa han buoi tap                                                    */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Xoá hẳn buổi tập. Danh sách người đi bị xoá theo (cascade), còn kèo
+ * đã gắn vào buổi này thì KHÔNG mất — khoá ngoại để `set null`, nên kèo
+ * chỉ chuyển thành "đánh lúc nào cũng được".
+ */
+export async function deleteSessionAction(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  let deleted = false;
+
+  const result = await runAction(async () => {
+    const actor = await requireActor();
+    const sessionId = String(formData.get("sessionId") ?? "");
+    if (!sessionId) return failure("Yêu cầu không hợp lệ.");
+
+    const session = await db.query.playSessions.findFirst({
+      where: eq(playSessions.id, sessionId),
+      columns: { id: true, title: true, creatorId: true, status: true },
+    });
+
+    if (!session) return failure("Không tìm thấy buổi tập.");
+
+    if (session.creatorId !== actor.id && !isModerator(actor)) {
+      return failure("Chỉ người tạo buổi tập mới xoá được.");
+    }
+
+    const attendees = await db
+      .select({ userId: playSessionAttendees.userId })
+      .from(playSessionAttendees)
+      .where(
+        and(
+          eq(playSessionAttendees.sessionId, sessionId),
+          eq(playSessionAttendees.status, "going"),
+        ),
+      );
+
+    await db.transaction(async (tx) => {
+      // Báo cho người đã nhận đi trước khi bản ghi biến mất.
+      await notify(
+        tx,
+        attendees
+          .filter((a) => a.userId !== actor.id)
+          .map((a) => ({
+            recipientId: a.userId,
+            actorId: actor.id,
+            type: "session_cancelled" as const,
+            title: `Buổi "${session.title}" đã bị xoá`,
+            message: "Người tạo đã xoá buổi tập này.",
+            href: "/buoi-tap",
+          })),
+      );
+
+      await audit(tx, {
+        actorId: actor.id,
+        action: "session.delete",
+        targetType: "play_session",
+        targetId: sessionId,
+        metadata: {
+          title: session.title,
+          attendees: attendees.length,
+          byModerator: session.creatorId !== actor.id,
+        },
+      });
+
+      await tx.delete(playSessions).where(eq(playSessions.id, sessionId));
+    });
+
+    deleted = true;
+    revalidateSessions(sessionId);
+    return success("Đã xoá buổi tập.");
+  });
+
+  if (deleted) redirect("/buoi-tap");
+  return result;
+}
+
+/* ------------------------------------------------------------------ */
 /* Huy buoi tap                                                        */
 /* ------------------------------------------------------------------ */
 
