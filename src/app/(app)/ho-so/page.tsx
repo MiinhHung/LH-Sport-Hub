@@ -8,7 +8,7 @@ import {
   Card,
   CardBody,
   EmptyState,
-  PageHeader,
+  PageIntro,
   SectionTitle,
   Stat,
 } from "@/components/ui";
@@ -32,9 +32,10 @@ export default async function ProfilePage() {
 
   return (
     <div className="mx-auto max-w-3xl space-y-8">
-      <PageHeader
+      <PageIntro
+        eyebrow="Cá nhân"
         title="Hồ sơ của tôi"
-        description={`Thành viên từ ${formatDate(profile.createdAt)}.`}
+        lead={`Thành viên từ ${formatDate(profile.createdAt)}.`}
         action={
           <div className="flex gap-1.5">
             <Badge tone="navy">{ROLES[profile.role].label}</Badge>

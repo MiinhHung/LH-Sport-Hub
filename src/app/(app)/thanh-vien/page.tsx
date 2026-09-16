@@ -7,7 +7,7 @@ import {
   Badge,
   Card,
   EmptyState,
-  PageHeader,
+  PageIntro,
 } from "@/components/ui";
 import { requireProfile } from "@/lib/auth";
 import { ROLES, SKILL_LEVELS, type SkillLevelKey } from "@/lib/constants";
@@ -24,9 +24,10 @@ export default async function MembersPage() {
 
   return (
     <div className="space-y-8">
-      <PageHeader
+      <PageIntro
+        eyebrow="Đội hình"
         title="Thành viên"
-        description={`${members.length} người đang hoạt động trong team.`}
+        lead={`${members.length} người đang hoạt động trong team.`}
       />
 
       {members.length === 0 ? (

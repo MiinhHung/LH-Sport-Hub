@@ -148,6 +148,9 @@ export type ChatMessagePayload = {
   id: string;
   senderId: string;
   content: string;
+  imageUrl: string | null;
+  imageWidth: number | null;
+  imageHeight: number | null;
   /** Chuỗi ISO — Date không đi qua ranh giới server/client an toàn ở đây. */
   createdAt: string;
 };
@@ -156,8 +159,40 @@ export type ChatMessage = {
   id: string;
   senderId: string;
   content: string;
+  imageUrl: string | null;
+  imageWidth: number | null;
+  imageHeight: number | null;
   createdAt: Date;
 };
+
+/** Đổi bản ghi database sang dạng gửi xuống máy người dùng. */
+export function toPayload(m: ChatMessage): ChatMessagePayload {
+  return { ...m, createdAt: m.createdAt.toISOString() };
+}
+
+/**
+ * Kiểm tra một người có thuộc cuộc trò chuyện không.
+ *
+ * Nhẹ hơn getConversation rất nhiều (không join hai bảng profiles), nên
+ * dùng cho vòng lặp hỏi tin — thứ chạy vài giây một lần suốt thời gian
+ * mở khung chat.
+ */
+export async function isParticipant(
+  conversationId: string,
+  userId: string,
+): Promise<boolean> {
+  const row = await db.query.conversations.findFirst({
+    where: and(
+      eq(conversations.id, conversationId),
+      or(
+        eq(conversations.userAId, userId),
+        eq(conversations.userBId, userId),
+      ),
+    ),
+    columns: { id: true },
+  });
+  return Boolean(row);
+}
 
 export async function listMessages(
   conversationId: string,
@@ -170,7 +205,15 @@ export async function listMessages(
     ),
     orderBy: [asc(messages.createdAt)],
     limit,
-    columns: { id: true, senderId: true, content: true, createdAt: true },
+    columns: {
+      id: true,
+      senderId: true,
+      content: true,
+      imageUrl: true,
+      imageWidth: true,
+      imageHeight: true,
+      createdAt: true,
+    },
   });
   return rows;
 }
@@ -188,7 +231,15 @@ export async function listMessagesSince(
     ),
     orderBy: [asc(messages.createdAt)],
     limit: 100,
-    columns: { id: true, senderId: true, content: true, createdAt: true },
+    columns: {
+      id: true,
+      senderId: true,
+      content: true,
+      imageUrl: true,
+      imageWidth: true,
+      imageHeight: true,
+      createdAt: true,
+    },
   });
 }
 

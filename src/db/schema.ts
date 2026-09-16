@@ -588,7 +588,11 @@ export const messages = pgTable(
     senderId: uuid("sender_id")
       .notNull()
       .references(() => profiles.id, { onDelete: "cascade" }),
-    content: text("content").notNull(),
+    /** Có thể rỗng khi tin nhắn chỉ gồm ảnh. */
+    content: text("content").notNull().default(""),
+    imageUrl: text("image_url"),
+    imageWidth: integer("image_width"),
+    imageHeight: integer("image_height"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),

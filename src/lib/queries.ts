@@ -378,23 +378,65 @@ export type LeaderboardEntry = {
  * Với quy mô vài chục người và vài trăm kèo, gom số liệu trong TS
  * dễ đọc và dễ sửa hơn nhiều so với một câu SQL tổng hợp.
  * Nếu dữ liệu lớn lên thì chuyển sang materialized view.
- */
-export async function getLeaderboard(): Promise<LeaderboardEntry[]> {
-  const [members, completed, allDebts] = await Promise.all([
+ */export async function getLeaderboard(): Promise<LeaderboardEntry[]> {
+  // Ba truy vấn gộp, mỗi cái chỉ trả về đúng con số cần dùng.
+  //
+  // Bản trước nạp tới 2000 kèo và 2000 khoản nợ KÈM QUAN HỆ vào bộ nhớ
+  // rồi mới cộng bằng JavaScript. Trang Thành viên và Hồ sơ cũng gọi hàm
+  // này, nên mỗi lần mở là kéo về vài MB chỉ để hiện mấy con số.
+  const [members, playedRows, debtRows, ghostRows] = await Promise.all([
     listMembers(),
-    db.query.challenges.findMany({
-      where: eq(challenges.status, "completed"),
-      with: {
-        participants: true,
-        result: true,
-      },
-      orderBy: [asc(challenges.completedAt)],
-      limit: 2000,
-    }),
-    db.query.debts.findMany({
-      with: { challenge: { with: { participants: true } } },
-      limit: 2000,
-    }),
+
+    // Từng lượt tham gia của kèo đã chốt: thắng hay thua, chốt lúc nào.
+    // Sắp theo thời gian để tính chuỗi thắng bên dưới.
+    db.execute<{
+      user_id: string;
+      won: boolean;
+      completed_at: Date | null;
+    }>(sql`
+      select cp.user_id,
+             (cp.team = cr.winning_team) as won,
+             c.completed_at
+      from challenge_participants cp
+      join challenges c on c.id = cp.challenge_id
+      join challenge_results cr on cr.challenge_id = c.id
+      where c.status = 'completed'
+        and cr.status = 'confirmed'
+        and cp.status = 'accepted'
+      order by c.completed_at asc nulls last
+    `),
+
+    // Nợ gom sẵn theo người + loại phần thưởng + trạng thái.
+    db.execute<{
+      user_id: string;
+      stake_type: string;
+      status: string;
+      qty: number;
+      rows: number;
+    }>(sql`
+      select cp.user_id,
+             d.stake_type,
+             d.status,
+             sum(d.stake_qty)::int as qty,
+             count(*)::int as rows
+      from debts d
+      join challenge_participants cp
+        on cp.challenge_id = d.challenge_id
+       and cp.team = d.debtor_team
+       and cp.status = 'accepted'
+      group by cp.user_id, d.stake_type, d.status
+    `),
+
+    // Kèo đã chốt người rồi nhưng bị huỷ => tính là "xù kèo".
+    db.execute<{ user_id: string; total: number }>(sql`
+      select cp.user_id, count(*)::int as total
+      from challenge_participants cp
+      join challenges c on c.id = cp.challenge_id
+      where c.status = 'cancelled'
+        and c.locked_at is not null
+        and cp.status = 'accepted'
+      group by cp.user_id
+    `),
   ]);
 
   const stats = new Map<string, LeaderboardEntry>();
@@ -419,58 +461,42 @@ export async function getLeaderboard(): Promise<LeaderboardEntry[]> {
     });
   }
 
-  // Chuỗi thắng tính theo thứ tự thời gian hoàn tất.
-  const runningStreak = new Map<string, number>();
+  // Chuỗi thắng phải duyệt theo thứ tự thời gian nên vẫn tính bằng JS,
+  // nhưng giờ chỉ trên vài trăm dòng gọn thay vì cả bảng kèo.
+  const streak = new Map<string, number>();
+  for (const row of playedRows) {
+    const entry = stats.get(row.user_id);
+    if (!entry) continue;
 
-  for (const c of completed) {
-    if (!c.result || c.result.status !== "confirmed") continue;
-    const winner = c.result.winningTeam;
-    for (const p of c.participants) {
-      if (p.status !== "accepted") continue;
-      const entry = stats.get(p.userId);
-      if (!entry) continue;
-      entry.played += 1;
-      if (p.team === winner) {
-        entry.wins += 1;
-        const streak = (runningStreak.get(p.userId) ?? 0) + 1;
-        runningStreak.set(p.userId, streak);
-        entry.bestStreak = Math.max(entry.bestStreak, streak);
-      } else {
-        entry.losses += 1;
-        runningStreak.set(p.userId, 0);
-      }
+    entry.played += 1;
+    if (row.won) {
+      entry.wins += 1;
+      const next = (streak.get(row.user_id) ?? 0) + 1;
+      streak.set(row.user_id, next);
+      entry.bestStreak = Math.max(entry.bestStreak, next);
+    } else {
+      entry.losses += 1;
+      streak.set(row.user_id, 0);
     }
   }
-
-  for (const [userId, streak] of runningStreak) {
+  for (const [userId, value] of streak) {
     const entry = stats.get(userId);
-    if (entry) entry.currentStreak = streak;
+    if (entry) entry.currentStreak = value;
   }
 
-  // Nợ chưa trả + đã trả, gom theo loại phần thưởng.
   const owedByType = new Map<string, Map<StakeKey, number>>();
+  for (const row of debtRows) {
+    const entry = stats.get(row.user_id);
+    if (!entry) continue;
 
-  for (const d of allDebts) {
-    const parts = d.challenge.participants.filter(
-      (p) => p.status === "accepted",
-    );
-    const debtors = parts.filter((p) => p.team === d.debtorTeam);
-
-    if (d.status === "outstanding" || d.status === "pending_confirm") {
-      for (const p of debtors) {
-        const entry = stats.get(p.userId);
-        if (!entry) continue;
-        entry.owedUnits += d.stakeQty;
-        const byType = owedByType.get(p.userId) ?? new Map<StakeKey, number>();
-        const key = d.stakeType as StakeKey;
-        byType.set(key, (byType.get(key) ?? 0) + d.stakeQty);
-        owedByType.set(p.userId, byType);
-      }
-    } else if (d.status === "paid") {
-      for (const p of debtors) {
-        const entry = stats.get(p.userId);
-        if (entry) entry.paidCount += 1;
-      }
+    if (row.status === "outstanding" || row.status === "pending_confirm") {
+      entry.owedUnits += row.qty;
+      const byType = owedByType.get(row.user_id) ?? new Map<StakeKey, number>();
+      const key = row.stake_type as StakeKey;
+      byType.set(key, (byType.get(key) ?? 0) + row.qty);
+      owedByType.set(row.user_id, byType);
+    } else if (row.status === "paid") {
+      entry.paidCount += row.rows;
     }
   }
 
@@ -483,25 +509,8 @@ export async function getLeaderboard(): Promise<LeaderboardEntry[]> {
       .join(", ");
   }
 
-  // Kèo đã chốt nhưng bị huỷ => tính là "xù kèo".
-  const ghosted = await db
-    .select({
-      userId: challengeParticipants.userId,
-      total: sql<number>`count(*)::int`,
-    })
-    .from(challengeParticipants)
-    .innerJoin(challenges, eq(challenges.id, challengeParticipants.challengeId))
-    .where(
-      and(
-        eq(challenges.status, "cancelled"),
-        sql`${challenges.lockedAt} is not null`,
-        eq(challengeParticipants.status, "accepted"),
-      ),
-    )
-    .groupBy(challengeParticipants.userId);
-
-  for (const row of ghosted) {
-    const entry = stats.get(row.userId);
+  for (const row of ghostRows) {
+    const entry = stats.get(row.user_id);
     if (entry) entry.ghosted = row.total;
   }
 
@@ -512,6 +521,8 @@ export async function getLeaderboard(): Promise<LeaderboardEntry[]> {
 
   return list.sort(
     (a, b) =>
-      b.wins - a.wins || b.winRate - a.winRate || a.profile.fullName.localeCompare(b.profile.fullName, "vi"),
+      b.wins - a.wins ||
+      b.winRate - a.winRate ||
+      a.profile.fullName.localeCompare(b.profile.fullName, "vi"),
   );
 }

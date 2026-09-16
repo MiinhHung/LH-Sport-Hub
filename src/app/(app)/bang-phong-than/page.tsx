@@ -8,7 +8,7 @@ import {
   Card,
   CardBody,
   EmptyState,
-  PageHeader,
+  PageIntro,
   SectionTitle,
 } from "@/components/ui";
 import { requireProfile } from "@/lib/auth";
@@ -128,9 +128,10 @@ export default async function LeaderboardPage() {
 
   return (
     <div className="space-y-8">
-      <PageHeader
+      <PageIntro
+        eyebrow="Danh dự"
         title="Bảng phong thần"
-        description="Chỉ tính những kèo đã được cả hai đội xác nhận kết quả."
+        lead="Chỉ tính những kèo đã được cả hai đội xác nhận kết quả."
       />
 
       {played.length === 0 ? (

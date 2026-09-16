@@ -12,7 +12,7 @@ import type { ReactNode } from "react";
 
 import { ChallengeCard } from "@/components/challenge-card";
 import { TeamFeed } from "@/components/team-feed";
-import { Card, EmptyState, PageHeader, SectionTitle } from "@/components/ui";
+import { Card, EmptyState, PageIntro, SectionTitle } from "@/components/ui";
 import { LinkButton } from "@/components/ui/button";
 import { requireProfile } from "@/lib/auth";
 import { SPORTS, SPORT_KEYS, type SportKey } from "@/lib/constants";
@@ -124,9 +124,10 @@ export default async function ChallengesPage({
 
   return (
     <div className="space-y-8">
-      <PageHeader
+      <PageIntro
+        eyebrow="Thách đấu"
         title="Kèo"
-        description="Thách nhau một trận. Thua thì bao — cả đội thua bao cả đội thắng."
+        lead="Thách nhau một trận. Thua thì bao — cả đội thua bao cả đội thắng."
         action={
           <LinkButton href="/keo/tao" variant="accent" size="md">
             <Plus className="size-4" strokeWidth={2.5} />

@@ -2,7 +2,7 @@ import { CalendarDays, MapPin, Plus, Users, Wallet } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import { AvatarStack, Badge, Card, EmptyState, PageHeader } from "@/components/ui";
+import { AvatarStack, Badge, Card, EmptyState, PageIntro } from "@/components/ui";
 import { LinkButton } from "@/components/ui/button";
 import { requireProfile } from "@/lib/auth";
 import { SPORTS, type SportKey } from "@/lib/constants";
@@ -17,9 +17,10 @@ export default async function SessionsPage() {
 
   return (
     <div className="space-y-8">
-      <PageHeader
+      <PageIntro
+        eyebrow="Lịch"
         title="Buổi tập"
-        description="Lịch ra sân sắp tới. Bấm vào để báo đi hay không đi."
+        lead="Lịch ra sân sắp tới. Bấm vào để báo đi hay không đi."
         action={
           <LinkButton href="/buoi-tap/tao" variant="accent" size="md">
             <Plus className="size-4" strokeWidth={2.5} />

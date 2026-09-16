@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { SessionForm } from "@/components/forms/session-form";
-import { Card, CardBody, PageHeader } from "@/components/ui";
+import { Card, CardBody, PageIntro } from "@/components/ui";
 
 export const metadata: Metadata = { title: "Tạo buổi tập" };
 
@@ -18,9 +18,10 @@ export default function CreateSessionPage() {
         Lịch tập
       </Link>
 
-      <PageHeader
+      <PageIntro
+        eyebrow="Lịch"
         title="Tạo buổi tập"
-        description="Chốt sân, chốt giờ. Mặc định là thứ 7 tuần này 19h–21h."
+        lead="Chốt sân, chốt giờ. Mặc định là thứ 7 tuần này 19h–21h."
       />
 
       <Card>

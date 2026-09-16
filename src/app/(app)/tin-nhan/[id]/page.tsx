@@ -6,7 +6,7 @@ import { notFound } from "next/navigation";
 import { ChatThread } from "@/components/chat/chat-thread";
 import { Avatar } from "@/components/ui";
 import { requireProfile } from "@/lib/auth";
-import { getConversation, listMessages } from "@/lib/chat";
+import { getConversation, listMessages, toPayload } from "@/lib/chat";
 
 export async function generateMetadata({
   params,
@@ -67,12 +67,7 @@ export default async function ConversationPage({
         conversationId={conversation.id}
         viewerId={profile.id}
         partnerName={conversation.partner.fullName.split(" ").slice(-1)[0]}
-        initialMessages={history.map((m) => ({
-          id: m.id,
-          senderId: m.senderId,
-          content: m.content,
-          createdAt: m.createdAt.toISOString(),
-        }))}
+        initialMessages={history.map(toPayload)}
       />
     </div>
   );

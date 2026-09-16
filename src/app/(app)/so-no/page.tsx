@@ -7,7 +7,7 @@ import {
   Card,
   CardBody,
   EmptyState,
-  PageHeader,
+  PageIntro,
   SectionTitle,
   Stat,
   Well,
@@ -136,9 +136,10 @@ export default async function DebtLedgerPage() {
 
   return (
     <div className="space-y-8">
-      <PageHeader
+      <PageIntro
+        eyebrow="Công nợ"
         title="Sổ nợ"
-        description="Cả đội thua bao cả đội thắng. Trả xong nhớ bấm xác nhận cho sạch sổ."
+        lead="Cả đội thua bao cả đội thắng. Trả xong nhớ bấm xác nhận cho sạch sổ."
       />
 
       <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">

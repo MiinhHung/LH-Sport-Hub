@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { ChallengeForm } from "@/components/forms/challenge-form";
-import { PageHeader } from "@/components/ui";
+import { PageIntro } from "@/components/ui";
 import { requireProfile } from "@/lib/auth";
 import { listMembers, listSelectableSessions } from "@/lib/queries";
 
@@ -35,9 +35,10 @@ export default async function CreateChallengePage() {
         Tất cả kèo
       </Link>
 
-      <PageHeader
+      <PageIntro
+        eyebrow="Thách đấu"
         title="Tạo kèo"
-        description="Chốt thể thức, chốt điểm, chốt ăn gì. Xong là có kèo."
+        lead="Chốt thể thức, chốt điểm, chốt ăn gì. Xong là có kèo."
       />
 
       <ChallengeForm members={others} sessions={sessions} />

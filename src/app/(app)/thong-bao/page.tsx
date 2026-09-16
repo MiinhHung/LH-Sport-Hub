@@ -6,7 +6,7 @@ import {
   markAllNotificationsReadAction,
   markNotificationReadAction,
 } from "@/actions/notifications";
-import { Avatar, Card, EmptyState, PageHeader } from "@/components/ui";
+import { Avatar, Card, EmptyState, PageIntro } from "@/components/ui";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { requireProfile } from "@/lib/auth";
 import { listNotifications } from "@/lib/notifications";
@@ -52,9 +52,10 @@ export default async function NotificationsPage() {
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
-      <PageHeader
+      <PageIntro
+        eyebrow="Hoạt động"
         title="Thông báo"
-        description={
+        lead={
           unread > 0
             ? `Bạn có ${unread} thông báo chưa đọc.`
             : "Bạn đã đọc hết rồi."

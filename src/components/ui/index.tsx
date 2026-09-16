@@ -42,35 +42,44 @@ export function Well({ className, ...props }: ComponentProps<"div">) {
 /* Tiêu đề                                                             */
 /* ------------------------------------------------------------------ */
 
-export function PageHeader({
+/**
+ * Tiêu đề trang kiểu tạp chí: nhãn nhỏ chữ hoa giãn cách, tiêu đề serif
+ * cỡ lớn, câu dẫn ngắn. Chữ và khoảng trắng làm việc thay cho viền và thẻ.
+ */
+export function PageIntro({
+  eyebrow,
   title,
-  description,
+  lead,
   action,
   className,
 }: {
+  eyebrow?: string;
   title: string;
-  description?: string;
+  lead?: string;
   action?: ReactNode;
   className?: string;
 }) {
   return (
-    <header
-      className={cn(
-        "flex flex-wrap items-end justify-between gap-x-4 gap-y-3",
-        className,
-      )}
-    >
-      <div className="min-w-0">
-        <h1 className="font-display text-[26px] leading-[1.15] font-bold text-ink-100 sm:text-[32px]">
-          {title}
-        </h1>
-        {description && (
-          <p className="mt-1.5 max-w-prose text-sm text-ink-500">
-            {description}
-          </p>
-        )}
+    <header className={cn("pb-8 sm:pb-10", className)}>
+      <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-4">
+        <div className="min-w-0">
+          {eyebrow && (
+            <p className="text-[11px] font-semibold tracking-[0.2em] text-gold-600 uppercase">
+              {eyebrow}
+            </p>
+          )}
+          <h1 className="font-display mt-2 text-[34px] leading-[1.05] font-bold text-ink-100 sm:text-[46px]">
+            {title}
+          </h1>
+        </div>
+        {action && <div className="shrink-0 pb-1">{action}</div>}
       </div>
-      {action}
+
+      {lead && (
+        <p className="mt-4 max-w-[42ch] text-[15px] leading-relaxed text-ink-500">
+          {lead}
+        </p>
+      )}
     </header>
   );
 }

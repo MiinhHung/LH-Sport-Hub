@@ -17,7 +17,7 @@ import {
   Badge,
   Card,
   EmptyState,
-  PageHeader,
+  PageIntro,
   SectionTitle,
 } from "@/components/ui";
 import { LinkButton } from "@/components/ui/button";
@@ -234,9 +234,10 @@ export default async function HomePage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader
+      <PageIntro
+        eyebrow="Cộng đồng"
         title="Bảng tin"
-        description="Chỗ chém gió, khoe ảnh và rủ nhau ra sân."
+        lead="Chỗ chém gió, khoe ảnh và rủ nhau ra sân."
         action={
           <div className="hidden gap-2 sm:flex">
             <LinkButton href="/keo/tao" variant="accent" size="md">

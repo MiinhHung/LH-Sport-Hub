@@ -9,11 +9,14 @@ import { conversations, messages, profiles } from "@/db/schema";
 import { requireActor } from "@/lib/auth";
 import {
   getConversation,
+  isParticipant,
   listMessagesSince,
   pairKey,
+  toPayload,
   type ChatMessagePayload,
 } from "@/lib/chat";
 import { LIMITS } from "@/lib/constants";
+import { uploadImage } from "@/lib/storage";
 import { failure, runAction, success, type ActionState } from "./types";
 
 /** Cắt bớt để làm dòng xem trước trong danh sách. */
@@ -93,8 +96,12 @@ export async function sendMessageAction(
     const conversationId = String(formData.get("conversationId") ?? "");
     const content = String(formData.get("content") ?? "").trim();
 
+    const imageFile = formData.get("image");
+    const hasImage = imageFile instanceof File && imageFile.size > 0;
+
     if (!conversationId) return failure("Yêu cầu không hợp lệ.");
-    if (!content) return failure("Chưa nhập nội dung.");
+    // Tin nhắn chỉ có ảnh cũng hợp lệ.
+    if (!content && !hasImage) return failure("Chưa nhập nội dung.");
     if (content.length > LIMITS.commentContent) {
       return failure(`Tin nhắn tối đa ${LIMITS.commentContent} ký tự.`);
     }
@@ -106,6 +113,12 @@ export async function sendMessageAction(
       return failure("Bạn không ở trong cuộc trò chuyện này.");
     }
 
+    // Upload trước, ngoài transaction: gọi mạng không nên giữ khoá database.
+    const image =
+      hasImage && imageFile instanceof File
+        ? await uploadImage(imageFile, "chat", "post")
+        : null;
+
     const now = new Date();
 
     await db.transaction(async (tx) => {
@@ -113,13 +126,16 @@ export async function sendMessageAction(
         conversationId,
         senderId: actor.id,
         content,
+        imageUrl: image?.url ?? null,
+        imageWidth: image?.width ?? null,
+        imageHeight: image?.height ?? null,
       });
 
       await tx
         .update(conversations)
         .set({
           lastMessageAt: now,
-          lastMessagePreview: preview(content),
+          lastMessagePreview: content ? preview(content) : "📷 Hình ảnh",
           lastSenderId: actor.id,
           // Người gửi thì hiển nhiên đã đọc tới đây.
           ...(conversation.userAId === actor.id
@@ -154,23 +170,15 @@ export async function fetchNewMessagesAction(
 ): Promise<{ ok: boolean; messages: ChatMessagePayload[] }> {
   try {
     const actor = await requireActor();
-    const conversation = await getConversation(conversationId, actor.id);
-    if (!conversation) return { ok: false, messages: [] };
+    if (!(await isParticipant(conversationId, actor.id))) {
+      return { ok: false, messages: [] };
+    }
 
     const since = new Date(sinceIso);
     if (Number.isNaN(since.getTime())) return { ok: false, messages: [] };
 
     const rows = await listMessagesSince(conversationId, since);
-
-    return {
-      ok: true,
-      messages: rows.map((m) => ({
-        id: m.id,
-        senderId: m.senderId,
-        content: m.content,
-        createdAt: m.createdAt.toISOString(),
-      })),
-    };
+    return { ok: true, messages: rows.map(toPayload) };
   } catch {
     return { ok: false, messages: [] };
   }
@@ -197,13 +205,22 @@ export async function markConversationReadAction(
 ): Promise<{ ok: boolean }> {
   try {
     const actor = await requireActor();
-    const conversation = await getConversation(conversationId, actor.id);
-    if (!conversation) return { ok: false };
+
+    // Chỉ cần biết mình là bên A hay B — không cần kéo theo hồ sơ hai người.
+    const row = await db.query.conversations.findFirst({
+      where: eq(conversations.id, conversationId),
+      columns: { id: true, userAId: true, userBId: true },
+    });
+
+    if (!row) return { ok: false };
+    if (row.userAId !== actor.id && row.userBId !== actor.id) {
+      return { ok: false };
+    }
 
     await db
       .update(conversations)
       .set(
-        conversation.userAId === actor.id
+        row.userAId === actor.id
           ? { readAtA: new Date() }
           : { readAtB: new Date() },
       )

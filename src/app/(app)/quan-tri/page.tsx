@@ -10,7 +10,7 @@ import {
   Badge,
   Card,
   CardBody,
-  PageHeader,
+  PageIntro,
   SectionTitle,
   Stat,
   Well,
@@ -45,9 +45,10 @@ export default async function AdminPage() {
 
   return (
     <div className="space-y-8">
-      <PageHeader
+      <PageIntro
+        eyebrow="Hệ thống"
         title="Quản trị"
-        description="Quản lý thành viên, vai trò và theo dõi hoạt động."
+        lead="Quản lý thành viên, vai trò và theo dõi hoạt động."
         action={<Badge tone="navy">{ROLES[me.role].label}</Badge>}
       />
 
