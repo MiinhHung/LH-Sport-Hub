@@ -52,6 +52,8 @@ export async function createSessionAction(
           title: input.title,
           venueName: input.venueName,
           venueAddress: input.venueAddress,
+          mapUrl: input.mapUrl,
+          showMap: input.showMap,
           startsAt: input.startsAt,
           endsAt: input.endsAt,
           maxPlayers: input.maxPlayers,

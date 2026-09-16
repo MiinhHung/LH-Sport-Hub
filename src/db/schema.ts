@@ -216,6 +216,10 @@ export const playSessions = pgTable(
     title: text("title").notNull(),
     venueName: text("venue_name").notNull(),
     venueAddress: text("venue_address"),
+    /** Link Google Maps dán tay, dùng khi bản đồ tự dò ra sai chỗ. */
+    mapUrl: text("map_url"),
+    /** Tắt đi nếu địa chỉ chung chung, bản đồ chỉ sai càng rối. */
+    showMap: boolean("show_map").notNull().default(true),
     startsAt: timestamp("starts_at", { withTimezone: true }).notNull(),
     endsAt: timestamp("ends_at", { withTimezone: true }).notNull(),
     maxPlayers: integer("max_players"),

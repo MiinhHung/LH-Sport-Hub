@@ -3,6 +3,7 @@ import {
   CalendarDays,
   Info,
   MapPin,
+  Navigation,
   Users,
   Wallet,
 } from "lucide-react";
@@ -22,6 +23,7 @@ import {
 } from "@/components/ui";
 import { requireProfile } from "@/lib/auth";
 import { SPORTS, type SportKey } from "@/lib/constants";
+import { directionsUrl, mapEmbedSrc } from "@/lib/maps";
 import { getSessionDetail } from "@/lib/queries";
 import { formatDateTime, formatTime, formatVnd, timeUntil } from "@/lib/utils";
 
@@ -58,6 +60,15 @@ export default async function SessionDetailPage({
   const notGoing = session.attendees.filter((a) => a.status === "not_going");
   const sport = SPORTS[session.sport as SportKey];
   const status = STATUS_LABEL[session.status];
+
+  const directions = directionsUrl(
+    session.venueName,
+    session.venueAddress,
+    session.mapUrl,
+  );
+  const embedSrc = session.showMap
+    ? mapEmbedSrc(session.venueName, session.venueAddress, session.mapUrl)
+    : null;
 
   const perHead =
     session.costTotal !== null && going.length > 0
@@ -126,7 +137,7 @@ export default async function SessionDetailPage({
                 className="mt-0.5 size-[18px] shrink-0 text-ink-500"
                 aria-hidden
               />
-              <div>
+              <div className="min-w-0 flex-1">
                 <dt className="sr-only">Địa điểm</dt>
                 <dd className="font-semibold text-ink-200">
                   {session.venueName}
@@ -134,6 +145,19 @@ export default async function SessionDetailPage({
                 {session.venueAddress && (
                   <dd className="text-[13px] text-ink-500">
                     {session.venueAddress}
+                  </dd>
+                )}
+                {directions && (
+                  <dd className="mt-2">
+                    <a
+                      href={directions}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-1.5 rounded-lg bg-navy-900 px-3 py-1.5 text-[12.5px] font-bold text-white transition-colors hover:bg-navy-800"
+                    >
+                      <Navigation className="size-3.5" aria-hidden />
+                      Chỉ đường
+                    </a>
                   </dd>
                 )}
               </div>
@@ -154,6 +178,20 @@ export default async function SessionDetailPage({
               </div>
             )}
           </dl>
+
+          {/* Bản đồ — nạp muộn để không kéo chậm lần mở trang đầu tiên. */}
+          {embedSrc && (
+            <div className="overflow-hidden rounded-xl border border-ink-800">
+              <iframe
+                src={embedSrc}
+                title={`Bản đồ tới ${session.venueName}`}
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                allowFullScreen
+                className="h-56 w-full sm:h-64"
+              />
+            </div>
+          )}
 
           {session.status === "open" && (
             <div className="border-t border-ink-800 pt-4">

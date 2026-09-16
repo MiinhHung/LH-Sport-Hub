@@ -14,6 +14,7 @@ import {
   STAKES,
   STAKE_KEYS,
 } from "@/lib/constants";
+import { parseMapUrl } from "@/lib/maps";
 
 /* ------------------------------------------------------------------ */
 /* Tien ich                                                            */
@@ -131,12 +132,38 @@ export const signUpSchema = z.object({
 /* Buoi tap                                                            */
 /* ------------------------------------------------------------------ */
 
+/** Checkbox: có mặt trong FormData nghĩa là được tick. */
+const checkboxField = z
+  .union([z.string(), z.undefined()])
+  .transform((v) => v === "on" || v === "true" || v === "1");
+
+/** Link Google Maps dán tay — chỉ nhận đúng tên miền của Google. */
+const mapUrlField = z
+  .string()
+  .trim()
+  .max(600, "Link bản đồ quá dài.")
+  .transform((v, ctx) => {
+    if (v === "") return null;
+    if (!parseMapUrl(v)) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Cần là link Google Maps (google.com hoặc maps.app.goo.gl).",
+      });
+      return z.NEVER;
+    }
+    return v;
+  })
+  .nullable()
+  .default(null);
+
 export const playSessionSchema = z
   .object({
     sport: z.enum(SPORT_KEYS as [string, ...string[]]),
     title: requiredText(LIMITS.sessionTitle, "Tên buổi tập"),
     venueName: requiredText(LIMITS.venueName, "Địa điểm"),
     venueAddress: optionalText(LIMITS.venueAddress, "Địa chỉ"),
+    mapUrl: mapUrlField,
+    showMap: checkboxField,
     startsAt: dateTimeField("Giờ bắt đầu"),
     endsAt: dateTimeField("Giờ kết thúc"),
     maxPlayers: optionalInt("Số người tối đa", 2, 100),
