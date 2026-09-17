@@ -173,7 +173,9 @@ export function JourneyLine() {
   const ready = box.w > 0 && box.h > 0 && start !== null;
   const d = ready
     ? smoothPath(
-        [start, ...anchors, { x: narrow ? 11 : 50, y: 97 }],
+        // Đuôi đường chạy tới ĐÁY khối và về đúng giữa, để đoạn nối ở
+        // khối video phía dưới bắt vào cùng một điểm.
+        [start, ...anchors, { x: 50, y: 100 }],
         box.w,
         box.h,
       )
@@ -243,7 +245,9 @@ export function JourneyLine() {
   }, [d, calm, anchors]);
 
   return (
-    <section className="relative bg-white px-5 py-20 sm:px-10 sm:py-28">
+    // Không có lề dưới: đoạn nối ở khối video phải bắt ngay vào đuôi
+    // đường này, hở một khoảng là thành hai nét rời nhau.
+    <section className="relative bg-white px-5 pt-20 sm:px-10 sm:pt-28">
       <div
         ref={sectionRef}
         className="relative mx-auto h-[210vh] w-full max-w-5xl"

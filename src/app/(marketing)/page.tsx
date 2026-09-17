@@ -5,6 +5,7 @@ import Link from "next/link";
 
 import { IntroCurtain } from "@/components/landing/intro-curtain";
 import { CutReveal } from "@/components/landing/cut-reveal";
+import { LineToVideo } from "@/components/landing/line-to-video";
 import { ShowcaseVideo } from "@/components/landing/showcase-video";
 import { Reveal } from "@/components/landing/reveal";
 import { JourneyLine } from "@/components/landing/journey-line";
@@ -182,6 +183,35 @@ export default async function LandingPage() {
 
       <JourneyLine />
 
+      {/* Đoạn phim của team */}
+      <section
+        className="px-5 pb-24 sm:px-10 sm:pb-32"
+        style={{ background: PAPER }}
+      >
+        <div className="mx-auto max-w-5xl">
+          {/* Đoạn nối tiếp nối đuôi đường dây của dải kể chuyện ngay phía
+              trên, dẫn mắt xuống video. */}
+          <LineToVideo />
+
+          {/* Không nhãn, không tiêu đề — để đoạn phim tự nói. */}
+          <Reveal>
+            <div
+              className="overflow-hidden rounded-3xl ring-1"
+              style={{ borderColor: LINE, background: ON_DARK_NAVY }}
+            >
+              <div className="relative aspect-video">
+                <ShowcaseVideo
+                  src="/videos/video.mp4"
+                  poster="/videos/video-poster.webp"
+                  label="Đoạn phim team Light Human trên sân cầu lông"
+                />
+              </div>
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
+
       {/* Trong này có gì */}
       <section
         id="co-gi"
@@ -283,30 +313,6 @@ export default async function LandingPage() {
                 Luật nhà
               </footer>
             </blockquote>
-          </Reveal>
-        </div>
-      </section>
-
-      {/* Đoạn phim của team */}
-      <section
-        className="border-t px-5 py-24 sm:px-10 sm:py-32"
-        style={{ background: PAPER, borderColor: LINE }}
-      >
-        <div className="mx-auto max-w-5xl">
-          {/* Không nhãn, không tiêu đề — để đoạn phim tự nói. */}
-          <Reveal>
-            <div
-              className="overflow-hidden rounded-3xl ring-1"
-              style={{ borderColor: LINE, background: ON_DARK_NAVY }}
-            >
-              <div className="relative aspect-video">
-                <ShowcaseVideo
-                  src="/videos/video.mp4"
-                  poster="/videos/video-poster.webp"
-                  label="Đoạn phim team Light Human trên sân cầu lông"
-                />
-              </div>
-            </div>
           </Reveal>
         </div>
       </section>
