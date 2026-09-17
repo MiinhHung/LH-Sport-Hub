@@ -6,7 +6,7 @@ import { motion, useAnimationControls, useReducedMotion } from "motion/react";
 import * as React from "react";
 import * as THREE from "three";
 
-import { ShuttleCrystal, type ShuttleQuality } from "./shuttle-crystal";
+import { ShuttleCrystal } from "./shuttle-crystal";
 
 /* ------------------------------------------------------------------ */
 /* Dòng tiêu đề nằm TRONG cảnh 3D                                      */
@@ -100,7 +100,7 @@ function Headline({
   z?: number;
 }) {
   const { viewport } = useThree();
-  const width = Math.min(viewport.width * 0.96, 16);
+  const width = Math.min(viewport.width * 0.8, 14);
   const height = width * (640 / 2048);
 
   if (!texture) return null;
@@ -192,17 +192,20 @@ function Motes({ count, color }: { count: number; color: string }) {
  *  đứng thì đẩy ít hơn và lùi cả nhóm ra sau, nếu không quả cầu phóng to
  *  dòng tiêu đề thành một vệt nhoè không đọc được trên điện thoại. */
 /**
- * Đẩy quả cầu sang khe giữa "Sport" và "Hub".
+ * Đặt quả cầu PHÍA TRÊN dòng chữ, chỉ để đế chạm vào đỉnh các con chữ.
  *
- * Để giữa thì nó che đúng hai chữ "rt", đọc thành "Spo Hub". Lệch sang
- * khoảng trống giữa hai từ thì vẫn chồng lên chữ đủ để khúc xạ, mà không
- * ăn mất chữ nào.
+ * Hai bản trước cho nó nằm đè giữa dòng chữ, vì hồi đó lông còn là thuỷ
+ * tinh và chỗ chồng nhau chính là chỗ khúc xạ. Từ khi lông chuyển sang
+ * trắng đục thì chồng lên chỉ còn tác hại: nó ăn mất một con chữ, đọc
+ * thành "Sport Iub".
  */
 function ShuttleOffset({ children }: { children: React.ReactNode }) {
   const { viewport } = useThree();
   const portrait = viewport.width < viewport.height;
   return (
-    <group position={[portrait ? 0.22 : 0.58, 0, 0]}>{children}</group>
+    <group position={[portrait ? 0.1 : 0.3, portrait ? 0.95 : 1.12, 0]}>
+      {children}
+    </group>
   );
 }
 
@@ -210,7 +213,7 @@ function FocalGroup({ children }: { children: React.ReactNode }) {
   const { viewport } = useThree();
   const portrait = viewport.width < viewport.height;
   return (
-    <group position={[0, portrait ? 0.45 : 0.6, portrait ? -0.7 : 0]}>
+    <group position={[0, portrait ? 0.2 : 0.15, portrait ? -0.7 : 0]}>
       {children}
     </group>
   );
@@ -222,17 +225,17 @@ function FocalGroup({ children }: { children: React.ReactNode }) {
 
 type Quality = "low" | "medium" | "high";
 
-type Spec = ShuttleQuality & { motes: number; maxDpr: number };
+type Spec = { motes: number; maxDpr: number };
 
 /**
- * Vật liệu khúc xạ vẽ lại toàn cảnh vào một bộ đệm sau MỖI khung hình, nên
- * `samples` và `resolution` là hai nút bấm thật sự tốn tiền. Máy yếu hạ hai
- * con số đó trước, chứ không phải giảm số khung hình.
+ * Từ khi lông cầu chuyển sang vật liệu thường (không còn khúc xạ), cảnh
+ * chỉ còn vài trăm tam giác. Hai thứ còn đáng chỉnh là mật độ điểm ảnh và
+ * số hạt bụi — chứ không phải chất lượng vật liệu như trước.
  */
 const QUALITY: Record<Quality, Spec> = {
-  low: { samples: 4, resolution: 192, motes: 28, backside: false, maxDpr: 1.25 },
-  medium: { samples: 6, resolution: 320, motes: 52, backside: true, maxDpr: 1.5 },
-  high: { samples: 8, resolution: 512, motes: 88, backside: true, maxDpr: 1.75 },
+  low: { motes: 30, maxDpr: 1.5 },
+  medium: { motes: 55, maxDpr: 1.75 },
+  high: { motes: 90, maxDpr: 2 },
 };
 
 function subscribeToViewport(cb: () => void) {
@@ -300,9 +303,6 @@ const GOLD_SOLID = "#dcae42";
  * phép hoà tan ăn 45% cuối của quãng đó.
  */
 const FADE_FROM = 0.55;
-
-/* Sắc kính: chỉ hơi ngả xanh, đủ để mép lông bắt sáng trên nền navy. */
-const GLASS_TINT = "#eef4ff";
 
 export function ShuttleHero({
   eyebrow = "Light Human",
@@ -500,10 +500,7 @@ export function ShuttleHero({
                 <ShuttleCrystal
                   progress={progress}
                   reducedMotion={reducedMotion}
-                  dispersion={0.2}
-                  tint={GLASS_TINT}
                   gold={GOLD_SOLID}
-                  spec={spec}
                 />
               </ShuttleOffset>
             </FocalGroup>
@@ -543,7 +540,7 @@ export function ShuttleHero({
 
           {/* Chừa đúng chỗ cho dòng tiêu đề nằm trong cảnh 3D, thay vì
               đẩy chữ xuống tận đáy. */}
-          <div aria-hidden className="h-[52vh] shrink-0 sm:h-[54vh]" />
+          <div aria-hidden className="h-[56vh] shrink-0 sm:h-[60vh]" />
 
           <div className="mx-auto w-full max-w-2xl text-center">
             <motion.p

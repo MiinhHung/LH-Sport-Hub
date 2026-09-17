@@ -1,15 +1,25 @@
 "use client";
 
-import { MeshTransmissionMaterial } from "@react-three/drei";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as React from "react";
 import * as THREE from "three";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 
 /**
- * Quả cầu lông bằng pha lê.
+ * Quả cầu lông 3D.
  *
- * BẢN TRƯỚC DÙNG MỘT CÁI VÁY LIỀN (LatheGeometry) VÀ NÓ TRÔNG NHƯ CHỤP ĐÈN.
+ * LÔNG MÀU TRẮNG ĐỤC, KHÔNG PHẢI THUỶ TINH TRONG. Hai bản trước dùng vật
+ * liệu khúc xạ và đều hỏng theo cùng một cách: vật trong suốt truyền qua
+ * đúng màu nền, nên trên nền trắng quả cầu nhợt đi, còn trên nền navy thì
+ * mấy chiếc lông thành que đen. Chỉnh thông số chỉ đổi từ lỗi này sang lỗi
+ * kia. Lông cầu lông thật vốn màu trắng — dùng đúng màu trắng thì nó nổi
+ * trên mọi nền, và tinh thần pha lê giữ lại bằng lớp bóng phủ ngoài cộng
+ * một chút ánh cầu vồng ở rìa.
+ *
+ * Đổi vật liệu cũng gỡ luôn thứ đắt nhất trên trang: vật liệu khúc xạ vẽ
+ * lại TOÀN CẢNH vào một bộ đệm sau mỗi khung hình.
+ *
+ * BẢN TRƯỚC NỮA DÙNG MỘT CÁI VÁY LIỀN (LatheGeometry) VÀ NÓ TRÔNG NHƯ CHỤP ĐÈN.
  *
  * Quả cầu lông thật không phải khối tròn xoay liền mạch — nó là 16 CHIẾC
  * LÔNG RỜI cắm vòng quanh, có khe hở giữa các chiếc, và mỗi chiếc hơi xoay
@@ -20,11 +30,9 @@ import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js
  * Nên ở đây mỗi chiếc lông là một phiến dẹt thuôn — hẹp ở cuống, xoè ở
  * ngọn — dựng bằng `Shape` rồi ép dày ra một chút cho có thân.
  *
- * MỘT VẬT LIỆU CHO CẢ 16 CHIẾC, và đây là chỗ bắt buộc phải cẩn thận.
- * `MeshTransmissionMaterial` cấp riêng một bộ đệm khung hình cho MỖI thực
- * thể vật liệu. Dựng 16 mesh với 16 vật liệu là 16 lần vẽ lại toàn cảnh
- * mỗi khung hình — đủ để treo máy. Vì vậy 16 hình học được biến đổi sẵn
- * rồi gộp thành MỘT, dùng chung đúng một vật liệu.
+ * 16 hình học được biến đổi sẵn rồi gộp thành MỘT mesh: mười sáu mesh rời
+ * là mười sáu lời gọi vẽ mỗi khung hình, trong khi chúng dùng chung đúng
+ * một vật liệu.
  */
 
 const FEATHERS = 16;
@@ -68,27 +76,23 @@ function featherShape() {
   return s;
 }
 
-export type ShuttleQuality = {
-  samples: number;
-  resolution: number;
-  backside: boolean;
-};
+/**
+ * Từ khi bỏ vật liệu khúc xạ thì không còn bộ đệm khung hình nào để
+ * chỉnh, nên bậc chất lượng chỉ còn lo phần hạt bụi và mật độ điểm ảnh.
+ * Giữ lại kiểu rỗng này để bên gọi khỏi phải sửa, và để sau có thêm nút
+ * chỉnh nào thì đã có chỗ.
+ */
+export type ShuttleQuality = Record<string, never>;
 
 export function ShuttleCrystal({
   progress,
   reducedMotion,
-  dispersion,
-  tint,
   gold = "#c8951a",
-  spec,
 }: {
   /** 0→1 theo tiến độ cuộn trang. */
   progress: React.RefObject<number>;
   reducedMotion: boolean;
-  dispersion: number;
-  tint: string;
   gold?: string;
-  spec: ShuttleQuality;
 }) {
   const ref = React.useRef<THREE.Group>(null);
   const pointer = React.useRef({ x: 0, y: 0 });
@@ -151,9 +155,9 @@ export function ShuttleCrystal({
   const portrait = viewport.width < viewport.height;
   const fit = Math.min(viewport.width, viewport.height);
   const baseScale = THREE.MathUtils.clamp(
-    fit / 6.2,
-    portrait ? 0.26 : 0.34,
-    0.9,
+    fit / 7.4,
+    portrait ? 0.22 : 0.3,
+    0.78,
   );
 
   React.useEffect(() => {
@@ -190,26 +194,31 @@ export function ShuttleCrystal({
 
   return (
     <group ref={ref}>
-      {/* 16 chiếc lông pha lê — một mesh, một vật liệu */}
+      {/* 16 chiếc lông — một mesh, một vật liệu */}
       {feathers && (
         <mesh geometry={feathers}>
-          <MeshTransmissionMaterial
-            transmission={1}
-            thickness={0.5}
-            roughness={0.05}
-            ior={1.58}
-            chromaticAberration={dispersion}
-            anisotropy={0.16}
-            distortion={0.1}
-            distortionScale={0.24}
-            temporalDistortion={0.03}
-            backside={spec.backside}
-            backsideThickness={0.3}
-            samples={spec.samples}
-            resolution={spec.resolution}
-            color={tint}
-            attenuationColor={tint}
-            attenuationDistance={5}
+          <meshPhysicalMaterial
+            color="#ffffff"
+            roughness={0.34}
+            metalness={0}
+            // Hơi trong để thấy được chiếc lông phía sau, nhưng KHÔNG dùng
+            // transmission: lông cầu lông thật là trắng đục chứ không phải
+            // thuỷ tinh, và vật liệu trong suốt thì truyền qua đúng màu nền.
+            transparent
+            opacity={0.94}
+            // Lớp bóng phủ ngoài: chính nó bắt đèn thành vệt sáng dọc sống
+            // lông, thứ khiến khối có chiều mà không cần khúc xạ.
+            clearcoat={1}
+            clearcoatRoughness={0.16}
+            // Ánh mượt như lông vũ thật, hơi ngả xanh cho hợp nền navy.
+            sheen={1}
+            sheenRoughness={0.35}
+            sheenColor="#cfe0ff"
+            // Một chút cầu vồng ở rìa — giữ lại tinh thần pha lê mà không
+            // phải trả giá bằng việc khối chuyển thành màu của nền.
+            iridescence={0.35}
+            iridescenceIOR={1.3}
+            iridescenceThicknessRange={[100, 420]}
             side={THREE.DoubleSide}
           />
         </mesh>
