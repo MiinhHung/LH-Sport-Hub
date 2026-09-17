@@ -5,6 +5,7 @@ import Link from "next/link";
 
 import { IntroCurtain } from "@/components/landing/intro-curtain";
 import { CutReveal } from "@/components/landing/cut-reveal";
+import { ShowcaseVideo } from "@/components/landing/showcase-video";
 import { Reveal } from "@/components/landing/reveal";
 import { JourneyLine } from "@/components/landing/journey-line";
 import { ShuttleHero } from "@/components/landing/shuttle-hero";
@@ -69,28 +70,6 @@ const FEATURES = [
   },
 ];
 
-const STEPS = [
-  {
-    n: "01",
-    title: "Tạo kèo",
-    body: "Chọn 1v1 hay 2v2, đặt mốc điểm, ghi cược gì. Để mở cho ai nhận cũng được, hoặc thách đích danh.",
-  },
-  {
-    n: "02",
-    title: "Đủ người thì chốt",
-    body: "Khi tất cả đã nhận, kèo tự khoá lại. Đánh lúc nào cũng được — không bắt buộc gắn vào buổi tập nào.",
-  },
-  {
-    n: "03",
-    title: "Nhập tỉ số",
-    body: "Đánh xong nhập kết quả, đội kia xác nhận. Xác nhận xong mới tính vào bảng xếp hạng.",
-  },
-  {
-    n: "04",
-    title: "Trả kèo",
-    body: "Đội thua bao đội thắng. Phần này app không làm hộ được.",
-  },
-];
 
 export default async function LandingPage() {
   // Biết người xem đã đăng nhập hay chưa để đổi nút bấm cho đúng. Chỉ đọc
@@ -308,7 +287,7 @@ export default async function LandingPage() {
         </div>
       </section>
 
-      {/* Một cái kèo đi qua bốn bước */}
+      {/* Đoạn phim của team */}
       <section
         className="border-t px-5 py-24 sm:px-10 sm:py-32"
         style={{ background: PAPER, borderColor: LINE }}
@@ -324,34 +303,30 @@ export default async function LandingPage() {
               className="text-[10px] font-semibold tracking-[0.32em] uppercase"
               style={{ color: GOLD }}
             >
-              Một cái kèo đi thế nào
+              Khoảnh khắc
             </span>
           </div>
 
-          <div className="mt-14 grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
-            {STEPS.map((s, i) => (
-              <Reveal key={s.n} delay={i * 90}>
-                <p
-                  className="font-display tabular text-[42px] leading-none font-bold"
-                  style={{ color: GOLD, opacity: 0.4 }}
-                >
-                  {s.n}
-                </p>
-                <h3
-                  className="font-display mt-4 text-[20px] font-bold"
-                  style={{ color: INK }}
-                >
-                  {s.title}
-                </h3>
-                <p
-                  className="mt-2 text-[14px] leading-relaxed"
-                  style={{ color: MUTED }}
-                >
-                  {s.body}
-                </p>
-              </Reveal>
-            ))}
-          </div>
+          <CutReveal
+            as="h2"
+            text="Team mình, trên sân"
+            className="font-display mt-5 block text-[32px] leading-[1.14] font-bold sm:text-[46px]"
+          />
+
+          <Reveal delay={120}>
+            <div
+              className="mt-12 overflow-hidden rounded-3xl ring-1"
+              style={{ borderColor: LINE, background: ON_DARK_NAVY }}
+            >
+              <div className="relative aspect-video">
+                <ShowcaseVideo
+                  src="/videos/video.mp4"
+                  poster="/videos/video-poster.webp"
+                  label="Đoạn phim team Light Human trên sân cầu lông"
+                />
+              </div>
+            </div>
+          </Reveal>
         </div>
       </section>
 
