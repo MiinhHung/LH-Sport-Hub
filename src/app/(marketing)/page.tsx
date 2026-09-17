@@ -112,7 +112,6 @@ export default async function LandingPage() {
       <ShuttleHero
         eyebrow="Light Human"
         headline="LH Sport Hub"
-        description="Chỗ để anh, chị, em trong công ty chốt kèo cầu lông, rủ nhau ra sân sáng thứ 7, ghi tỉ số và tra cứu luật."
         meta={["Cầu lông & bơi", "Sáng thứ 7", "Nội bộ công ty"]}
         action={
           <Link
@@ -134,11 +133,24 @@ export default async function LandingPage() {
         }
       />
 
-      {/* Light Human là ai — đặt ngay sau hero vì người lạ mở trang lên thì
-          câu hỏi đầu tiên là "đây là cái gì của ai", không phải "có tính
-          năng gì". */}
+      {/*
+        Light Human là ai — đặt ngay sau hero vì người lạ mở trang lên thì
+        câu hỏi đầu tiên là "đây là cái gì của ai", không phải "có tính năng
+        gì".
+
+        KÉO LÊN NẰM DƯỚI TẤM HERO bằng margin âm đúng một màn hình.
+
+        Tấm hero dính cứng ở đỉnh nhưng vẫn CHIẾM CHỖ trọn chiều cao của nó
+        trong tài liệu. Nên khi vệt quét cắt xong, khung nhìn rơi đúng vào
+        vùng đó — một màn hình trắng trơn — rồi phải cuộn thêm nguyên một màn
+        nữa phần này mới tới.
+
+        Kéo lên thì chỗ vệt quét cắt đi không còn là nền trắng, mà chính là
+        phần này. Vệt quét trở thành phép lộ ra giữa hai lớp: cảnh tối mất
+        dần, bài viết hiện ra ngay sau lưng nó.
+      */}
       <section
-        className="px-5 py-24 sm:px-10 sm:py-32"
+        className="relative z-0 -mt-[100svh] px-5 pt-[26vh] pb-24 sm:px-10 sm:pb-32"
         style={{ background: PAPER }}
       >
         <div className="mx-auto max-w-5xl">

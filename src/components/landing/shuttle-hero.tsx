@@ -333,7 +333,7 @@ export function ShuttleHero({
 }: {
   eyebrow?: string;
   headline?: string;
-  description: string;
+  description?: string;
   action?: React.ReactNode;
   secondaryAction?: React.ReactNode;
   meta?: string[];
@@ -482,8 +482,7 @@ export function ShuttleHero({
   return (
     <div
       ref={sectionRef}
-      className="relative h-[200vh] w-full"
-      style={{ background: PAPER }}
+      className="relative z-10 h-[200vh] w-full"
     >
       <div
         ref={stageRef}
@@ -593,13 +592,15 @@ export function ShuttleHero({
           <div aria-hidden className="h-[4vh] shrink-0" />
 
           <div className="mx-auto w-full max-w-2xl text-center">
-            <motion.p
-              variants={ENTER}
-              className="mx-auto max-w-md text-[13.5px] leading-relaxed sm:text-[15px]"
-              style={{ color: CREAM, opacity: 0.7 }}
-            >
-              {description}
-            </motion.p>
+            {description ? (
+              <motion.p
+                variants={ENTER}
+                className="mx-auto max-w-md text-[13.5px] leading-relaxed sm:text-[15px]"
+                style={{ color: CREAM, opacity: 0.7 }}
+              >
+                {description}
+              </motion.p>
+            ) : null}
 
             {(action || secondaryAction) && (
               <motion.div
