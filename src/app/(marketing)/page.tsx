@@ -20,9 +20,17 @@ export const metadata: Metadata = {
     "Chốt kèo cầu lông, lên lịch ra sân, ghi tỉ số và tra cứu luật. Nội bộ team Light Human.",
 };
 
-const NAVY = "#000d26";
-const GOLD = "#dcae42";
-const CREAM = "#f2ede3";
+/*
+ * Bảng màu của trang giới thiệu, lấy thẳng từ hệ màu của app.
+ *
+ * Vàng dùng gold-600 chứ không phải gold-400: #dcae42 đẹp trên nền navy
+ * nhưng đặt lên trắng thì chỉ còn khoảng 2:1, chữ nhỏ đọc không ra.
+ */
+const PAPER = "#ffffff";
+const INK = "#001a4a"; // ink-100, cũng là navy thương hiệu
+const MUTED = "#4c5a72"; // ink-400
+const GOLD = "#855c12"; // gold-700 — 5,9:1 trên trắng, đạt AA cho cả chữ 10px
+const LINE = "#e4e9f2"; // ink-800
 
 const FEATURES = [
   {
@@ -95,7 +103,7 @@ export default async function LandingPage() {
           <Link
             href={signedIn ? "/bang-tin" : "/dang-nhap"}
             className="inline-flex h-11 items-center rounded-full px-7 text-[12px] font-bold tracking-[0.16em] uppercase transition-transform duration-300 hover:-translate-y-0.5"
-            style={{ background: GOLD, color: NAVY }}
+            style={{ background: GOLD, color: PAPER }}
           >
             {signedIn ? "Vào bảng tin" : "Đăng nhập"}
           </Link>
@@ -103,8 +111,8 @@ export default async function LandingPage() {
         secondaryAction={
           <a
             href="#co-gi"
-            className="inline-flex h-11 items-center rounded-full border px-7 text-[12px] font-bold tracking-[0.16em] uppercase transition-colors duration-300 hover:bg-white/5"
-            style={{ borderColor: `${CREAM}3d`, color: CREAM }}
+            className="inline-flex h-11 items-center rounded-full border px-7 text-[12px] font-bold tracking-[0.16em] uppercase transition-colors duration-300 hover:bg-ink-850"
+            style={{ borderColor: LINE, color: INK }}
           >
             Có gì trong này
           </a>
@@ -117,7 +125,7 @@ export default async function LandingPage() {
       <section
         id="co-gi"
         className="scroll-mt-16 px-5 py-24 sm:px-10 sm:py-32"
-        style={{ background: NAVY }}
+        style={{ background: PAPER }}
       >
         <div className="mx-auto max-w-5xl">
           <div className="flex items-center gap-3">
@@ -136,19 +144,19 @@ export default async function LandingPage() {
 
           <h2
             className="font-display mt-5 max-w-2xl text-[32px] leading-[1.1] font-bold sm:text-[46px]"
-            style={{ color: CREAM }}
+            style={{ color: INK }}
           >
             Một chỗ cho tất cả, thay cho năm cái group chat
           </h2>
 
           <div className="mt-14 grid gap-px overflow-hidden rounded-3xl sm:grid-cols-2 lg:grid-cols-3"
-            style={{ background: `${CREAM}14` }}
+            style={{ background: LINE }}
           >
             {FEATURES.map(({ icon: Icon, title, body }) => (
               <div
                 key={title}
                 className="p-7 sm:p-8"
-                style={{ background: NAVY }}
+                style={{ background: PAPER }}
               >
                 <Icon
                   className="size-5"
@@ -158,13 +166,13 @@ export default async function LandingPage() {
                 />
                 <h3
                   className="font-display mt-5 text-[21px] font-bold"
-                  style={{ color: CREAM }}
+                  style={{ color: INK }}
                 >
                   {title}
                 </h3>
                 <p
                   className="mt-2.5 text-[14px] leading-relaxed"
-                  style={{ color: CREAM, opacity: 0.6 }}
+                  style={{ color: MUTED }}
                 >
                   {body}
                 </p>
@@ -175,7 +183,7 @@ export default async function LandingPage() {
                 ô, lấp bằng một câu còn hơn để hổng. */}
             <div
               className="flex items-end p-7 sm:p-8"
-              style={{ background: NAVY }}
+              style={{ background: PAPER }}
             >
               <p
                 className="font-display text-[19px] leading-snug italic"
@@ -193,7 +201,7 @@ export default async function LandingPage() {
       {/* Một cái kèo đi qua bốn bước */}
       <section
         className="border-t px-5 py-24 sm:px-10 sm:py-32"
-        style={{ background: NAVY, borderColor: `${CREAM}14` }}
+        style={{ background: PAPER, borderColor: LINE }}
       >
         <div className="mx-auto max-w-5xl">
           <div className="flex items-center gap-3">
@@ -215,19 +223,19 @@ export default async function LandingPage() {
               <div key={s.n}>
                 <p
                   className="font-display tabular text-[42px] leading-none font-bold"
-                  style={{ color: GOLD, opacity: 0.3 }}
+                  style={{ color: GOLD, opacity: 0.4 }}
                 >
                   {s.n}
                 </p>
                 <h3
                   className="font-display mt-4 text-[20px] font-bold"
-                  style={{ color: CREAM }}
+                  style={{ color: INK }}
                 >
                   {s.title}
                 </h3>
                 <p
                   className="mt-2 text-[14px] leading-relaxed"
-                  style={{ color: CREAM, opacity: 0.6 }}
+                  style={{ color: MUTED }}
                 >
                   {s.body}
                 </p>
@@ -240,11 +248,11 @@ export default async function LandingPage() {
       {/* Kết */}
       <section
         className="border-t px-5 py-24 text-center sm:px-10 sm:py-32"
-        style={{ background: NAVY, borderColor: `${CREAM}14` }}
+        style={{ background: PAPER, borderColor: LINE }}
       >
         <h2
           className="font-display mx-auto max-w-2xl text-[32px] leading-[1.1] font-bold sm:text-[46px]"
-          style={{ color: CREAM }}
+          style={{ color: INK }}
         >
           Sáng thứ 7, sân đã đặt.
           <br />
@@ -254,14 +262,14 @@ export default async function LandingPage() {
           <Link
             href={signedIn ? "/bang-tin" : "/dang-nhap"}
             className="inline-flex h-12 items-center rounded-full px-9 text-[12px] font-bold tracking-[0.16em] uppercase transition-transform duration-300 hover:-translate-y-0.5"
-            style={{ background: GOLD, color: NAVY }}
+            style={{ background: GOLD, color: PAPER }}
           >
             {signedIn ? "Vào bảng tin" : "Đăng nhập"}
           </Link>
         </div>
         <p
           className="mt-8 text-[12.5px]"
-          style={{ color: CREAM, opacity: 0.45 }}
+          style={{ color: MUTED, opacity: 0.75 }}
         >
           Dành riêng cho nhân viên Light Human. Vui lòng không chia sẻ link ra
           ngoài.

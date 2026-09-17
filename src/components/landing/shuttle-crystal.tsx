@@ -146,7 +146,7 @@ export function ShuttleCrystal({
           transmission={1}
           thickness={0.58}
           roughness={0.04}
-          ior={1.52}
+          ior={1.62}
           chromaticAberration={dispersion}
           anisotropy={0.2}
           distortion={0.12}
@@ -158,7 +158,7 @@ export function ShuttleCrystal({
           resolution={spec.resolution}
           color={tint}
           attenuationColor={tint}
-          attenuationDistance={22}
+          attenuationDistance={6.5}
           side={THREE.DoubleSide}
         />
       </mesh>

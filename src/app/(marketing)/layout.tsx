@@ -10,5 +10,5 @@ export default function MarketingLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <div className="min-h-dvh bg-[#000d26]">{children}</div>;
+  return <div className="min-h-dvh bg-white">{children}</div>;
 }

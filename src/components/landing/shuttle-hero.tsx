@@ -261,9 +261,17 @@ const GROUP = {
 /* Thành phần công khai                                                */
 /* ------------------------------------------------------------------ */
 
-const NAVY = "#000d26";
-const GOLD = "#dcae42";
-const CREAM = "#f2ede3";
+const PAPER = "#ffffff";
+const INK = "#001a4a"; // chữ tiêu đề, cũng là navy thương hiệu
+const GOLD = "#855c12"; // gold-700 — 5,9:1 trên trắng, đạt AA cho chữ nhỏ
+const GOLD_SOLID = "#c8951a"; // gold-500, dùng cho phần kim loại của quả cầu
+
+/*
+ * Thuỷ tinh trong vắt đặt trên nền trắng thì gần như biến mất: nó truyền
+ * qua đúng màu nền. Cho kính một chút sắc xanh xám và rút khoảng suy giảm
+ * xuống để khối có "thân" — nhìn ra được mép và bề dày.
+ */
+const GLASS_TINT = "#dbe4f2";
 
 export function ShuttleHero({
   eyebrow = "Light Human",
@@ -376,7 +384,7 @@ export function ShuttleHero({
 
   const texture = useHeadlineTexture(
     headline,
-    CREAM,
+    INK,
     "var(--font-display), 'Playfair Display', Georgia, serif",
   );
 
@@ -384,7 +392,7 @@ export function ShuttleHero({
     <div
       ref={sectionRef}
       className="relative h-[220vh] w-full"
-      style={{ background: NAVY }}
+      style={{ background: PAPER }}
     >
       <div
         ref={stageRef}
@@ -404,7 +412,7 @@ export function ShuttleHero({
               powerPreference: "high-performance",
             }}
             camera={{ fov: 40, near: 0.1, far: 60, position: [0, 0, 7] }}
-            onCreated={({ gl }) => gl.setClearColor(new THREE.Color(NAVY), 1)}
+            onCreated={({ gl }) => gl.setClearColor(new THREE.Color(PAPER), 1)}
           >
             {/* Dàn đèn dựng bằng lightformer nên không phải tải file HDRI. */}
             <Environment resolution={256}>
@@ -440,12 +448,12 @@ export function ShuttleHero({
                 progress={progress}
                 reducedMotion={reducedMotion}
                 dispersion={0.36}
-                tint="#ffffff"
-                gold={GOLD}
+                tint={GLASS_TINT}
+                gold={GOLD_SOLID}
                 spec={spec}
               />
             </FocalGroup>
-            <Motes color={GOLD} count={spec.motes} />
+            <Motes color={GOLD_SOLID} count={spec.motes} />
           </Canvas>
         </div>
 
@@ -454,7 +462,7 @@ export function ShuttleHero({
           aria-hidden
           className="pointer-events-none absolute inset-0"
           style={{
-            background: `radial-gradient(120% 90% at 50% 45%, transparent 40%, ${NAVY} 100%)`,
+            background: `radial-gradient(120% 90% at 50% 45%, transparent 45%, ${PAPER} 100%)`,
           }}
         />
 
@@ -485,7 +493,7 @@ export function ShuttleHero({
             <motion.p
               variants={ENTER}
               className="mx-auto max-w-md text-[13.5px] leading-relaxed sm:text-[15px]"
-              style={{ color: CREAM, opacity: 0.68 }}
+              style={{ color: "#4c5a72" }}
             >
               {description}
             </motion.p>
@@ -510,7 +518,7 @@ export function ShuttleHero({
                 <span
                   key={m}
                   className="text-[10px] font-semibold tracking-[0.22em] uppercase"
-                  style={{ color: CREAM, opacity: 0.55 }}
+                  style={{ color: "#69768d" }}
                 >
                   {m}
                 </span>
@@ -519,7 +527,7 @@ export function ShuttleHero({
 
             <div
               className="h-px w-24 overflow-hidden"
-              style={{ background: `${CREAM}22` }}
+              style={{ background: "#e4e9f2" }}
             >
               <div
                 ref={railRef}

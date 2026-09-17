@@ -29,8 +29,8 @@ import * as React from "react";
  * tiến độ vào state thì mỗi khung hình cuộn là một lần render lại cả cây.
  */
 
-/** Ảnh mở đầu. Thả ảnh động tác vào `public/images/landing/` rồi đổi ở đây. */
-const LEAD_PHOTO = "/images/feed-3.jpg";
+/** Ảnh mở đầu. */
+const LEAD_PHOTO = "/images/landing/danh-cau.webp";
 
 type Stop = {
   /** Vị trí theo chiều dọc, phần trăm chiều cao khối. */
@@ -217,26 +217,33 @@ export function JourneyLine() {
   }, [d, calm]);
 
   return (
-    <section className="relative overflow-hidden bg-[#000d26]">
-      {/* Mở đầu: ảnh lớn, chữ đè lên */}
-      <div className="relative h-[70svh] min-h-[420px] w-full">
+    <section className="relative overflow-hidden bg-white">
+      {/*
+        Mở đầu: một dải TỐI có chủ đích giữa trang trắng.
+
+        Ảnh này chụp trên nền đen. Phủ trắng lên cho hợp trang thì vừa đục
+        ảnh vừa không còn chỗ nào đặt chữ cho đọc được. Ngược lại, để nguyên
+        nền đen và cho chữ sáng thì nó thành một nhịp nghỉ giữa hai vùng
+        trắng — chuyển từ phần 3D sang phần kể chuyện.
+      */}
+      <div className="relative h-[70svh] min-h-[420px] w-full bg-[#050505]">
         <Image
           src={LEAD_PHOTO}
-          alt="Thành viên team Light Human trên sân cầu lông"
+          alt="Người chơi bật nhảy đập cầu"
           fill
           sizes="100vw"
           priority={false}
           className="object-cover"
-          style={{ filter: "grayscale(0.55) contrast(1.05) brightness(0.7)" }}
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-[#000d26] via-[#000d26]/35 to-[#000d26]" />
+        {/* Tối dần xuống chân để chữ nổi, không đụng tới nửa trên của ảnh. */}
+        <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/45 to-transparent" />
 
-        <div className="absolute inset-x-0 bottom-0 px-5 pb-16 text-center sm:px-10">
+        <div className="absolute inset-x-0 bottom-0 px-5 pb-14 text-center sm:px-10 sm:pb-16">
           <div className="mx-auto max-w-2xl">
-            <p className="text-[10px] font-semibold tracking-[0.32em] text-gold-400 uppercase">
+            <p className="text-[10px] font-semibold tracking-[0.32em] text-gold-300 uppercase">
               Một buổi sáng thứ 7
             </p>
-            <h2 className="font-display mt-4 text-[32px] leading-[1.08] font-bold text-[#f2ede3] sm:text-[48px]">
+            <h2 className="font-display mt-4 text-[32px] leading-[1.08] font-bold text-white sm:text-[48px]">
               Từ lúc chốt kèo
               <br />
               tới lúc trả kèo
@@ -262,7 +269,7 @@ export function JourneyLine() {
             <path
               d={d}
               fill="none"
-              stroke="#f2ede3"
+              stroke="#001a4a"
               strokeOpacity={0.12}
               strokeWidth={2}
               strokeLinecap="round"
@@ -272,7 +279,7 @@ export function JourneyLine() {
               ref={pathRef}
               d={d}
               fill="none"
-              stroke="#dcae42"
+              stroke="#c8951a"
               strokeWidth={2.5}
               strokeLinecap="round"
             />
@@ -286,7 +293,7 @@ export function JourneyLine() {
           aria-hidden
           className="pointer-events-none absolute top-0 left-0 z-10 opacity-0 transition-opacity duration-300 will-change-transform"
         >
-          <span className="absolute inset-0 -z-10 m-auto block size-10 rounded-full bg-gold-400/25 blur-md" />
+          <span className="absolute inset-0 -z-10 m-auto block size-10 rounded-full bg-gold-500/30 blur-md" />
           <ShuttleMark />
         </div>
 
@@ -307,7 +314,7 @@ export function JourneyLine() {
             ].join(" ")}
             style={{ top: `${stop.y}%` }}
           >
-            <div className="overflow-hidden rounded-2xl ring-1 ring-[#f2ede3]/15">
+            <div className="overflow-hidden rounded-2xl ring-1 ring-ink-800">
               <div className="relative aspect-[16/10]">
                 <Image
                   src={stop.photo}
@@ -316,16 +323,16 @@ export function JourneyLine() {
                   sizes="(max-width: 768px) 78vw, 420px"
                   className="object-cover"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#000d26] via-[#000d26]/15 to-transparent" />
+                <div className="absolute inset-0 ring-1 ring-inset ring-black/5" />
               </div>
             </div>
-            <p className="mt-4 text-[10px] font-semibold tracking-[0.28em] text-gold-400 uppercase">
+            <p className="mt-4 text-[10px] font-semibold tracking-[0.28em] text-gold-700 uppercase">
               {stop.eyebrow}
             </p>
-            <h3 className="font-display mt-1.5 text-[24px] leading-tight font-bold text-[#f2ede3] sm:text-[28px]">
+            <h3 className="font-display mt-1.5 text-[24px] leading-tight font-bold text-navy-900 sm:text-[28px]">
               {stop.title}
             </h3>
-            <p className="mt-2 text-[14px] leading-relaxed text-[#f2ede3]/60">
+            <p className="mt-2 text-[14px] leading-relaxed text-ink-400">
               {stop.body}
             </p>
           </div>
@@ -341,17 +348,17 @@ function ShuttleMark() {
     <svg width="28" height="28" viewBox="-16 -16 32 32" aria-hidden>
       <path
         d="M -3 2 L -9 -11 A 9 3 0 0 0 9 -11 L 3 2 Z"
-        fill="#dcae42"
+        fill="#c8951a"
         fillOpacity={0.3}
-        stroke="#e8c56a"
+        stroke="#d8a52c"
         strokeWidth={1.4}
         strokeLinejoin="round"
       />
-      <g stroke="#e8c56a" strokeWidth={0.9} opacity={0.75}>
+      <g stroke="#d8a52c" strokeWidth={0.9} opacity={0.75}>
         <line x1={-1.5} y1={2} x2={-4.5} y2={-11} />
         <line x1={1.5} y1={2} x2={4.5} y2={-11} />
       </g>
-      <circle cx={0} cy={5} r={4.5} fill="#dcae42" />
+      <circle cx={0} cy={5} r={4.5} fill="#c8951a" />
     </svg>
   );
 }
