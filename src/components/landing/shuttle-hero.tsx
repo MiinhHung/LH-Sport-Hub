@@ -254,7 +254,7 @@ function Headline({ text }: { text: string }) {
       style={{ color: CREAM }}
     >
       {/* Máy đọc màn hình đọc nguyên câu, không đọc rời từng chữ cái. */}
-      <span className="sr-only">{text}</span>
+      <span className="sr-only select-none">{text}</span>
 
       {/*
         Hai lớp lồng nhau, và đây là chỗ bắt buộc:

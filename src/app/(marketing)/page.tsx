@@ -1,10 +1,4 @@
-import {
-  BookOpen,
-  CalendarDays,
-  MessagesSquare,
-  Swords,
-  Trophy,
-} from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -45,29 +39,31 @@ const ON_DARK_GOLD = "#dcae42"; // gold-400
 const ON_DARK_TEXT = "#f2ede3";
 const ON_DARK_NAVY = "#00112e";
 
+/** Mỗi mục trỏ thẳng vào trang tương ứng trong app. Khách chưa đăng nhập
+ *  sẽ được chuyển sang trang đăng nhập rồi quay lại đúng chỗ đó. */
 const FEATURES = [
   {
-    icon: Swords,
+    href: "/keo",
     title: "Kèo",
     body: "Thách nhau 1v1 hay 2v2, đặt mốc điểm, ghi rõ cược gì. Cả đội thua bao cả đội thắng — đã chốt thì khỏi cãi.",
   },
   {
-    icon: CalendarDays,
+    href: "/buoi-tap",
     title: "Buổi tập",
     body: "Ai đứng ra đặt sân thì lên lịch, mọi người bấm báo đi hay không. Kèm bản đồ cho người tới lần đầu.",
   },
   {
-    icon: Trophy,
+    href: "/bang-phong-than",
     title: "Bảng phong thần",
     body: "Vua kèo, chuỗi thắng, người chăm nhất. Chỉ tính những trận cả hai đội đã xác nhận kết quả.",
   },
   {
-    icon: BookOpen,
+    href: "/cam-nang",
     title: "Cẩm nang",
     body: "Luật, kỹ thuật, khởi động, chọn vợt chọn giày. Mười ba bài, đủ để không phải tra Google giữa trận.",
   },
   {
-    icon: MessagesSquare,
+    href: "/bang-tin",
     title: "Bảng tin & nhắn riêng",
     body: "Khoe ảnh buổi vừa đánh, chém gió, hoặc nhắn riêng rủ nhau đi tập.",
   },
@@ -234,53 +230,81 @@ export default async function LandingPage() {
             className="font-display mt-5 block max-w-2xl text-[32px] leading-[1.1] font-bold sm:text-[46px]"
           />
 
-          <div className="mt-14 grid gap-px overflow-hidden rounded-3xl sm:grid-cols-2 lg:grid-cols-3"
-            style={{ background: LINE }}
-          >
-            {FEATURES.map(({ icon: Icon, title, body }, i) => (
-              <Reveal
-                key={title}
-                delay={i * 70}
-                className="p-7 sm:p-8"
-                style={{ background: PAPER }}
-              >
-                <Icon
-                  className="size-5"
-                  style={{ color: GOLD }}
-                  strokeWidth={1.75}
-                  aria-hidden
-                />
-                <h3
-                  className="font-display mt-5 text-[21px] font-bold"
-                  style={{ color: INK }}
-                >
-                  {title}
-                </h3>
-                <p
-                  className="mt-2.5 text-[14px] leading-relaxed"
-                  style={{ color: MUTED }}
-                >
-                  {body}
-                </p>
-              </Reveal>
-            ))}
+          {/*
+            Mục lục kiểu tạp chí, không phải lưới thẻ.
 
-            {/* Ô cuối để trống có chủ đích: lưới 3 cột với 5 mục sẽ hụt một
-                ô, lấp bằng một câu còn hơn để hổng. */}
-            <div
-              className="flex items-end p-7 sm:p-8"
-              style={{ background: PAPER }}
-            >
+            Bản trước là lưới ba cột, mỗi ô một icon nhỏ — đúng cái kiểu làm
+            mọi trang trông giống hệt nhau. Nó còn kéo theo hai chuyện dở:
+            năm mục xếp vào lưới ba cột thì hụt một ô, phải bịa nội dung lấp
+            vào; và năm mục trông quan trọng ngang nhau dù rõ ràng không phải.
+
+            Dạng danh sách ngang thì số mục bao nhiêu cũng vừa, tên mục được
+            cỡ chữ lớn, và có chỗ cho một việc mà lưới icon không làm được:
+            mỗi dòng bấm được để vào thẳng trang đó.
+          */}
+          <ul className="mt-14 border-t" style={{ borderColor: LINE }}>
+            {FEATURES.map(({ href, title, body }, i) => (
+              <li key={title} className="border-b" style={{ borderColor: LINE }}>
+                <Reveal delay={i * 60}>
+                  <Link
+                    href={href}
+                    className="group grid grid-cols-[auto_minmax(0,1fr)_auto] items-baseline gap-x-5 gap-y-1.5 py-6 md:grid-cols-[3.5rem_minmax(0,15rem)_minmax(0,1fr)_2rem] md:gap-x-8 md:py-7"
+                  >
+                    <span
+                      aria-hidden
+                      className="font-display tabular text-[15px] leading-none font-bold transition-colors duration-300 md:text-[17px]"
+                      style={{ color: GOLD, opacity: 0.55 }}
+                    >
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
+
+                    <h3
+                      className="font-display text-[22px] leading-tight font-bold transition-colors duration-300 group-hover:text-navy-700 md:text-[26px]"
+                      style={{ color: INK }}
+                    >
+                      {title}
+                    </h3>
+
+                    {/* Trên điện thoại câu mô tả xuống dòng riêng, nhảy qua
+                        cột số để thẳng hàng với tên mục. */}
+                    <p
+                      className="col-start-2 col-end-4 text-[14px] leading-relaxed md:col-auto md:text-[14.5px]"
+                      style={{ color: MUTED }}
+                    >
+                      {body}
+                    </p>
+
+                    <ArrowRight
+                      aria-hidden
+                      className="col-start-3 row-start-1 size-4 self-center opacity-0 transition-all duration-300 group-hover:translate-x-1 group-hover:opacity-100 md:col-auto md:row-auto"
+                      style={{ color: GOLD }}
+                    />
+                  </Link>
+                </Reveal>
+              </li>
+            ))}
+          </ul>
+
+          {/* Câu cửa miệng của team — cho hẳn một dòng riêng thay vì nhét
+              vào ô trống thừa của lưới như trước. */}
+          <Reveal delay={220}>
+            <blockquote className="mt-16 text-center">
               <p
-                className="font-display text-[19px] leading-snug italic"
-                style={{ color: GOLD, opacity: 0.85 }}
+                className="font-display mx-auto max-w-xl text-[26px] leading-tight font-bold italic sm:text-[34px]"
+                style={{ color: INK }}
               >
-                “Thua thì bao,
-                <br />
-                đừng quỵt.”
+                <span style={{ color: GOLD }}>“</span>
+                Thua thì bao, đừng quỵt.
+                <span style={{ color: GOLD }}>”</span>
               </p>
-            </div>
-          </div>
+              <footer
+                className="mt-4 text-[10px] font-semibold tracking-[0.28em] uppercase"
+                style={{ color: GOLD }}
+              >
+                Luật nhà
+              </footer>
+            </blockquote>
+          </Reveal>
         </div>
       </section>
 

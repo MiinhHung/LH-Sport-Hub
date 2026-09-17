@@ -88,8 +88,14 @@ export function CutReveal({
 
   return (
     <Tag ref={ref as never} className={className}>
-      {/* Máy đọc màn hình đọc nguyên câu, không đọc rời từng từ. */}
-      <span className="sr-only">{text}</span>
+      {/*
+        Máy đọc màn hình đọc nguyên câu, không đọc rời từng từ.
+
+        `select-none` là bắt buộc: chữ `sr-only` vẫn nằm trong luồng văn bản
+        nên bôi đen rồi chép sẽ ra hai lần cả câu — một lần từ bản ẩn, một
+        lần từ bản hiện.
+      */}
+      <span className="sr-only select-none">{text}</span>
 
       <span aria-hidden>
         {words.map((w, i) => (
