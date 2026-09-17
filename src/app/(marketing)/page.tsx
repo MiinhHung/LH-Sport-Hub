@@ -8,6 +8,7 @@ import {
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { JourneyLine } from "@/components/landing/journey-line";
 import { ShuttleHero } from "@/components/landing/shuttle-hero";
 import { createClient } from "@/lib/supabase/server";
 
@@ -109,6 +110,8 @@ export default async function LandingPage() {
           </a>
         }
       />
+
+      <JourneyLine />
 
       {/* Trong này có gì */}
       <section
