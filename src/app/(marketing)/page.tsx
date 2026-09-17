@@ -293,29 +293,10 @@ export default async function LandingPage() {
         style={{ background: PAPER, borderColor: LINE }}
       >
         <div className="mx-auto max-w-5xl">
-          <div className="flex items-center gap-3">
-            <span
-              aria-hidden
-              className="h-px w-8"
-              style={{ background: GOLD, opacity: 0.7 }}
-            />
-            <span
-              className="text-[10px] font-semibold tracking-[0.32em] uppercase"
-              style={{ color: GOLD }}
-            >
-              Khoảnh khắc
-            </span>
-          </div>
-
-          <CutReveal
-            as="h2"
-            text="Team mình, trên sân"
-            className="font-display mt-5 block text-[32px] leading-[1.14] font-bold sm:text-[46px]"
-          />
-
-          <Reveal delay={120}>
+          {/* Không nhãn, không tiêu đề — để đoạn phim tự nói. */}
+          <Reveal>
             <div
-              className="mt-12 overflow-hidden rounded-3xl ring-1"
+              className="overflow-hidden rounded-3xl ring-1"
               style={{ borderColor: LINE, background: ON_DARK_NAVY }}
             >
               <div className="relative aspect-video">
