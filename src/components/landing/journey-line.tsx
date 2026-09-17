@@ -32,10 +32,11 @@ import * as React from "react";
 const LEAD_PHOTO = "/images/landing/danh-cau.webp";
 
 /**
- * Vị trí mặt vợt trong tấm ảnh, theo tỉ lệ khung ảnh. Quả cầu xuất phát từ
- * đây, nên đổi ảnh thì chỉnh lại hai số này.
+ * Vị trí đầu vợt trong tấm ảnh, theo tỉ lệ khung ảnh. Quả cầu xuất phát từ
+ * đây. Hai số này ĐO ĐƯỢC chứ không ước lượng: quét ảnh tìm điểm cao nhất
+ * của vùng tối, vì đầu vợt là thứ nhô lên trên cùng.
  */
-const RACKET = { x: 0.46, y: 0.13 };
+const RACKET = { x: 0.401, y: 0.156 };
 
 type Stop = {
   eyebrow: string;
@@ -247,14 +248,15 @@ export function JourneyLine() {
     <section className="relative bg-white px-5 py-20 sm:px-10 sm:py-28">
       <div
         ref={sectionRef}
-        className="relative mx-auto h-[300vh] w-full max-w-5xl"
+        className="relative mx-auto h-[210vh] w-full max-w-5xl"
       >
         {/* Người đánh cầu, góc trái trên.
-            Ảnh chụp trên nền đen nên đóng khung thành một tấm tối có chủ ý;
-            phủ trắng lên cho hợp trang thì vừa đục ảnh vừa hết chỗ đặt chữ. */}
+            Không đóng khung, không nền: ảnh là hình bóng đen trên nền trắng
+            nên để nó đứng thẳng trên trang là sạch nhất. Quan trọng hơn,
+            khung đục sẽ che mất đoạn đầu của đường dây — đúng chỗ cú đánh. */}
         <div
           ref={panelRef}
-          className="absolute top-0 left-0 z-[1] w-[58%] overflow-hidden rounded-2xl bg-[#050505] shadow-[0_18px_50px_-20px_rgba(0,26,74,0.45)] sm:w-[46%]"
+          className="absolute top-0 left-0 z-0 w-[62%] sm:w-[48%]"
         >
           <div className="relative aspect-[1400/980]">
             <Image
@@ -268,7 +270,7 @@ export function JourneyLine() {
         </div>
 
         {/* Tiêu đề, bên phải tấm ảnh */}
-        <div className="absolute top-[2%] right-0 z-[1] w-[38%] sm:top-[4%] sm:w-[46%]">
+        <div className="absolute top-[2%] right-0 z-20 w-[38%] sm:top-[4%] sm:w-[44%]">
           <p className="text-[10px] font-semibold tracking-[0.3em] text-gold-700 uppercase">
             Một buổi sáng thứ 7
           </p>
@@ -288,7 +290,7 @@ export function JourneyLine() {
             viewBox={`0 0 ${box.w} ${box.h}`}
             width={box.w}
             height={box.h}
-            className="pointer-events-none absolute inset-0 z-0"
+            className="pointer-events-none absolute inset-0 z-10"
             aria-hidden
           >
             <path
@@ -314,7 +316,7 @@ export function JourneyLine() {
         <div
           ref={shuttleRef}
           aria-hidden
-          className="pointer-events-none absolute top-0 left-0 z-20 opacity-0 will-change-transform"
+          className="pointer-events-none absolute top-0 left-0 z-30 opacity-0 will-change-transform"
         >
           <span className="absolute inset-0 -z-10 m-auto block size-12 rounded-full bg-gold-500/25 blur-lg" />
           <ShuttleMark />
@@ -328,8 +330,8 @@ export function JourneyLine() {
               stopRefs.current[i] = el;
             }}
             className={[
-              "absolute z-[1] -translate-y-1/2 opacity-0 transition-all duration-700 ease-out",
-              narrow ? "right-0 left-[26%]" : "w-[40%]",
+              "absolute z-20 -translate-y-1/2 opacity-0 transition-all duration-700 ease-out",
+              narrow ? "right-0 left-[26%]" : "w-[44%]",
             ].join(" ")}
             style={{
               top: `${anchors[i].y}%`,

@@ -2,6 +2,7 @@
 
 import {
   Bell,
+  Home,
   CalendarDays,
   BookOpen,
   Newspaper,
@@ -30,6 +31,12 @@ type Item = {
 
 function useItems(unread: number): Item[] {
   return [
+    {
+      href: "/",
+      label: "Trang chủ",
+      short: "Nhà",
+      icon: <Home className="size-[18px]" strokeWidth={2} />,
+    },
     {
       href: "/bang-tin",
       label: "Bảng tin",
@@ -90,8 +97,11 @@ function Counter({ value }: { value: number }) {
 /** Thanh dưới cùng — dùng trên điện thoại. */
 export function BottomNav({ unread }: { unread: number }) {
   const pathname = usePathname();
-  // 6 mục là quá chật trên điện thoại; Xếp hạng đã có ở menu tài khoản.
-  const items = useItems(unread).filter((i) => i.href !== "/bang-phong-than");
+  // 7 mục là quá chật trên điện thoại. Xếp hạng và Cẩm nang đã có ở menu
+  // tài khoản và ở thanh trên, nên cắt khỏi thanh dưới.
+  const items = useItems(unread).filter(
+    (i) => i.href !== "/bang-phong-than" && i.href !== "/cam-nang",
+  );
 
   return (
     <nav

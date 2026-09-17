@@ -191,6 +191,21 @@ function Motes({ count, color }: { count: number; color: string }) {
 /** Đẩy quả cầu lên cao để chừa một phần ba dưới cho chữ. Màn hình dựng
  *  đứng thì đẩy ít hơn và lùi cả nhóm ra sau, nếu không quả cầu phóng to
  *  dòng tiêu đề thành một vệt nhoè không đọc được trên điện thoại. */
+/**
+ * Đẩy quả cầu sang khe giữa "Sport" và "Hub".
+ *
+ * Để giữa thì nó che đúng hai chữ "rt", đọc thành "Spo Hub". Lệch sang
+ * khoảng trống giữa hai từ thì vẫn chồng lên chữ đủ để khúc xạ, mà không
+ * ăn mất chữ nào.
+ */
+function ShuttleOffset({ children }: { children: React.ReactNode }) {
+  const { viewport } = useThree();
+  const portrait = viewport.width < viewport.height;
+  return (
+    <group position={[portrait ? 0.22 : 0.58, 0, 0]}>{children}</group>
+  );
+}
+
 function FocalGroup({ children }: { children: React.ReactNode }) {
   const { viewport } = useThree();
   const portrait = viewport.width < viewport.height;
@@ -391,7 +406,7 @@ export function ShuttleHero({
   return (
     <div
       ref={sectionRef}
-      className="relative h-[220vh] w-full"
+      className="relative h-[170vh] w-full"
       style={{ background: PAPER }}
     >
       <div
@@ -444,14 +459,16 @@ export function ShuttleHero({
 
             <FocalGroup>
               <Headline texture={texture} />
-              <ShuttleCrystal
-                progress={progress}
-                reducedMotion={reducedMotion}
-                dispersion={0.2}
-                tint={GLASS_TINT}
-                gold={GOLD_SOLID}
-                spec={spec}
-              />
+              <ShuttleOffset>
+                <ShuttleCrystal
+                  progress={progress}
+                  reducedMotion={reducedMotion}
+                  dispersion={0.2}
+                  tint={GLASS_TINT}
+                  gold={GOLD_SOLID}
+                  spec={spec}
+                />
+              </ShuttleOffset>
             </FocalGroup>
             <Motes color={GOLD_SOLID} count={spec.motes} />
           </Canvas>
@@ -471,7 +488,7 @@ export function ShuttleHero({
           variants={GROUP}
           initial="hidden"
           animate={controls}
-          className="pointer-events-none absolute inset-0 flex flex-col px-5 py-8 sm:px-10 sm:py-12"
+          className="pointer-events-none absolute inset-0 flex flex-col px-5 py-7 sm:px-10 sm:py-10"
         >
           <motion.div variants={ENTER} className="flex items-center gap-3">
             <span
@@ -487,7 +504,9 @@ export function ShuttleHero({
             </span>
           </motion.div>
 
-          <div aria-hidden className="flex-1" />
+          {/* Chừa đúng chỗ cho dòng tiêu đề nằm trong cảnh 3D, thay vì
+              đẩy chữ xuống tận đáy. */}
+          <div aria-hidden className="h-[52vh] shrink-0 sm:h-[54vh]" />
 
           <div className="mx-auto w-full max-w-2xl text-center">
             <motion.p
@@ -509,9 +528,11 @@ export function ShuttleHero({
             )}
           </div>
 
+          <div aria-hidden className="flex-1" />
+
           <motion.div
             variants={ENTER}
-            className="mt-8 flex flex-wrap items-center justify-between gap-4 sm:mt-12"
+            className="flex flex-wrap items-center justify-between gap-4"
           >
             <div className="hidden flex-wrap items-center gap-x-5 gap-y-2 sm:flex">
               {meta.map((m) => (

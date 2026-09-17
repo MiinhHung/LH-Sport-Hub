@@ -151,9 +151,9 @@ export function ShuttleCrystal({
   const portrait = viewport.width < viewport.height;
   const fit = Math.min(viewport.width, viewport.height);
   const baseScale = THREE.MathUtils.clamp(
-    fit / 7.8,
-    portrait ? 0.22 : 0.3,
-    0.72,
+    fit / 6.2,
+    portrait ? 0.26 : 0.34,
+    0.9,
   );
 
   React.useEffect(() => {

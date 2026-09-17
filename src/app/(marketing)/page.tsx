@@ -8,6 +8,7 @@ import {
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { Reveal } from "@/components/landing/reveal";
 import { JourneyLine } from "@/components/landing/journey-line";
 import { ShuttleHero } from "@/components/landing/shuttle-hero";
 import { createClient } from "@/lib/supabase/server";
@@ -119,6 +120,97 @@ export default async function LandingPage() {
         }
       />
 
+      {/* Light Human là ai — đặt ngay sau hero vì người lạ mở trang lên thì
+          câu hỏi đầu tiên là "đây là cái gì của ai", không phải "có tính
+          năng gì". */}
+      <section
+        className="px-5 py-24 sm:px-10 sm:py-32"
+        style={{ background: PAPER }}
+      >
+        <div className="mx-auto max-w-5xl">
+          <div className="grid gap-x-16 gap-y-10 lg:grid-cols-[minmax(0,1fr)_320px]">
+            <div>
+              <div className="flex items-center gap-3">
+                <span
+                  aria-hidden
+                  className="h-px w-8"
+                  style={{ background: GOLD, opacity: 0.7 }}
+                />
+                <span
+                  className="text-[10px] font-semibold tracking-[0.32em] uppercase"
+                  style={{ color: GOLD }}
+                >
+                  Light Human
+                </span>
+              </div>
+
+              <h2
+                className="font-display mt-5 text-[30px] leading-[1.12] font-bold sm:text-[44px]"
+                style={{ color: INK }}
+              >
+                Sân chơi của người
+                <br />
+                Light Human
+              </h2>
+
+              <div
+                className="mt-7 space-y-5 text-[15.5px] leading-[1.75]"
+                style={{ color: MUTED }}
+              >
+                <p>
+                  Sport Hub không phải sản phẩm bán cho ai. Nó là chỗ nội bộ
+                  của team thể thao công ty Light Human — dựng lên vì mấy cái
+                  group chat không giải quyết nổi việc tuần nào cũng phải hỏi
+                  lại: thứ 7 này ai đi, sân nào, ai còn nợ ai chầu gì.
+                </p>
+                <p>
+                  Team khoảng mười chín người, sáng thứ 7 ra sân, hôm nào
+                  không cầu lông thì đi bơi. Đông nhất được mười lăm, có hôm
+                  chỉ bảy người — vẫn đánh. Cái hay không nằm ở chỗ ai giỏi
+                  hơn ai, mà ở chỗ tuần sau mọi người vẫn muốn dậy sớm.
+                </p>
+                <p style={{ color: INK }}>
+                  Nên app này chỉ làm đúng một việc: giữ cho những cái kèo,
+                  những buổi tập và những tấm ảnh nằm yên một chỗ, để không ai
+                  phải nhớ hộ ai.
+                </p>
+              </div>
+            </div>
+
+            {/* Vài con số — cột hẹp bên phải, ngăn bằng nét kẻ mảnh */}
+            <dl className="grid grid-cols-2 gap-px self-start lg:grid-cols-1"
+              style={{ background: LINE }}
+            >
+              {[
+                { k: "19", v: "thành viên" },
+                { k: "Sáng T7", v: "lịch cố định" },
+                { k: "2 môn", v: "cầu lông & bơi" },
+                { k: "13 bài", v: "trong cẩm nang" },
+              ].map((s) => (
+                <div
+                  key={s.k}
+                  className="px-5 py-5"
+                  style={{ background: PAPER }}
+                >
+                  <dt
+                    className="font-display tabular text-[26px] leading-none font-bold"
+                    style={{ color: INK }}
+                  >
+                    {s.k}
+                  </dt>
+                  <dd
+                    className="mt-1.5 text-[12px] font-semibold tracking-[0.1em] uppercase"
+                    style={{ color: MUTED }}
+                  >
+                    {s.v}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+        </div>
+      </section>
+
       <JourneyLine />
 
       {/* Trong này có gì */}
@@ -152,9 +244,10 @@ export default async function LandingPage() {
           <div className="mt-14 grid gap-px overflow-hidden rounded-3xl sm:grid-cols-2 lg:grid-cols-3"
             style={{ background: LINE }}
           >
-            {FEATURES.map(({ icon: Icon, title, body }) => (
-              <div
+            {FEATURES.map(({ icon: Icon, title, body }, i) => (
+              <Reveal
                 key={title}
+                delay={i * 70}
                 className="p-7 sm:p-8"
                 style={{ background: PAPER }}
               >
@@ -176,7 +269,7 @@ export default async function LandingPage() {
                 >
                   {body}
                 </p>
-              </div>
+              </Reveal>
             ))}
 
             {/* Ô cuối để trống có chủ đích: lưới 3 cột với 5 mục sẽ hụt một
@@ -219,8 +312,8 @@ export default async function LandingPage() {
           </div>
 
           <div className="mt-14 grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
-            {STEPS.map((s) => (
-              <div key={s.n}>
+            {STEPS.map((s, i) => (
+              <Reveal key={s.n} delay={i * 90}>
                 <p
                   className="font-display tabular text-[42px] leading-none font-bold"
                   style={{ color: GOLD, opacity: 0.4 }}
@@ -239,7 +332,7 @@ export default async function LandingPage() {
                 >
                   {s.body}
                 </p>
-              </div>
+              </Reveal>
             ))}
           </div>
         </div>
