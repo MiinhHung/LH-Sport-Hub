@@ -215,9 +215,9 @@ type Spec = ShuttleQuality & { motes: number; maxDpr: number };
  * con số đó trước, chứ không phải giảm số khung hình.
  */
 const QUALITY: Record<Quality, Spec> = {
-  low: { samples: 3, resolution: 192, motes: 28, backside: false, maxDpr: 1.25 },
-  medium: { samples: 4, resolution: 256, motes: 52, backside: true, maxDpr: 1.5 },
-  high: { samples: 6, resolution: 512, motes: 88, backside: true, maxDpr: 1.75 },
+  low: { samples: 4, resolution: 192, motes: 28, backside: false, maxDpr: 1.25 },
+  medium: { samples: 6, resolution: 320, motes: 52, backside: true, maxDpr: 1.5 },
+  high: { samples: 8, resolution: 512, motes: 88, backside: true, maxDpr: 1.75 },
 };
 
 function subscribeToViewport(cb: () => void) {
@@ -447,7 +447,7 @@ export function ShuttleHero({
               <ShuttleCrystal
                 progress={progress}
                 reducedMotion={reducedMotion}
-                dispersion={0.36}
+                dispersion={0.2}
                 tint={GLASS_TINT}
                 gold={GOLD_SOLID}
                 spec={spec}

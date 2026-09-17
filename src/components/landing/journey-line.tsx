@@ -4,38 +4,40 @@ import Image from "next/image";
 import * as React from "react";
 
 /**
- * Đường dây tự vẽ theo tiến độ cuộn, có quả cầu nhỏ chạy dọc theo.
+ * Dải "một buổi sáng thứ 7": người đánh cầu ở góc trái, quả cầu bật ra từ
+ * mặt vợt rồi bay dọc một đường tự vẽ theo tiến độ cuộn, đi qua từng chặng.
  *
- * Cách làm: một đường SVG duy nhất, tô bằng nét đứt dài đúng bằng chính nó
- * (`stroke-dasharray = độ dài`). Đẩy `stroke-dashoffset` từ full về 0 thì
- * nét hiện dần ra — đó là toàn bộ mẹo "tự vẽ". Quả cầu lấy toạ độ từ
- * `getPointAtLength`, nên nó luôn nằm đúng trên đường.
+ * ĐƯỜNG ĐI NỘI SUY QUA CÁC ĐIỂM MỐC, không phải căn tay từng đoạn cong.
  *
- * KHUNG NHÌN ĐO BẰNG PIXEL THẬT, và đây là chỗ dễ sai nhất.
+ * Bản trước tôi gõ tay các điểm điều khiển Bézier rồi chỉnh cho khớp vị trí
+ * thẻ. Cách đó sai về bản chất: dời một cái thẻ là phải căn lại cả đường.
+ * Ở đây khai báo điểm mốc trước — mặt vợt, rồi bốn chặng, rồi đuôi — và
+ * chuyển Catmull-Rom sang Bézier để đường ĐI ĐÚNG QUA từng điểm đó. Muốn
+ * dời thẻ thì chỉ sửa một con số, đường tự bám theo.
  *
- * Cách làm quen thuộc là đặt khung nhìn 0–100 rồi `preserveAspectRatio="none"`
- * cho nó giãn đầy khối. Nhưng như vậy hai trục bị kéo méo khác nhau, nét vẽ
- * sẽ chỗ dày chỗ mỏng, mà cách chữa thông thường — `vector-effect:
- * non-scaling-stroke` — lại khiến `stroke-dasharray` được tính theo hệ toạ
- * độ MÀN HÌNH, trong khi `getTotalLength()` vẫn trả về độ dài theo hệ NGƯỜI
- * DÙNG. Hai con số không cùng đơn vị thì đường vẽ sai nhịp, và mức sai còn
- * tuỳ trình duyệt.
+ * KHUNG NHÌN ĐO BẰNG PIXEL THẬT.
  *
- * Nên ở đây khối được đo thật rồi khung nhìn đặt đúng bằng số pixel đó.
- * Không còn phép kéo méo nào: một đơn vị người dùng là một pixel, nét đều,
- * `getTotalLength` và `dasharray` cùng hệ.
+ * Cách quen thuộc là khung nhìn 0–100 + `preserveAspectRatio="none"` cho
+ * giãn đầy khối. Nhưng như vậy hai trục bị kéo méo khác nhau, nét vẽ chỗ dày
+ * chỗ mỏng, mà cách chữa thông thường — `vector-effect: non-scaling-stroke`
+ * — lại khiến `stroke-dasharray` tính theo hệ toạ độ MÀN HÌNH trong khi
+ * `getTotalLength()` vẫn trả độ dài theo hệ NGƯỜI DÙNG. Hai con số khác đơn
+ * vị thì đường vẽ sai nhịp, mức sai tuỳ trình duyệt. Nên khối được đo thật
+ * rồi khung nhìn đặt đúng số pixel đó.
  *
  * Vòng cuộn ghi thẳng vào `style` qua ref, không đụng state của React — đặt
  * tiến độ vào state thì mỗi khung hình cuộn là một lần render lại cả cây.
  */
 
-/** Ảnh mở đầu. */
 const LEAD_PHOTO = "/images/landing/danh-cau.webp";
 
+/**
+ * Vị trí mặt vợt trong tấm ảnh, theo tỉ lệ khung ảnh. Quả cầu xuất phát từ
+ * đây, nên đổi ảnh thì chỉnh lại hai số này.
+ */
+const RACKET = { x: 0.46, y: 0.13 };
+
 type Stop = {
-  /** Vị trí theo chiều dọc, phần trăm chiều cao khối. */
-  y: number;
-  side: "left" | "right";
   eyebrow: string;
   title: string;
   body: string;
@@ -44,32 +46,24 @@ type Stop = {
 
 const STOPS: Stop[] = [
   {
-    y: 20,
-    side: "left",
     eyebrow: "Tối thứ 6",
     title: "Chốt kèo",
     body: "Ai thách ai, mấy điểm, thua thì bao gì. Ghi ra hết cho khỏi cãi sáng hôm sau.",
     photo: "/images/feed-1.jpg",
   },
   {
-    y: 40,
-    side: "right",
     eyebrow: "7 giờ sáng",
     title: "Sân mở",
     body: "Trời còn mát, sân còn vắng. Khởi động mười lăm phút rồi mới vào ván đầu.",
     photo: "/images/feed-2.jpg",
   },
   {
-    y: 60,
-    side: "left",
     eyebrow: "Hai tiếng sau",
     title: "Đánh",
     body: "Cầu bay, người hò, thỉnh thoảng có quả chạm vạch rồi cãi nhau một lúc.",
     photo: "/images/feed-4.jpg",
   },
   {
-    y: 80,
-    side: "right",
     eyebrow: "Chín giờ",
     title: "Trả kèo",
     body: "Đội thua bao đội thắng. Xong vẫn còn nguyên ngày thứ 7 phía trước.",
@@ -77,67 +71,89 @@ const STOPS: Stop[] = [
   },
 ];
 
+type Pt = { x: number; y: number };
+
+/** Mốc của bốn chặng, phần trăm khối. Thẻ căn theo đúng mốc này. */
+const ANCHORS_WIDE: Pt[] = [
+  { x: 72, y: 30 },
+  { x: 28, y: 49 },
+  { x: 72, y: 68 },
+  { x: 28, y: 87 },
+];
+
+const ANCHORS_NARROW: Pt[] = [
+  { x: 9, y: 30 },
+  { x: 13, y: 49 },
+  { x: 9, y: 68 },
+  { x: 13, y: 87 },
+];
+
 /**
- * Đường đi, ghi theo phần trăm khối (0–100 cho cả hai trục) rồi mới quy ra
- * pixel. Để ở dạng số thay vì chuỗi để đổi kích thước là tính lại được.
+ * Nối các điểm thành đường cong trơn ĐI QUA tất cả chúng.
+ *
+ * Catmull-Rom suy ra hai điểm điều khiển của mỗi đoạn từ điểm trước và điểm
+ * sau, nên chỗ nối mượt mà đường vẫn chạm đúng từng mốc. Hai đầu nhân đôi
+ * điểm biên để đoạn đầu và đoạn cuối cũng đủ hàng xóm.
  */
-type Cmd = [string, ...number[]];
+function smoothPath(points: Pt[], w: number, h: number) {
+  const p = points.map(({ x, y }) => ({ x: (x / 100) * w, y: (y / 100) * h }));
+  if (p.length < 2) return "";
 
-/** Uốn lượn so le hai bên — màn hình rộng. */
-const WIDE: Cmd[] = [
-  ["M", 50, 2],
-  ["C", 50, 10, 22, 12, 22, 20],
-  ["C", 22, 30, 78, 30, 78, 40],
-  ["C", 78, 50, 22, 50, 22, 60],
-  ["C", 22, 70, 78, 70, 78, 80],
-  ["C", 78, 88, 50, 90, 50, 98],
-];
+  const at = (i: number) => p[Math.max(0, Math.min(p.length - 1, i))];
+  let d = `M ${p[0].x.toFixed(1)} ${p[0].y.toFixed(1)}`;
 
-/** Men sát mép trái, thẻ xếp một cột — màn hình hẹp. */
-const NARROW: Cmd[] = [
-  ["M", 10, 2],
-  ["C", 10, 12, 7, 14, 7, 20],
-  ["C", 7, 30, 13, 32, 13, 40],
-  ["C", 13, 50, 7, 52, 7, 60],
-  ["C", 7, 70, 13, 72, 13, 80],
-  ["C", 13, 88, 10, 90, 10, 98],
-];
-
-/** Quy đường từ phần trăm ra pixel. Số lẻ là x, số chẵn là y. */
-function toPath(cmds: Cmd[], w: number, h: number) {
-  return cmds
-    .map(([op, ...nums]) => {
-      const scaled = nums.map((n, i) =>
-        ((n / 100) * (i % 2 === 0 ? w : h)).toFixed(1),
-      );
-      return `${op} ${scaled.join(" ")}`;
-    })
-    .join(" ");
+  for (let i = 0; i < p.length - 1; i++) {
+    const p0 = at(i - 1);
+    const p1 = at(i);
+    const p2 = at(i + 1);
+    const p3 = at(i + 2);
+    const c1 = { x: p1.x + (p2.x - p0.x) / 6, y: p1.y + (p2.y - p0.y) / 6 };
+    const c2 = { x: p2.x - (p3.x - p1.x) / 6, y: p2.y - (p3.y - p1.y) / 6 };
+    d +=
+      ` C ${c1.x.toFixed(1)} ${c1.y.toFixed(1)}` +
+      ` ${c2.x.toFixed(1)} ${c2.y.toFixed(1)}` +
+      ` ${p2.x.toFixed(1)} ${p2.y.toFixed(1)}`;
+  }
+  return d;
 }
 
 export function JourneyLine() {
   const sectionRef = React.useRef<HTMLDivElement>(null);
+  const panelRef = React.useRef<HTMLDivElement>(null);
   const pathRef = React.useRef<SVGPathElement>(null);
   const shuttleRef = React.useRef<HTMLDivElement>(null);
   const stopRefs = React.useRef<(HTMLDivElement | null)[]>([]);
 
   const [box, setBox] = React.useState({ w: 0, h: 0 });
+  const [start, setStart] = React.useState<Pt | null>(null);
   const [narrow, setNarrow] = React.useState(false);
   const [calm, setCalm] = React.useState(false);
 
-  // Đo khối thật. Chiều cao tính theo vh nên đổi cỡ cửa sổ là phải đo lại.
+  // Đo khối, và đo luôn vị trí mặt vợt bên trong nó. Cả hai đổi theo cỡ
+  // cửa sổ nên phải theo dõi liên tục chứ không đo một lần.
   React.useEffect(() => {
     const el = sectionRef.current;
     if (!el) return;
-    const ro = new ResizeObserver(([entry]) => {
-      const { width, height } = entry.contentRect;
-      setBox({ w: Math.round(width), h: Math.round(height) });
-    });
+    const measure = () => {
+      const rect = el.getBoundingClientRect();
+      setBox({ w: Math.round(rect.width), h: Math.round(rect.height) });
+
+      const panel = panelRef.current;
+      if (panel && rect.width > 0 && rect.height > 0) {
+        const pr = panel.getBoundingClientRect();
+        setStart({
+          x: ((pr.left - rect.left + pr.width * RACKET.x) / rect.width) * 100,
+          y: ((pr.top - rect.top + pr.height * RACKET.y) / rect.height) * 100,
+        });
+      }
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
     ro.observe(el);
+    if (panelRef.current) ro.observe(panelRef.current);
     return () => ro.disconnect();
   }, []);
 
-  // Quyết định sau khi mount: máy chủ không biết bề ngang màn hình.
   React.useEffect(() => {
     const narrowQ = window.matchMedia("(max-width: 767px)");
     const calmQ = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -154,8 +170,15 @@ export function JourneyLine() {
     };
   }, []);
 
-  const ready = box.w > 0 && box.h > 0;
-  const d = ready ? toPath(narrow ? NARROW : WIDE, box.w, box.h) : "";
+  const anchors = narrow ? ANCHORS_NARROW : ANCHORS_WIDE;
+  const ready = box.w > 0 && box.h > 0 && start !== null;
+  const d = ready
+    ? smoothPath(
+        [start, ...anchors, { x: narrow ? 11 : 50, y: 97 }],
+        box.w,
+        box.h,
+      )
+    : "";
 
   React.useEffect(() => {
     const path = pathRef.current;
@@ -171,18 +194,22 @@ export function JourneyLine() {
       const pt = path.getPointAtLength(length * p);
       const shuttle = shuttleRef.current;
       if (shuttle) {
-        // Khung nhìn tính bằng pixel nên toạ độ trả về dùng thẳng được.
-        shuttle.style.transform = `translate(${pt.x}px, ${pt.y}px) translate(-50%, -50%)`;
-        shuttle.style.opacity = p > 0.01 && p < 0.995 ? "1" : "0";
+        // Cú đánh: quả cầu nảy lên cỡ đầy trong khoảnh khắc rời mặt vợt,
+        // thay vì đứng sẵn nguyên cỡ rồi mới trôi đi.
+        const pop = Math.min(1, p / 0.035);
+        const scale = 0.45 + 0.55 * pop;
+        shuttle.style.transform =
+          `translate(${pt.x}px, ${pt.y}px)` +
+          ` translate(-50%, -50%) scale(${scale.toFixed(3)})`;
+        shuttle.style.opacity = p < 0.995 ? "1" : "0";
       }
 
-      // Thẻ hiện ra khi đường đã vẽ tới ngang nó.
-      STOPS.forEach((stop, i) => {
+      anchors.forEach((a, i) => {
         const el = stopRefs.current[i];
         if (!el) return;
-        const shown = p * 100 >= stop.y - 6;
+        const shown = p * 100 >= a.y - 8;
         el.style.opacity = shown ? "1" : "0";
-        el.style.transform = shown ? "translateY(0)" : "translateY(18px)";
+        el.style.transform = shown ? "translateY(0)" : "translateY(20px)";
       });
     };
 
@@ -214,67 +241,64 @@ export function JourneyLine() {
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onScroll);
     };
-  }, [d, calm]);
+  }, [d, calm, anchors]);
 
   return (
-    <section className="relative overflow-hidden bg-white">
-      {/*
-        Mở đầu: một dải TỐI có chủ đích giữa trang trắng.
-
-        Ảnh này chụp trên nền đen. Phủ trắng lên cho hợp trang thì vừa đục
-        ảnh vừa không còn chỗ nào đặt chữ cho đọc được. Ngược lại, để nguyên
-        nền đen và cho chữ sáng thì nó thành một nhịp nghỉ giữa hai vùng
-        trắng — chuyển từ phần 3D sang phần kể chuyện.
-      */}
-      <div className="relative h-[70svh] min-h-[420px] w-full bg-[#050505]">
-        <Image
-          src={LEAD_PHOTO}
-          alt="Người chơi bật nhảy đập cầu"
-          fill
-          sizes="100vw"
-          priority={false}
-          className="object-cover"
-        />
-        {/* Tối dần xuống chân để chữ nổi, không đụng tới nửa trên của ảnh. */}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/45 to-transparent" />
-
-        <div className="absolute inset-x-0 bottom-0 px-5 pb-14 text-center sm:px-10 sm:pb-16">
-          <div className="mx-auto max-w-2xl">
-            <p className="text-[10px] font-semibold tracking-[0.32em] text-gold-300 uppercase">
-              Một buổi sáng thứ 7
-            </p>
-            <h2 className="font-display mt-4 text-[32px] leading-[1.08] font-bold text-white sm:text-[48px]">
-              Từ lúc chốt kèo
-              <br />
-              tới lúc trả kèo
-            </h2>
-          </div>
-        </div>
-      </div>
-
-      {/* Đường dây */}
+    <section className="relative bg-white px-5 py-20 sm:px-10 sm:py-28">
       <div
         ref={sectionRef}
-        className="relative mx-auto h-[280vh] w-full max-w-5xl px-5 sm:px-10"
+        className="relative mx-auto h-[300vh] w-full max-w-5xl"
       >
+        {/* Người đánh cầu, góc trái trên.
+            Ảnh chụp trên nền đen nên đóng khung thành một tấm tối có chủ ý;
+            phủ trắng lên cho hợp trang thì vừa đục ảnh vừa hết chỗ đặt chữ. */}
+        <div
+          ref={panelRef}
+          className="absolute top-0 left-0 z-[1] w-[58%] overflow-hidden rounded-2xl bg-[#050505] shadow-[0_18px_50px_-20px_rgba(0,26,74,0.45)] sm:w-[46%]"
+        >
+          <div className="relative aspect-[1400/980]">
+            <Image
+              src={LEAD_PHOTO}
+              alt="Người chơi bật nhảy đập cầu"
+              fill
+              sizes="(max-width: 768px) 58vw, 460px"
+              className="object-cover"
+            />
+          </div>
+        </div>
+
+        {/* Tiêu đề, bên phải tấm ảnh */}
+        <div className="absolute top-[2%] right-0 z-[1] w-[38%] sm:top-[4%] sm:w-[46%]">
+          <p className="text-[10px] font-semibold tracking-[0.3em] text-gold-700 uppercase">
+            Một buổi sáng thứ 7
+          </p>
+          <h2 className="font-display mt-3 text-[22px] leading-[1.08] font-bold text-navy-900 sm:text-[40px]">
+            Từ lúc chốt kèo
+            <br />
+            tới lúc trả kèo
+          </h2>
+          <p className="mt-3 hidden text-[14px] leading-relaxed text-ink-400 sm:block">
+            Cuộn xuống để xem quả cầu đi hết một buổi.
+          </p>
+        </div>
+
+        {/* Đường dây — nằm dưới thẻ, nên nó luồn ra sau từng tấm ảnh */}
         {ready && (
           <svg
             viewBox={`0 0 ${box.w} ${box.h}`}
             width={box.w}
             height={box.h}
-            className="pointer-events-none absolute inset-0"
+            className="pointer-events-none absolute inset-0 z-0"
             aria-hidden
           >
-            {/* Đường mờ — cho thấy trước quãng còn lại */}
             <path
               d={d}
               fill="none"
               stroke="#001a4a"
-              strokeOpacity={0.12}
+              strokeOpacity={0.1}
               strokeWidth={2}
               strokeLinecap="round"
             />
-            {/* Đường vàng, vẽ dần theo cuộn */}
             <path
               ref={pathRef}
               d={d}
@@ -286,18 +310,17 @@ export function JourneyLine() {
           </svg>
         )}
 
-        {/* Quả cầu chạy trên đường. Đặt ở gốc toạ độ rồi dời bằng transform,
-            nên chỉ chạm tới compositor chứ không bắt tính lại bố cục. */}
+        {/* Quả cầu — trên cùng, để thấy nó bay qua các tấm ảnh */}
         <div
           ref={shuttleRef}
           aria-hidden
-          className="pointer-events-none absolute top-0 left-0 z-10 opacity-0 transition-opacity duration-300 will-change-transform"
+          className="pointer-events-none absolute top-0 left-0 z-20 opacity-0 will-change-transform"
         >
-          <span className="absolute inset-0 -z-10 m-auto block size-10 rounded-full bg-gold-500/30 blur-md" />
+          <span className="absolute inset-0 -z-10 m-auto block size-12 rounded-full bg-gold-500/25 blur-lg" />
           <ShuttleMark />
         </div>
 
-        {/* Các chặng */}
+        {/* Các chặng, căn theo đúng mốc của đường */}
         {STOPS.map((stop, i) => (
           <div
             key={stop.title}
@@ -305,14 +328,17 @@ export function JourneyLine() {
               stopRefs.current[i] = el;
             }}
             className={[
-              "absolute -translate-y-1/2 opacity-0 transition-all duration-700 ease-out",
-              narrow
-                ? "right-5 left-[22%]"
-                : stop.side === "left"
-                  ? "left-10 w-[38%]"
-                  : "right-10 w-[38%]",
+              "absolute z-[1] -translate-y-1/2 opacity-0 transition-all duration-700 ease-out",
+              narrow ? "right-0 left-[26%]" : "w-[40%]",
             ].join(" ")}
-            style={{ top: `${stop.y}%` }}
+            style={{
+              top: `${anchors[i].y}%`,
+              ...(narrow
+                ? {}
+                : anchors[i].x > 50
+                  ? { right: 0 }
+                  : { left: 0 }),
+            }}
           >
             <div className="overflow-hidden rounded-2xl ring-1 ring-ink-800">
               <div className="relative aspect-[16/10]">
@@ -320,19 +346,18 @@ export function JourneyLine() {
                   src={stop.photo}
                   alt=""
                   fill
-                  sizes="(max-width: 768px) 78vw, 420px"
+                  sizes="(max-width: 768px) 74vw, 400px"
                   className="object-cover"
                 />
-                <div className="absolute inset-0 ring-1 ring-inset ring-black/5" />
               </div>
             </div>
-            <p className="mt-4 text-[10px] font-semibold tracking-[0.28em] text-gold-700 uppercase">
+            <p className="mt-3.5 text-[10px] font-semibold tracking-[0.28em] text-gold-700 uppercase">
               {stop.eyebrow}
             </p>
-            <h3 className="font-display mt-1.5 text-[24px] leading-tight font-bold text-navy-900 sm:text-[28px]">
+            <h3 className="font-display mt-1.5 text-[22px] leading-tight font-bold text-navy-900 sm:text-[26px]">
               {stop.title}
             </h3>
-            <p className="mt-2 text-[14px] leading-relaxed text-ink-400">
+            <p className="mt-2 text-[13.5px] leading-relaxed text-ink-400">
               {stop.body}
             </p>
           </div>
@@ -342,23 +367,23 @@ export function JourneyLine() {
   );
 }
 
-/** Quả cầu lông nhỏ, vẽ tối giản cho cỡ 28px. */
+/** Quả cầu lông nhỏ, vẽ tối giản cho cỡ 30px. */
 function ShuttleMark() {
   return (
-    <svg width="28" height="28" viewBox="-16 -16 32 32" aria-hidden>
+    <svg width="30" height="30" viewBox="-16 -16 32 32" aria-hidden>
       <path
         d="M -3 2 L -9 -11 A 9 3 0 0 0 9 -11 L 3 2 Z"
         fill="#c8951a"
-        fillOpacity={0.3}
-        stroke="#d8a52c"
+        fillOpacity={0.32}
+        stroke="#a87813"
         strokeWidth={1.4}
         strokeLinejoin="round"
       />
-      <g stroke="#d8a52c" strokeWidth={0.9} opacity={0.75}>
+      <g stroke="#a87813" strokeWidth={0.9} opacity={0.8}>
         <line x1={-1.5} y1={2} x2={-4.5} y2={-11} />
         <line x1={1.5} y1={2} x2={4.5} y2={-11} />
       </g>
-      <circle cx={0} cy={5} r={4.5} fill="#c8951a" />
+      <circle cx={0} cy={5} r={4.5} fill="#a87813" />
     </svg>
   );
 }
