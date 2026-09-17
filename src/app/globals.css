@@ -351,3 +351,17 @@ input[type="time"]::-webkit-calendar-picker-indicator:hover {
     transform: scaleX(1);
   }
 }
+
+/* Từng ký tự của dòng tiêu đề trồi lên và rõ dần. */
+@keyframes headline-char {
+  from {
+    opacity: 0;
+    transform: translateY(0.42em) rotate(2deg);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) rotate(0);
+    filter: blur(0);
+  }
+}

@@ -110,7 +110,7 @@ export default async function LandingPage() {
 
       <ShuttleHero
         eyebrow="Light Human"
-        headline="Sport Hub"
+        headline="LH Sport Hub"
         description="Chỗ để anh, chị, em trong công ty chốt kèo cầu lông, rủ nhau ra sân sáng thứ 7, ghi tỉ số và tra cứu luật."
         meta={["Cầu lông & bơi", "Sáng thứ 7", "Nội bộ công ty"]}
         action={

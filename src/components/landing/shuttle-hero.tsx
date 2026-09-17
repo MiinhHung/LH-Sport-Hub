@@ -3,120 +3,11 @@
 import { Environment, Lightformer } from "@react-three/drei";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { motion, useAnimationControls, useReducedMotion } from "motion/react";
+import Image from "next/image";
 import * as React from "react";
 import * as THREE from "three";
 
 import { ShuttleCrystal } from "./shuttle-crystal";
-
-/* ------------------------------------------------------------------ */
-/* Dòng tiêu đề nằm TRONG cảnh 3D                                      */
-/* ------------------------------------------------------------------ */
-
-/**
- * Tiêu đề được vẽ ra canvas rồi dán thành một tấm phẳng phía sau quả cầu,
- * chứ không phải chữ HTML đè lên. Đó là toàn bộ mấu chốt: chỉ khi chữ nằm
- * trong cảnh thì thuỷ tinh mới bẻ cong được nó. Chữ HTML đặt chồng lên chỉ
- * là ảnh dán, quả cầu lướt qua mà không ảnh hưởng gì.
- */
-
-/** `ctx.font` không hiểu biến CSS, phải quy đổi `var(--x)` ra tên phông thật
- *  trước, nếu không phép gán bị từ chối và chữ tụt về 10px mà không báo gì. */
-function resolveFontStack(stack: string): string {
-  if (typeof window === "undefined") return stack;
-  const root = getComputedStyle(document.documentElement);
-  return stack.replace(/var\(\s*(--[\w-]+)\s*\)/g, (_m, name: string) => {
-    return root.getPropertyValue(name).trim() || "serif";
-  });
-}
-
-function drawHeadline(
-  text: string,
-  color: string,
-  fontFamily: string,
-): THREE.CanvasTexture | null {
-  if (typeof document === "undefined") return null;
-
-  const W = 2048;
-  const H = 640;
-  const canvas = document.createElement("canvas");
-  canvas.width = W;
-  canvas.height = H;
-  const ctx = canvas.getContext("2d");
-  if (!ctx) return null;
-
-  const stack = resolveFontStack(fontFamily);
-  // Dò cỡ chữ cho vừa bề ngang thay vì đoán một con số cố định.
-  let size = 460;
-  do {
-    ctx.font = `700 ${size}px ${stack}`;
-    size -= 8;
-  } while (ctx.measureText(text).width > W * 0.92 && size > 40);
-
-  ctx.fillStyle = color;
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.fillText(text, W / 2, H / 2);
-
-  const t = new THREE.CanvasTexture(canvas);
-  t.colorSpace = THREE.SRGBColorSpace;
-  t.anisotropy = 8;
-  t.needsUpdate = true;
-  return t;
-}
-
-function useHeadlineTexture(text: string, color: string, fontFamily: string) {
-  // Dựng ngay trong lần render đầu để mesh gắn sẵn ảnh — gắn ảnh vào vật
-  // liệu đã mount là một cái bẫy quen thuộc của three.js.
-  const [texture, setTexture] = React.useState(() =>
-    drawHeadline(text, color, fontFamily),
-  );
-
-  React.useEffect(() => {
-    let cancelled = false;
-    const rebake = () => {
-      if (!cancelled) setTexture(drawHeadline(text, color, fontFamily));
-    };
-    // Vẽ lại khi webfont tải xong, nếu không phông dự phòng bị nướng vào ảnh.
-    if (document.fonts?.ready) {
-      document.fonts.ready.then(rebake).catch(rebake);
-    } else {
-      rebake();
-    }
-    return () => {
-      cancelled = true;
-    };
-  }, [text, color, fontFamily]);
-
-  React.useEffect(() => () => texture?.dispose(), [texture]);
-
-  return texture;
-}
-
-function Headline({
-  texture,
-  z = -2.2,
-}: {
-  texture: THREE.CanvasTexture | null;
-  z?: number;
-}) {
-  const { viewport } = useThree();
-  const width = Math.min(viewport.width * 0.8, 14);
-  const height = width * (640 / 2048);
-
-  if (!texture) return null;
-
-  return (
-    <mesh position={[0, 0, z]} renderOrder={-1}>
-      <planeGeometry args={[width, height]} />
-      <meshBasicMaterial
-        map={texture}
-        transparent
-        depthWrite={false}
-        toneMapped={false}
-      />
-    </mesh>
-  );
-}
 
 /* ------------------------------------------------------------------ */
 /* Bụi sáng lơ lửng                                                    */
@@ -276,6 +167,57 @@ const GROUP = {
 };
 
 /* ------------------------------------------------------------------ */
+/* Dòng tiêu đề                                                        */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Tiêu đề là CHỮ HTML THẬT, từng ký tự trồi lên lệch nhau một nhịp.
+ *
+ * Bản trước vẽ dòng này lên một tấm canvas rồi dán vào cảnh 3D, vì hồi đó
+ * quả cầu bằng thuỷ tinh nằm đè lên và cần khúc xạ chính dòng chữ. Cái giá
+ * phải trả là chữ bị rasterise ở một cỡ cố định rồi phóng to — nét mềm oặt,
+ * không bôi chọn được, máy đọc màn hình không thấy, và không thể làm hiệu
+ * ứng trên từng ký tự. Đó chính là lý do nhìn chữ thấy xấu.
+ *
+ * Từ khi quả cầu dời lên phía trên và lông không còn trong suốt, chỗ chồng
+ * nhau chẳng còn tác dụng gì. Trả chữ về DOM thì được cả nét sắc lẫn hiệu
+ * ứng, mà không mất thứ gì.
+ */
+function Headline({ text }: { text: string }) {
+  const chars = React.useMemo(() => Array.from(text), [text]);
+
+  return (
+    <h1
+      className="font-display text-center text-[13vw] leading-[0.95] font-bold sm:text-[clamp(54px,8.5vw,128px)]"
+      style={{ color: CREAM }}
+    >
+      {/* Máy đọc màn hình đọc nguyên câu, không đọc rời từng chữ cái. */}
+      <span className="sr-only">{text}</span>
+
+      <span aria-hidden>
+        {chars.map((c, i) =>
+          c === " " ? (
+            // Khoảng trắng phải là một ký tự riêng có bề rộng cố định:
+            // bọc từng chữ trong inline-block sẽ làm sập khoảng trắng thường.
+            <span key={i} className="inline-block w-[0.26em]" />
+          ) : (
+            <span
+              key={i}
+              className="inline-block will-change-transform"
+              style={{
+                animation: `headline-char 820ms ${300 + i * 55}ms both cubic-bezier(0.16,1,0.3,1)`,
+              }}
+            >
+              {c}
+            </span>
+          ),
+        )}
+      </span>
+    </h1>
+  );
+}
+
+/* ------------------------------------------------------------------ */
 /* Thành phần công khai                                                */
 /* ------------------------------------------------------------------ */
 
@@ -306,14 +248,13 @@ const FADE_FROM = 0.55;
 
 export function ShuttleHero({
   eyebrow = "Light Human",
-  headline = "Sport Hub",
+  headline = "LH Sport Hub",
   description,
   action,
   secondaryAction,
   meta = [],
 }: {
   eyebrow?: string;
-  /** Vẽ vào trong cảnh để quả cầu khúc xạ được. */
   headline?: string;
   description: string;
   action?: React.ReactNode;
@@ -322,6 +263,8 @@ export function ShuttleHero({
 }) {
   const sectionRef = React.useRef<HTMLDivElement>(null);
   const stageRef = React.useRef<HTMLDivElement>(null);
+  const innerRef = React.useRef<HTMLDivElement>(null);
+  const edgeRef = React.useRef<HTMLDivElement>(null);
   const railRef = React.useRef<HTMLDivElement>(null);
   const progress = React.useRef(0);
 
@@ -395,13 +338,39 @@ export function ShuttleHero({
        * Ghi thẳng vào style qua ref chứ không qua state: đây là mỗi khung
        * hình cuộn, đặt vào state là render lại cả cây component.
        */
+      /*
+       * Chuyển cảnh: NÉT QUÉT CHẠY LÊN, không phải mờ dần.
+       *
+       * Bản trước hạ opacity cả tấm hero. Vấn đề của cách đó là suốt quãng
+       * chuyển, hai cảnh chồng lên nhau ở trạng thái nửa vời — cảnh tối
+       * ngả xám, chữ trắng ngả xám, nhìn như trang bị lỗi tải chứ không
+       * phải một ý đồ.
+       *
+       * Ở đây cảnh tối bị CẮT dần từ dưới lên bằng clip-path, để lộ nền
+       * trắng của khối bao ngoài. Mọi điểm ảnh còn lại vẫn đậm đủ màu, chỉ
+       * là vùng hiển thị thu lại. Một nét vàng mảnh chạy đúng ở mép cắt
+       * biến nó thành một động tác có chủ ý — như gạt một tấm màn lên.
+       *
+       * Phần bên trong trôi lên chậm hơn mép cắt, tạo lớp sâu.
+       */
       const stage = stageRef.current;
       if (stage) {
         const t = Math.min(1, Math.max(0, (p - FADE_FROM) / (1 - FADE_FROM)));
-        // Làm mềm hai đầu để không thấy điểm bắt đầu và kết thúc của phép mờ.
+        // Làm mềm hai đầu để không thấy điểm bắt đầu và kết thúc.
         const eased = t * t * (3 - 2 * t);
-        stage.style.opacity = `${1 - eased}`;
-        stage.style.transform = `scale(${1 - eased * 0.04})`;
+        const cut = eased * 100;
+
+        stage.style.clipPath = `inset(0 0 ${cut.toFixed(2)}% 0)`;
+
+        const inner = innerRef.current;
+        if (inner) inner.style.transform = `translateY(${-eased * 9}%)`;
+
+        const edge = edgeRef.current;
+        if (edge) {
+          edge.style.bottom = `${cut.toFixed(2)}%`;
+          // Nét chỉ hiện trong lúc đang quét, không thò ra ở hai đầu.
+          edge.style.opacity = `${Math.min(1, Math.sin(Math.PI * eased) * 1.6)}`;
+        }
       }
     };
 
@@ -433,12 +402,6 @@ export function ShuttleHero({
     };
   }, [reducedMotion]);
 
-  const texture = useHeadlineTexture(
-    headline,
-    CREAM,
-    "var(--font-display), 'Playfair Display', Georgia, serif",
-  );
-
   return (
     <div
       ref={sectionRef}
@@ -447,9 +410,14 @@ export function ShuttleHero({
     >
       <div
         ref={stageRef}
-        className="sticky top-0 h-[100svh] w-full origin-bottom overflow-hidden will-change-[opacity,transform]"
+        className="sticky top-0 h-[100svh] w-full overflow-hidden will-change-[clip-path]"
         style={{ background: NAVY }}
       >
+        {/* Lớp trong — trôi lên chậm hơn mép cắt để tạo chiều sâu */}
+        <div
+          ref={innerRef}
+          className="absolute inset-0 will-change-transform"
+        >
         {/* Cảnh 3D */}
         <div
           className="absolute inset-0 transition-opacity duration-[1200ms] ease-out"
@@ -495,7 +463,6 @@ export function ShuttleHero({
             </Environment>
 
             <FocalGroup>
-              <Headline texture={texture} />
               <ShuttleOffset>
                 <ShuttleCrystal
                   progress={progress}
@@ -525,22 +492,28 @@ export function ShuttleHero({
           className="pointer-events-none absolute inset-0 flex flex-col px-5 py-7 sm:px-10 sm:py-10"
         >
           <motion.div variants={ENTER} className="flex items-center gap-3">
-            <span
-              aria-hidden
-              className="h-px w-8"
-              style={{ background: GOLD, opacity: 0.7 }}
+            {/* Logo bản nét sáng, nền trong suốt. File logo.png gốc có nền
+                TRẮNG ĐẶC (0% điểm trong suốt) nên đặt lên navy sẽ thành một
+                ô trắng; bản này tách nền và tô lại một màu kem, vì phần
+                navy trong logo gốc sẽ chìm nghỉm trên nền navy của hero. */}
+            <Image
+              src="/logo-light.png"
+              alt={eyebrow}
+              width={656}
+              height={562}
+              priority
+              className="h-11 w-auto object-contain sm:h-12"
             />
-            <span
-              className="text-[10px] font-semibold tracking-[0.32em] uppercase"
-              style={{ color: GOLD }}
-            >
-              {eyebrow}
-            </span>
           </motion.div>
 
-          {/* Chừa đúng chỗ cho dòng tiêu đề nằm trong cảnh 3D, thay vì
-              đẩy chữ xuống tận đáy. */}
-          <div aria-hidden className="h-[56vh] shrink-0 sm:h-[60vh]" />
+          {/* Chỗ cho quả cầu 3D phía trên dòng tiêu đề. */}
+          <div aria-hidden className="h-[26vh] shrink-0 sm:h-[30vh]" />
+
+          <motion.div variants={ENTER}>
+            <Headline text={headline} />
+          </motion.div>
+
+          <div aria-hidden className="h-[4vh] shrink-0" />
 
           <div className="mx-auto w-full max-w-2xl text-center">
             <motion.p
@@ -592,6 +565,20 @@ export function ShuttleHero({
             </div>
           </motion.div>
         </motion.div>
+        </div>
+
+        {/* Nét vàng chạy ở mép cắt. Nằm NGOÀI lớp trôi thị sai để nó bám
+            đúng mép, chứ không bị kéo lệch theo. */}
+        <div
+          ref={edgeRef}
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 z-10 h-px opacity-0"
+          style={{
+            bottom: "100%",
+            background: `linear-gradient(to right, transparent, ${GOLD}, transparent)`,
+            boxShadow: `0 0 18px 2px ${GOLD}55`,
+          }}
+        />
       </div>
     </div>
   );
