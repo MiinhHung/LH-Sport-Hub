@@ -276,17 +276,33 @@ const GROUP = {
 /* Thành phần công khai                                                */
 /* ------------------------------------------------------------------ */
 
-const PAPER = "#ffffff";
-const INK = "#001a4a"; // chữ tiêu đề, cũng là navy thương hiệu
-const GOLD = "#855c12"; // gold-700 — 5,9:1 trên trắng, đạt AA cho chữ nhỏ
-const GOLD_SOLID = "#c8951a"; // gold-500, dùng cho phần kim loại của quả cầu
-
 /*
- * Thuỷ tinh trong vắt đặt trên nền trắng thì gần như biến mất: nó truyền
- * qua đúng màu nền. Cho kính một chút sắc xanh xám và rút khoảng suy giảm
- * xuống để khối có "thân" — nhìn ra được mép và bề dày.
+ * Riêng hero dùng nền TỐI, trong khi phần còn lại của trang là nền trắng.
+ *
+ * Không phải để cho khác lạ: thuỷ tinh trong suốt truyền qua đúng màu nền,
+ * nên đặt trên trắng thì quả cầu nhợt hẳn và mất chiều sâu. Trên navy thì
+ * từng chiếc lông có mép, có bóng, có tán sắc.
+ *
+ * Chỗ nối hai nền được xử lý bằng một phép hoà tan theo tiến độ cuộn —
+ * xem hàm paint bên dưới.
  */
-const GLASS_TINT = "#dbe4f2";
+const NAVY = "#00112e";
+const PAPER = "#ffffff"; // nền của phần trang phía dưới, dùng khi hoà tan
+const CREAM = "#f2ede3";
+const GOLD = "#dcae42"; // gold-400 — trên nền tối thì đây mới là sắc vàng đúng
+const GOLD_SOLID = "#dcae42";
+
+/**
+ * Tiến độ cuộn bắt đầu hoà tan hero sang nền trắng phía dưới.
+ *
+ * Nhớ rằng quãng cuộn thật chỉ bằng chiều cao khối TRỪ ĐI một màn hình,
+ * vì tấm hero dính cứng ở đỉnh. Khối 200vh thì chỉ có 100vh để cuộn, và
+ * phép hoà tan ăn 45% cuối của quãng đó.
+ */
+const FADE_FROM = 0.55;
+
+/* Sắc kính: chỉ hơi ngả xanh, đủ để mép lông bắt sáng trên nền navy. */
+const GLASS_TINT = "#eef4ff";
 
 export function ShuttleHero({
   eyebrow = "Light Human",
@@ -367,6 +383,26 @@ export function ShuttleHero({
     const paint = (p: number) => {
       progress.current = p;
       if (railRef.current) railRef.current.style.transform = `scaleX(${p})`;
+
+      /*
+       * Hoà tan sang phần trang phía dưới.
+       *
+       * Hero nền tối còn phần dưới nền trắng, nên nếu để tấm hero trượt đi
+       * như bình thường thì mắt hứng nguyên một nhát cắt đen–trắng. Thay vì
+       * vậy, ở một phần ba cuối quãng cuộn tấm hero mờ dần đi để lộ nền
+       * trắng của khối bao ngoài, và lùi lại một chút cho có chiều sâu.
+       *
+       * Ghi thẳng vào style qua ref chứ không qua state: đây là mỗi khung
+       * hình cuộn, đặt vào state là render lại cả cây component.
+       */
+      const stage = stageRef.current;
+      if (stage) {
+        const t = Math.min(1, Math.max(0, (p - FADE_FROM) / (1 - FADE_FROM)));
+        // Làm mềm hai đầu để không thấy điểm bắt đầu và kết thúc của phép mờ.
+        const eased = t * t * (3 - 2 * t);
+        stage.style.opacity = `${1 - eased}`;
+        stage.style.transform = `scale(${1 - eased * 0.04})`;
+      }
     };
 
     if (reducedMotion) {
@@ -399,19 +435,20 @@ export function ShuttleHero({
 
   const texture = useHeadlineTexture(
     headline,
-    INK,
+    CREAM,
     "var(--font-display), 'Playfair Display', Georgia, serif",
   );
 
   return (
     <div
       ref={sectionRef}
-      className="relative h-[170vh] w-full"
+      className="relative h-[200vh] w-full"
       style={{ background: PAPER }}
     >
       <div
         ref={stageRef}
-        className="sticky top-0 h-[100svh] w-full overflow-hidden"
+        className="sticky top-0 h-[100svh] w-full origin-bottom overflow-hidden will-change-[opacity,transform]"
+        style={{ background: NAVY }}
       >
         {/* Cảnh 3D */}
         <div
@@ -427,7 +464,7 @@ export function ShuttleHero({
               powerPreference: "high-performance",
             }}
             camera={{ fov: 40, near: 0.1, far: 60, position: [0, 0, 7] }}
-            onCreated={({ gl }) => gl.setClearColor(new THREE.Color(PAPER), 1)}
+            onCreated={({ gl }) => gl.setClearColor(new THREE.Color(NAVY), 1)}
           >
             {/* Dàn đèn dựng bằng lightformer nên không phải tải file HDRI. */}
             <Environment resolution={256}>
@@ -479,7 +516,7 @@ export function ShuttleHero({
           aria-hidden
           className="pointer-events-none absolute inset-0"
           style={{
-            background: `radial-gradient(120% 90% at 50% 45%, transparent 45%, ${PAPER} 100%)`,
+            background: `radial-gradient(120% 90% at 50% 45%, transparent 45%, ${NAVY} 100%)`,
           }}
         />
 
@@ -512,7 +549,7 @@ export function ShuttleHero({
             <motion.p
               variants={ENTER}
               className="mx-auto max-w-md text-[13.5px] leading-relaxed sm:text-[15px]"
-              style={{ color: "#4c5a72" }}
+              style={{ color: CREAM, opacity: 0.7 }}
             >
               {description}
             </motion.p>
@@ -539,7 +576,7 @@ export function ShuttleHero({
                 <span
                   key={m}
                   className="text-[10px] font-semibold tracking-[0.22em] uppercase"
-                  style={{ color: "#69768d" }}
+                  style={{ color: CREAM, opacity: 0.55 }}
                 >
                   {m}
                 </span>
@@ -548,7 +585,7 @@ export function ShuttleHero({
 
             <div
               className="h-px w-24 overflow-hidden"
-              style={{ background: "#e4e9f2" }}
+              style={{ background: `${CREAM}26` }}
             >
               <div
                 ref={railRef}
