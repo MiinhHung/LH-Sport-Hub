@@ -39,35 +39,31 @@ const LEAD_PHOTO = "/images/landing/danh-cau.webp";
 const RACKET = { x: 0.401, y: 0.156 };
 
 type Stop = {
+  /** Số thứ tự, hiện dạng chữ nhỏ phía trên tiêu đề. */
   eyebrow: string;
   title: string;
-  body: string;
   photo: string;
 };
 
 const STOPS: Stop[] = [
   {
-    eyebrow: "Tối thứ 6",
-    title: "Chốt kèo",
-    body: "Ai thách ai, mấy điểm, thua thì bao gì. Ghi ra hết cho khỏi cãi sáng hôm sau.",
+    eyebrow: "01",
+    title: "Chia sẻ niềm đam mê thể thao",
     photo: "/images/feed-1.jpg",
   },
   {
-    eyebrow: "7 giờ sáng",
-    title: "Sân mở",
-    body: "Trời còn mát, sân còn vắng. Khởi động mười lăm phút rồi mới vào ván đầu.",
+    eyebrow: "02",
+    title: "Thư giãn sau những ngày làm việc căng thẳng",
     photo: "/images/feed-2.jpg",
   },
   {
-    eyebrow: "Hai tiếng sau",
-    title: "Đánh",
-    body: "Cầu bay, người hò, thỉnh thoảng có quả chạm vạch rồi cãi nhau một lúc.",
+    eyebrow: "03",
+    title: "Tạo thêm năng lượng tích cực cho tuần mới",
     photo: "/images/feed-4.jpg",
   },
   {
-    eyebrow: "Chín giờ",
-    title: "Trả kèo",
-    body: "Đội thua bao đội thắng. Xong vẫn còn nguyên ngày thứ 7 phía trước.",
+    eyebrow: "04",
+    title: "Kết nối và gắn bó hơn",
     photo: "/images/feed-3.jpg",
   },
 ];
@@ -272,15 +268,13 @@ export function JourneyLine() {
         {/* Tiêu đề, bên phải tấm ảnh */}
         <div className="absolute top-[2%] right-0 z-20 w-[38%] sm:top-[4%] sm:w-[44%]">
           <p className="text-[10px] font-semibold tracking-[0.3em] text-gold-700 uppercase">
-            Một buổi sáng thứ 7
+            LH Sport Hub
           </p>
-          <h2 className="font-display mt-3 text-[22px] leading-[1.08] font-bold text-navy-900 sm:text-[40px]">
-            Từ lúc chốt kèo
-            <br />
-            tới lúc trả kèo
+          <h2 className="font-display mt-3 text-[22px] leading-[1.1] font-bold text-navy-900 sm:text-[38px]">
+            🏸 Nơi chia sẻ và kết nối
           </h2>
-          <p className="mt-3 hidden text-[14px] leading-relaxed text-ink-400 sm:block">
-            Cuộn xuống để xem quả cầu đi hết một buổi.
+          <p className="mt-4 text-[14.5px] leading-relaxed text-ink-400">
+            Tại LH Sport Hub, nhân viên Light Human có thể:
           </p>
         </div>
 
@@ -359,9 +353,6 @@ export function JourneyLine() {
             <h3 className="font-display mt-1.5 text-[22px] leading-tight font-bold text-navy-900 sm:text-[26px]">
               {stop.title}
             </h3>
-            <p className="mt-2 text-[13.5px] leading-relaxed text-ink-400">
-              {stop.body}
-            </p>
           </div>
         ))}
       </div>

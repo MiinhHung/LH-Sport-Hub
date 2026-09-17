@@ -6,6 +6,7 @@ import {
   Trophy,
 } from "lucide-react";
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 
 import { Reveal } from "@/components/landing/reveal";
@@ -128,8 +129,8 @@ export default async function LandingPage() {
         style={{ background: PAPER }}
       >
         <div className="mx-auto max-w-5xl">
-          <div className="grid gap-x-16 gap-y-10 lg:grid-cols-[minmax(0,1fr)_320px]">
-            <div>
+          <div className="grid items-center gap-x-14 gap-y-10 lg:grid-cols-2">
+            <Reveal>
               <div className="flex items-center gap-3">
                 <span
                   aria-hidden
@@ -145,68 +146,37 @@ export default async function LandingPage() {
               </div>
 
               <h2
-                className="font-display mt-5 text-[30px] leading-[1.12] font-bold sm:text-[44px]"
+                className="font-display mt-5 text-[30px] leading-[1.14] font-bold sm:text-[40px]"
                 style={{ color: INK }}
               >
-                Sân chơi của người
-                <br />
-                Light Human
+                🌿 Không gian thư giãn của Light Human
               </h2>
 
-              <div
-                className="mt-7 space-y-5 text-[15.5px] leading-[1.75]"
+              <p
+                className="mt-7 text-[16px] leading-[1.8]"
                 style={{ color: MUTED }}
               >
-                <p>
-                  Sport Hub không phải sản phẩm bán cho ai. Nó là chỗ nội bộ
-                  của team thể thao công ty Light Human — dựng lên vì mấy cái
-                  group chat không giải quyết nổi việc tuần nào cũng phải hỏi
-                  lại: thứ 7 này ai đi, sân nào, ai còn nợ ai chầu gì.
-                </p>
-                <p>
-                  Team khoảng mười chín người, sáng thứ 7 ra sân, hôm nào
-                  không cầu lông thì đi bơi. Đông nhất được mười lăm, có hôm
-                  chỉ bảy người — vẫn đánh. Cái hay không nằm ở chỗ ai giỏi
-                  hơn ai, mà ở chỗ tuần sau mọi người vẫn muốn dậy sớm.
-                </p>
-                <p style={{ color: INK }}>
-                  Nên app này chỉ làm đúng một việc: giữ cho những cái kèo,
-                  những buổi tập và những tấm ảnh nằm yên một chỗ, để không ai
-                  phải nhớ hộ ai.
-                </p>
-              </div>
-            </div>
+                LH Sport Hub không chỉ đơn thuần là một ứng dụng, mà là một
+                điểm hẹn tinh thần cho tập thể Light Human. Đây là nơi lưu giữ
+                những kèo hẹn thể thao, những buổi tập cuối tuần và cả những
+                tấm ảnh đầy tiếng cười, để mọi khoảnh khắc đều được sắp xếp
+                gọn gàng và dễ dàng tìm lại.
+              </p>
+            </Reveal>
 
-            {/* Vài con số — cột hẹp bên phải, ngăn bằng nét kẻ mảnh */}
-            <dl className="grid grid-cols-2 gap-px self-start lg:grid-cols-1"
-              style={{ background: LINE }}
-            >
-              {[
-                { k: "19", v: "thành viên" },
-                { k: "Sáng T7", v: "lịch cố định" },
-                { k: "2 môn", v: "cầu lông & bơi" },
-                { k: "13 bài", v: "trong cẩm nang" },
-              ].map((s) => (
-                <div
-                  key={s.k}
-                  className="px-5 py-5"
-                  style={{ background: PAPER }}
-                >
-                  <dt
-                    className="font-display tabular text-[26px] leading-none font-bold"
-                    style={{ color: INK }}
-                  >
-                    {s.k}
-                  </dt>
-                  <dd
-                    className="mt-1.5 text-[12px] font-semibold tracking-[0.1em] uppercase"
-                    style={{ color: MUTED }}
-                  >
-                    {s.v}
-                  </dd>
+            <Reveal delay={120}>
+              <div className="overflow-hidden rounded-3xl ring-1 ring-ink-800">
+                <div className="relative aspect-[1024/666]">
+                  <Image
+                    src="/images/landing/khong-gian-thu-gian.webp"
+                    alt="Không gian thư giãn của team Light Human"
+                    fill
+                    sizes="(max-width: 1024px) 100vw, 480px"
+                    className="object-cover"
+                  />
                 </div>
-              ))}
-            </dl>
+              </div>
+            </Reveal>
           </div>
         </div>
       </section>
