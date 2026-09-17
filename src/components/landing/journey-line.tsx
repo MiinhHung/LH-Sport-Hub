@@ -3,6 +3,8 @@
 import Image from "next/image";
 import * as React from "react";
 
+import { CutReveal } from "./cut-reveal";
+
 /**
  * Dải "một buổi sáng thứ 7": người đánh cầu ở góc trái, quả cầu bật ra từ
  * mặt vợt rồi bay dọc một đường tự vẽ theo tiến độ cuộn, đi qua từng chặng.
@@ -270,9 +272,11 @@ export function JourneyLine() {
           <p className="text-[10px] font-semibold tracking-[0.3em] text-gold-700 uppercase">
             LH Sport Hub
           </p>
-          <h2 className="font-display mt-3 text-[22px] leading-[1.1] font-bold text-navy-900 sm:text-[38px]">
-            🏸 Nơi chia sẻ và kết nối
-          </h2>
+          <CutReveal
+            as="h2"
+            text="🏸 Nơi chia sẻ và kết nối"
+            className="font-display mt-3 block text-[22px] leading-[1.14] font-bold text-navy-900 sm:text-[38px]"
+          />
           <p className="mt-4 text-[14.5px] leading-relaxed text-ink-400">
             Tại LH Sport Hub, nhân viên Light Human có thể:
           </p>

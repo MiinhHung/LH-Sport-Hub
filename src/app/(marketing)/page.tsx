@@ -10,6 +10,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { IntroCurtain } from "@/components/landing/intro-curtain";
+import { CutReveal } from "@/components/landing/cut-reveal";
 import { Reveal } from "@/components/landing/reveal";
 import { JourneyLine } from "@/components/landing/journey-line";
 import { ShuttleHero } from "@/components/landing/shuttle-hero";
@@ -157,12 +158,11 @@ export default async function LandingPage() {
                 </span>
               </div>
 
-              <h2
-                className="font-display mt-5 text-[30px] leading-[1.14] font-bold sm:text-[40px]"
-                style={{ color: INK }}
-              >
-                🌿 Không gian thư giãn của Light Human
-              </h2>
+              <CutReveal
+                as="h2"
+                text="🌿 Không gian thư giãn của Light Human"
+                className="font-display mt-5 block text-[30px] leading-[1.14] font-bold sm:text-[40px]"
+              />
 
               <p
                 className="mt-7 text-[16px] leading-[1.8]"
@@ -216,12 +216,11 @@ export default async function LandingPage() {
             </span>
           </div>
 
-          <h2
-            className="font-display mt-5 max-w-2xl text-[32px] leading-[1.1] font-bold sm:text-[46px]"
-            style={{ color: INK }}
-          >
-            Một chỗ cho tất cả, thay cho năm cái group chat
-          </h2>
+          <CutReveal
+            as="h2"
+            text="Một chỗ cho tất cả, thay cho năm cái group chat"
+            className="font-display mt-5 block max-w-2xl text-[32px] leading-[1.1] font-bold sm:text-[46px]"
+          />
 
           <div className="mt-14 grid gap-px overflow-hidden rounded-3xl sm:grid-cols-2 lg:grid-cols-3"
             style={{ background: LINE }}
@@ -325,14 +324,13 @@ export default async function LandingPage() {
         className="border-t px-5 py-24 text-center sm:px-10 sm:py-32"
         style={{ background: PAPER, borderColor: LINE }}
       >
-        <h2
-          className="font-display mx-auto max-w-2xl text-[32px] leading-[1.1] font-bold sm:text-[46px]"
-          style={{ color: INK }}
-        >
-          Sáng thứ 7, sân đã đặt.
-          <br />
-          Còn thiếu mỗi bạn.
-        </h2>
+        {/* Câu này có "đặt" — dấu nặng thò xuống dưới con chữ. Đúng chỗ để
+            thấy khe che của CutReveal có xén mất dấu hay không. */}
+        <CutReveal
+          as="h2"
+          text="Sáng thứ 7, sân đã đặt. Còn thiếu mỗi bạn."
+          className="font-display mx-auto block max-w-2xl text-[32px] leading-[1.14] font-bold sm:text-[46px]"
+        />
         <div className="mt-9">
           <Link
             href={signedIn ? "/bang-tin" : "/dang-nhap"}

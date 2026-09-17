@@ -185,6 +185,68 @@ const GROUP = {
  */
 function Headline({ text }: { text: string }) {
   const chars = React.useMemo(() => Array.from(text), [text]);
+  const wrapRef = React.useRef<HTMLSpanElement>(null);
+
+  /*
+   * Chữ nào gần con trỏ thì nhấc lên và sáng hơn.
+   *
+   * Cả vòng lặp ghi thẳng vào style qua DOM, không đụng state: mười một ký
+   * tự nhân với mỗi lần chuột nhúc nhích mà đi qua React thì render liên
+   * miên. Cũng không dùng transition — vị trí được cập nhật mỗi khung hình
+   * nên transition chỉ làm nó lết theo sau con trỏ.
+   *
+   * Chỉ chạy khi có chuột thật và người dùng không bật "giảm chuyển động".
+   */
+  React.useEffect(() => {
+    const wrap = wrapRef.current;
+    if (!wrap) return;
+    if (!window.matchMedia("(pointer: fine)").matches) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    const letters = Array.from(
+      wrap.querySelectorAll<HTMLElement>("[data-char]"),
+    );
+    const mouse = { x: -9999, y: -9999 };
+    let raf = 0;
+
+    /** Bán kính ảnh hưởng quanh con trỏ, pixel. */
+    const REACH = 190;
+
+    const frame = () => {
+      raf = 0;
+      for (const el of letters) {
+        const r = el.getBoundingClientRect();
+        const dx = mouse.x - (r.left + r.width / 2);
+        const dy = mouse.y - (r.top + r.height / 2);
+        const d = Math.hypot(dx, dy);
+        const k = Math.max(0, 1 - d / REACH);
+        // Bình phương cho đường cong dốc hơn ở gần, thoải ở xa.
+        const e = k * k;
+        el.style.transform = `translateY(${(-14 * e).toFixed(2)}px) scale(${(1 + 0.08 * e).toFixed(4)})`;
+        el.style.color = e > 0.02 ? GOLD : "";
+        el.style.opacity = `${1 - 0.0 * e}`;
+      }
+    };
+
+    const onMove = (ev: PointerEvent) => {
+      mouse.x = ev.clientX;
+      mouse.y = ev.clientY;
+      if (!raf) raf = requestAnimationFrame(frame);
+    };
+    const onLeave = () => {
+      mouse.x = -9999;
+      mouse.y = -9999;
+      if (!raf) raf = requestAnimationFrame(frame);
+    };
+
+    window.addEventListener("pointermove", onMove, { passive: true });
+    window.addEventListener("pointerleave", onLeave);
+    return () => {
+      if (raf) cancelAnimationFrame(raf);
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerleave", onLeave);
+    };
+  }, []);
 
   return (
     <h1
@@ -194,7 +256,16 @@ function Headline({ text }: { text: string }) {
       {/* Máy đọc màn hình đọc nguyên câu, không đọc rời từng chữ cái. */}
       <span className="sr-only">{text}</span>
 
-      <span aria-hidden>
+      {/*
+        Hai lớp lồng nhau, và đây là chỗ bắt buộc:
+
+        Lớp ngoài chạy hiệu ứng trồi lên lúc vào trang, lớp trong nhận phép
+        biến đổi theo con trỏ. Nếu gộp làm một thì chúng giành nhau cùng
+        thuộc tính `transform` — animation của CSS đè lên inline style kể cả
+        sau khi chạy xong (vì `both` giữ lại khung cuối), nên hiệu ứng con
+        trỏ sẽ không bao giờ ăn.
+      */}
+      <span aria-hidden ref={wrapRef}>
         {chars.map((c, i) =>
           c === " " ? (
             // Khoảng trắng phải là một ký tự riêng có bề rộng cố định:
@@ -203,12 +274,18 @@ function Headline({ text }: { text: string }) {
           ) : (
             <span
               key={i}
-              className="inline-block will-change-transform"
+              className="inline-block"
               style={{
                 animation: `headline-char 820ms ${300 + i * 55}ms both cubic-bezier(0.16,1,0.3,1)`,
               }}
             >
-              {c}
+              <span
+                data-char
+                className="inline-block will-change-transform"
+                style={{ transition: "color 260ms ease-out" }}
+              >
+                {c}
+              </span>
             </span>
           ),
         )}
