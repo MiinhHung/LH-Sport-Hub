@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { IntroCurtain } from "@/components/landing/intro-curtain";
+import { Eyebrow, Quote, WordFade } from "@/components/landing/text-bits";
 import { CutReveal } from "@/components/landing/cut-reveal";
 import { LineToVideo } from "@/components/landing/line-to-video";
 import { ShowcaseVideo } from "@/components/landing/showcase-video";
@@ -131,38 +132,23 @@ export default async function LandingPage() {
       >
         <div className="mx-auto max-w-5xl">
           <div className="grid items-center gap-x-14 gap-y-10 lg:grid-cols-2">
-            <Reveal>
-              <div className="flex items-center gap-3">
-                <span
-                  aria-hidden
-                  className="h-px w-8"
-                  style={{ background: GOLD, opacity: 0.7 }}
-                />
-                <span
-                  className="text-[10px] font-semibold tracking-[0.32em] uppercase"
-                  style={{ color: GOLD }}
-                >
-                  Light Human
-                </span>
-              </div>
+            <div>
+              <Eyebrow color={GOLD}>Light Human</Eyebrow>
 
               <CutReveal
                 as="h2"
                 text="🌿 Không gian thư giãn của Light Human"
                 className="font-display mt-5 block text-[30px] leading-[1.14] font-bold sm:text-[40px]"
+                delay={120}
               />
 
-              <p
+              <WordFade
+                text="LH Sport Hub không chỉ đơn thuần là một ứng dụng, mà là một điểm hẹn tinh thần cho tập thể Light Human. Đây là nơi lưu giữ những kèo hẹn thể thao, những buổi tập cuối tuần và cả những tấm ảnh đầy tiếng cười, để mọi khoảnh khắc đều được sắp xếp gọn gàng và dễ dàng tìm lại."
                 className="mt-7 text-[16px] leading-[1.8]"
                 style={{ color: MUTED }}
-              >
-                LH Sport Hub không chỉ đơn thuần là một ứng dụng, mà là một
-                điểm hẹn tinh thần cho tập thể Light Human. Đây là nơi lưu giữ
-                những kèo hẹn thể thao, những buổi tập cuối tuần và cả những
-                tấm ảnh đầy tiếng cười, để mọi khoảnh khắc đều được sắp xếp
-                gọn gàng và dễ dàng tìm lại.
-              </p>
-            </Reveal>
+                delay={420}
+              />
+            </div>
 
             <Reveal delay={120}>
               <div className="overflow-hidden rounded-3xl ring-1 ring-ink-800">
@@ -219,24 +205,13 @@ export default async function LandingPage() {
         style={{ background: PAPER }}
       >
         <div className="mx-auto max-w-5xl">
-          <div className="flex items-center gap-3">
-            <span
-              aria-hidden
-              className="h-px w-8"
-              style={{ background: GOLD, opacity: 0.7 }}
-            />
-            <span
-              className="text-[10px] font-semibold tracking-[0.32em] uppercase"
-              style={{ color: GOLD }}
-            >
-              Trong này có gì
-            </span>
-          </div>
+          <Eyebrow color={GOLD}>Trong này có gì</Eyebrow>
 
           <CutReveal
             as="h2"
             text="Một chỗ cho tất cả, thay cho năm cái group chat"
             className="font-display mt-5 block max-w-2xl text-[32px] leading-[1.1] font-bold sm:text-[46px]"
+            delay={120}
           />
 
           {/*
@@ -296,24 +271,34 @@ export default async function LandingPage() {
 
           {/* Câu cửa miệng của team — cho hẳn một dòng riêng thay vì nhét
               vào ô trống thừa của lưới như trước. */}
-          <Reveal delay={220}>
-            <blockquote className="mt-16 text-center">
-              <p
-                className="font-display mx-auto max-w-xl text-[26px] leading-tight font-bold italic sm:text-[34px]"
+          {/* Dấu nháy để riêng, không nhét vào chuỗi của CutReveal: nhét
+              vào thì nó dính liền với từ đầu và từ cuối, mất màu vàng và
+              trồi lên cùng một nhịp với chữ. Tách ra thì chúng vào trước,
+              như hai cái ngoặc mở sẵn chờ câu nói. */}
+          <blockquote className="mt-16 text-center">
+            <p className="font-display mx-auto max-w-xl text-[26px] leading-tight font-bold italic sm:text-[34px]">
+              <Quote color={GOLD} delay={180}>
+                “
+              </Quote>
+              <CutReveal
+                text="Thua thì bao, đừng quỵt."
+                className="inline"
                 style={{ color: INK }}
-              >
-                <span style={{ color: GOLD }}>“</span>
-                Thua thì bao, đừng quỵt.
-                <span style={{ color: GOLD }}>”</span>
-              </p>
-              <footer
-                className="mt-4 text-[10px] font-semibold tracking-[0.28em] uppercase"
-                style={{ color: GOLD }}
-              >
-                Luật nhà
-              </footer>
-            </blockquote>
-          </Reveal>
+                delay={380}
+                step={80}
+              />
+              <Quote color={GOLD} delay={980}>
+                ”
+              </Quote>
+            </p>
+            <Eyebrow
+              color={GOLD}
+              className="mt-5 justify-center"
+              ruleWidth="1.5rem"
+            >
+              Luật nhà
+            </Eyebrow>
+          </blockquote>
         </div>
       </section>
 
@@ -328,6 +313,7 @@ export default async function LandingPage() {
           as="h2"
           text="Sáng thứ 7, sân đã đặt. Còn thiếu mỗi bạn."
           className="font-display mx-auto block max-w-2xl text-[32px] leading-[1.14] font-bold sm:text-[46px]"
+          step={75}
         />
         <div className="mt-9">
           <Link

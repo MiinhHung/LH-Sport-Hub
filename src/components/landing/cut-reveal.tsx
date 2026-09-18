@@ -30,12 +30,14 @@ const PAD_BOTTOM = "0.2em";
 export function CutReveal({
   text,
   className,
+  style,
   delay = 0,
   step = 65,
   as: Tag = "span",
 }: {
   text: string;
   className?: string;
+  style?: React.CSSProperties;
   /** Trễ chung, mili giây. */
   delay?: number;
   /** Khoảng lệch giữa hai từ liền nhau, mili giây. */
@@ -87,7 +89,7 @@ export function CutReveal({
   const words = React.useMemo(() => text.split(" "), [text]);
 
   return (
-    <Tag ref={ref as never} className={className}>
+    <Tag ref={ref as never} className={className} style={style}>
       {/*
         Máy đọc màn hình đọc nguyên câu, không đọc rời từng từ.
 
