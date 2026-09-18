@@ -86,13 +86,6 @@ export default async function AppLayout({
         {children}
       </main>
 
-      <footer className="hidden border-t border-ink-800 py-6 md:block">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 text-xs text-ink-500">
-          <p>Light Human Sport Hub — nội bộ công ty.</p>
-          <p>Thua thì bao, đừng quỵt.</p>
-        </div>
-      </footer>
-
       <BottomNav unread={unread} />
     </div>
   );
