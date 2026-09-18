@@ -127,7 +127,7 @@ export default async function ChallengesPage({
       <PageIntro
         eyebrow="Thách đấu"
         title="Kèo"
-        lead="Thách nhau một trận. Thua thì bao — cả đội thua bao cả đội thắng."
+        lead="Nơi mọi người thách đấu và giao kèo với nhau hehehe"
         action={
           <LinkButton href="/keo/tao" variant="accent" size="md">
             <Plus className="size-4" strokeWidth={2.5} />

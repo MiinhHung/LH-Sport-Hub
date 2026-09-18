@@ -259,7 +259,6 @@ export default async function HomePage() {
       <PageIntro
         eyebrow="Cộng đồng"
         title="Bảng tin"
-        lead="Chỗ chém gió, khoe ảnh và rủ nhau ra sân."
         action={
           <div className="hidden gap-2 sm:flex">
             <LinkButton href="/keo/tao" variant="accent" size="md">

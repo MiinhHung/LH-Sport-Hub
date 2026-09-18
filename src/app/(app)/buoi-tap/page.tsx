@@ -26,7 +26,7 @@ export default async function SessionsPage() {
       <PageIntro
         eyebrow="Lịch"
         title="Buổi tập"
-        lead="Lịch ra sân sắp tới. Bấm vào để báo đi hay không đi."
+        lead="Lịch ra sân sắp tới."
         action={
           <LinkButton href="/buoi-tap/tao" variant="accent" size="md">
             <Plus className="size-4" strokeWidth={2.5} />
