@@ -7,6 +7,7 @@ import Image from "next/image";
 import * as React from "react";
 import * as THREE from "three";
 
+import { ScrollCue } from "./scroll-cue";
 import { ShuttleCrystal } from "./shuttle-crystal";
 
 /* ------------------------------------------------------------------ */
@@ -94,7 +95,7 @@ function ShuttleOffset({ children }: { children: React.ReactNode }) {
   const { viewport } = useThree();
   const portrait = viewport.width < viewport.height;
   return (
-    <group position={[portrait ? 0.1 : 0.3, portrait ? 0.95 : 1.12, 0]}>
+    <group position={[portrait ? 0.1 : 0.3, portrait ? 0.78 : 0.92, 0]}>
       {children}
     </group>
   );
@@ -104,7 +105,7 @@ function FocalGroup({ children }: { children: React.ReactNode }) {
   const { viewport } = useThree();
   const portrait = viewport.width < viewport.height;
   return (
-    <group position={[0, portrait ? 0.2 : 0.15, portrait ? -0.7 : 0]}>
+    <group position={[0, portrait ? 0.05 : 0.0, portrait ? -0.7 : 0]}>
       {children}
     </group>
   );
@@ -341,6 +342,7 @@ export function ShuttleHero({
   const sectionRef = React.useRef<HTMLDivElement>(null);
   const stageRef = React.useRef<HTMLDivElement>(null);
   const innerRef = React.useRef<HTMLDivElement>(null);
+  const copyRef = React.useRef<HTMLDivElement>(null);
   const edgeRef = React.useRef<HTMLDivElement>(null);
   const railRef = React.useRef<HTMLDivElement>(null);
   const progress = React.useRef(0);
@@ -430,6 +432,24 @@ export function ShuttleHero({
        *
        * Phần bên trong trôi lên chậm hơn mép cắt, tạo lớp sâu.
        */
+      /*
+       * Chữ lùi lại khi quả cầu rơi xuống.
+       *
+       * Quả cầu rơi thì nó đi ngang qua đúng chỗ dòng tiêu đề, mà khối chữ
+       * nằm trên cảnh 3D nên mặt đế bần bị các con chữ cắt vụn — trông như
+       * lỗi vẽ chứ không ra chiều sâu. Cho khối chữ mờ dần đúng lúc quả cầu
+       * bắt đầu rơi thì nó nhường sân khấu lại, và đến lúc vệt quét chạy
+       * cũng không còn dòng tiêu đề nào tranh chỗ với phần bên dưới.
+       */
+      const copy = copyRef.current;
+      if (copy) {
+        const m = Math.min(1, Math.max(0, (p - 0.18) / 0.3));
+        copy.style.opacity = `${1 - m * 0.88}`;
+        // Mờ gần hết rồi thì đừng để hai cái nút còn bấm được — không ai
+        // cố ý bấm vào thứ mình gần như không thấy.
+        copy.style.pointerEvents = m > 0.75 ? "none" : "";
+      }
+
       const stage = stageRef.current;
       if (stage) {
         const t = Math.min(1, Math.max(0, (p - FADE_FROM) / (1 - FADE_FROM)));
@@ -551,6 +571,25 @@ export function ShuttleHero({
           </Canvas>
         </div>
 
+        {/*
+          Quầng sáng dưới quả cầu.
+
+          Nó nằm ĐÈ LÊN canvas chứ không phải phía sau, vì canvas được dựng
+          với `alpha: false` và tự xoá nền bằng màu navy — đặt gì phía sau
+          cũng bị che kín. `mix-blend-mode: screen` khiến vàng nhạt cộng vào
+          nền tối thành ánh sáng, chứ không phải một lớp màng phủ lên.
+
+          Không có nó thì quả cầu lơ lửng trên một mặt navy phẳng lì, không
+          có gì neo nó vào không gian.
+        */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 mix-blend-screen"
+          style={{
+            background: `radial-gradient(38% 30% at 52% 34%, ${GOLD}2e, transparent 70%)`,
+          }}
+        />
+
         {/* Tối dần ra rìa */}
         <div
           aria-hidden
@@ -565,8 +604,13 @@ export function ShuttleHero({
           variants={GROUP}
           initial="hidden"
           animate={controls}
-          className="pointer-events-none absolute inset-0 flex flex-col px-5 py-7 sm:px-10 sm:py-10"
+          className="pointer-events-none absolute inset-0 px-5 py-7 sm:px-10 sm:py-10"
         >
+        {/* Lớp trong để nhường chỗ cho quả cầu đang rơi.
+            Hai lớp chứ không một: motion ghi thẳng vào style của thẻ ngoài
+            khi chạy hiệu ứng vào trang, nên độ mờ theo cuộn phải nằm ở một
+            thẻ khác thì hai thứ mới không giành nhau cùng một thuộc tính. */}
+        <div ref={copyRef} className="flex h-full flex-col">
           <motion.div variants={ENTER} className="flex items-center gap-3">
             {/* Logo bản nét sáng, nền trong suốt. File logo.png gốc có nền
                 TRẮNG ĐẶC (0% điểm trong suốt) nên đặt lên navy sẽ thành một
@@ -583,7 +627,7 @@ export function ShuttleHero({
           </motion.div>
 
           {/* Chỗ cho quả cầu 3D phía trên dòng tiêu đề. */}
-          <div aria-hidden className="h-[26vh] shrink-0 sm:h-[30vh]" />
+          <div aria-hidden className="h-[30vh] shrink-0 sm:h-[33vh]" />
 
           <motion.div variants={ENTER}>
             <Headline text={headline} />
@@ -615,6 +659,12 @@ export function ShuttleHero({
 
           <div aria-hidden className="flex-1" />
 
+          {/* Dấu hiệu mời cuộn, đặt đúng vào khoảng trống trước đây chiếm
+              một phần năm chiều cao màn hình mà không làm gì. */}
+          <motion.div variants={ENTER} className="flex justify-center pb-6">
+            <ScrollCue />
+          </motion.div>
+
           <motion.div
             variants={ENTER}
             className="flex flex-wrap items-center justify-between gap-4"
@@ -642,6 +692,7 @@ export function ShuttleHero({
               />
             </div>
           </motion.div>
+        </div>
         </motion.div>
         </div>
 

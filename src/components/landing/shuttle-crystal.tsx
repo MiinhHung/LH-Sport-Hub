@@ -176,16 +176,42 @@ export function ShuttleCrystal({
     const p = progress.current ?? 0;
     const t = state.clock.elapsedTime;
 
-    // Quả cầu lông bay thì luôn chúc đế xuống. Giữ đúng điều đó: xoay quanh
-    // trục đứng là chính, chỉ nghiêng nhẹ chứ không lộn nhào.
-    g.rotation.y = reducedMotion ? 0 : t * 0.26 + p * Math.PI * 0.9;
-    g.rotation.z = Math.sin(t * 0.34) * 0.1 - pointer.current.x * 0.18;
-    g.rotation.x = Math.cos(t * 0.27) * 0.06 + p * 0.2;
+    /*
+     * LẮC THEO KIỂU TIẾN ĐỘNG, không phải nghiêng qua nghiêng lại.
+     *
+     * Bản trước cho `rotation.z` và `rotation.x` chạy theo hai hàm sin rời
+     * nhau, kết quả là quả cầu lắc lư trên một mặt phẳng cố định — nhìn ra
+     * máy móc.
+     *
+     * Quả cầu lông thật có đế bần nặng ở dưới, nên nó cư xử như con quay:
+     * trục nghiêng một góc rồi chính cái góc nghiêng ấy QUAY VÒNG quanh
+     * phương thẳng đứng. Muốn vậy thì hai trục phải là cos và sin của cùng
+     * một pha, chứ không phải hai dao động độc lập.
+     *
+     * Biên độ nghiêng cũng tự phình ra thu vào theo một nhịp chậm hơn, để
+     * chuyển động không lặp lại y hệt sau mỗi vòng.
+     */
+    const bienDo = 0.075 + 0.04 * Math.sin(t * 0.31);
+    const pha = t * 0.85;
+
+    g.rotation.y = reducedMotion ? 0 : t * 0.26 + p * Math.PI * 2.2;
+    g.rotation.z = Math.cos(pha) * bienDo - pointer.current.x * 0.18;
+    g.rotation.x = Math.sin(pha) * bienDo * 0.7;
+
+    /*
+     * Cuộn thì quả cầu RƠI, và xoáy nhanh dần.
+     *
+     * Bình phương tiến độ cho ra gia tốc: chậm lúc đầu rồi nhanh dần, như
+     * vật rơi thật. Nó cũng nối thẳng vào dải kể chuyện ngay phía dưới —
+     * nơi người chơi đánh quả cầu bay đi.
+     */
+    const roi = p * p * 1.5;
 
     // Đuổi theo con trỏ nhưng có độ trễ — bám sát quá thì thành dính chuột,
-    // mất cảm giác nặng của thuỷ tinh.
+    // mất cảm giác nặng của quả cầu. Cộng thêm một nhịp bồng bềnh rất nhẹ.
     const tx = pointer.current.x * 0.42;
-    const ty = -pointer.current.y * 0.3;
+    const ty =
+      -pointer.current.y * 0.3 + Math.sin(t * 0.58) * 0.045 - roi;
     g.position.x += (tx - g.position.x) * Math.min(1, delta * 2);
     g.position.y += (ty - g.position.y) * Math.min(1, delta * 2);
 

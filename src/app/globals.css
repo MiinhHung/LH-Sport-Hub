@@ -365,3 +365,28 @@ input[type="time"]::-webkit-calendar-picker-indicator:hover {
     filter: blur(0);
   }
 }
+
+/* Dấu hiệu mời cuộn ở cuối hero: quả cầu nhún, vệt sáng chạy xuống. */
+@keyframes cue-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(5px);
+  }
+}
+
+@keyframes cue-run {
+  0% {
+    top: -0.75rem;
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    top: 100%;
+    opacity: 0;
+  }
+}
