@@ -5,13 +5,21 @@ import * as React from "react";
 /**
  * Hai mẩu chữ có hiệu ứng, dùng lại ở nhiều phần của trang giới thiệu.
  *
- * Cùng ba lớp đỡ như `Reveal` và `CutReveal`: máy chủ dựng ra đã hiện sẵn,
- * không có IntersectionObserver thì hiện luôn, và có hẹn giờ phòng khi bộ
- * theo dõi im lặng. Một hiệu ứng làm chữ kẹt vô hình thì tệ hơn hẳn việc
- * không có hiệu ứng nào.
+ * HAI LỚP ĐỠ, KHÔNG PHẢI BA — và chỗ này từng sai.
+ * 
+ * Bản đầu có thêm một hẹn giờ 2,5 giây tự hiện nội dung, đề phòng bộ theo
+ * dõi tầm nhìn im lặng. Nhưng nó chạy VÔ ĐIỀU KIỆN: ai cuộn xuống chậm hơn
+ * 2,5 giây — tức gần như mọi người — thì hiệu ứng đã chạy hết từ lúc họ còn
+ * đang đọc phần trên, và không bao giờ thấy nó. Cái lưới an toàn vô hiệu hoá
+ * đúng thứ nó đang bảo vệ.
+ * 
+ * Hai lớp còn lại đã đủ cho những kiểu hỏng có thật: HTML dựng từ máy chủ đã
+ * hiện sẵn nên không có JavaScript vẫn đọc được, và trình duyệt không hỗ trợ
+ * IntersectionObserver thì hiện luôn. Còn nếu bộ theo dõi có chạy mà phần tử
+ * không bao giờ vào tầm nhìn thì nó bị ẩn cũng chẳng ai thấy.
  */
 
-/** Dùng chung cho cả hai: bật khi cuộn tới, và không bao giờ kẹt. */
+/** Dùng chung: bật khi cuộn tới. */
 function useInView<T extends HTMLElement>() {
   const ref = React.useRef<T>(null);
   const [run, setRun] = React.useState(false);
@@ -43,14 +51,8 @@ function useInView<T extends HTMLElement>() {
     );
     io.observe(el);
 
-    const safety = setTimeout(() => {
-      setRun(true);
-      io.disconnect();
-    }, 2500);
-
     return () => {
       io.disconnect();
-      clearTimeout(safety);
     };
   }, []);
 

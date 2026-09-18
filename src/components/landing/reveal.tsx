@@ -12,16 +12,18 @@ import * as React from "react";
  * không kịp chạy thì cả dải nằm vô hình và trang trông như bị trống — lỗi
  * đó chỉ lộ ra khi chụp ảnh toàn trang.
  *
- * Nên ở đây có ba lớp đỡ:
- *
- *  1. HTML dựng ra từ máy chủ đã hiện sẵn. Không có JavaScript thì vẫn đọc
- *     được bình thường.
- *  2. Trình duyệt không hỗ trợ IntersectionObserver thì hiện luôn.
- *  3. Có hẹn giờ 2,5 giây: dù bộ theo dõi im lặng vì bất cứ lý do gì, nội
- *     dung cũng tự hiện ra.
- *
- * Dùng CSS transition chứ không phải thư viện animation: chỉ chạm tới
- * `opacity` và `transform`, hai thứ trình duyệt xử lý trên compositor.
+ * HAI LỚP ĐỠ, KHÔNG PHẢI BA — và chỗ này từng sai.
+ * 
+ * Bản đầu có thêm một hẹn giờ 2,5 giây tự hiện nội dung, đề phòng bộ theo
+ * dõi tầm nhìn im lặng. Nhưng nó chạy VÔ ĐIỀU KIỆN: ai cuộn xuống chậm hơn
+ * 2,5 giây — tức gần như mọi người — thì hiệu ứng đã chạy hết từ lúc họ còn
+ * đang đọc phần trên, và không bao giờ thấy nó. Cái lưới an toàn vô hiệu hoá
+ * đúng thứ nó đang bảo vệ.
+ * 
+ * Hai lớp còn lại đã đủ cho những kiểu hỏng có thật: HTML dựng từ máy chủ đã
+ * hiện sẵn nên không có JavaScript vẫn đọc được, và trình duyệt không hỗ trợ
+ * IntersectionObserver thì hiện luôn. Còn nếu bộ theo dõi có chạy mà phần tử
+ * không bao giờ vào tầm nhìn thì nó bị ẩn cũng chẳng ai thấy.
  */
 export function Reveal({
   children,
@@ -63,14 +65,8 @@ export function Reveal({
     );
     io.observe(el);
 
-    const safety = setTimeout(() => {
-      setHidden(false);
-      io.disconnect();
-    }, 2500);
-
     return () => {
       io.disconnect();
-      clearTimeout(safety);
     };
   }, []);
 

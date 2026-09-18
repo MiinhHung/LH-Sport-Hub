@@ -18,9 +18,7 @@ import * as React from "react";
  * dựng, còn tách theo từ thì trình duyệt tự xuống dòng như thường, mà nhìn
  * gần như không khác.
  *
- * An toàn khi không có gì chạy — giống `Reveal`: máy chủ dựng ra đã hiện
- * sẵn, không có IntersectionObserver thì hiện luôn, và có hẹn giờ phòng khi
- * bộ theo dõi im lặng.
+ * Xem `text-bits.tsx` để biết vì sao chỉ có hai lớp đỡ chứ không phải ba.
  */
 
 /** Khoảng nới của khe che, tính theo cỡ chữ. */
@@ -75,14 +73,8 @@ export function CutReveal({
     );
     io.observe(el);
 
-    const safety = setTimeout(() => {
-      setRun(true);
-      io.disconnect();
-    }, 2500);
-
     return () => {
       io.disconnect();
-      clearTimeout(safety);
     };
   }, []);
 
