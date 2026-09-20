@@ -9,7 +9,7 @@ import {
   MetaLine,
   PageIntro,
 } from "@/components/ui";
-import { BeamRing } from "@/components/ui/beam-frame";
+import { BeamRing, TiltWrap } from "@/components/ui/beam-frame";
 import { LinkButton } from "@/components/ui/button";
 import { requireProfile } from "@/lib/auth";
 import { SPORTS, type SportKey } from "@/lib/constants";
@@ -63,6 +63,7 @@ export default async function SessionsPage() {
                 className="animate-rise"
                 style={{ animationDelay: `${Math.min(i, 8) * 45}ms` }}
               >
+                <TiltWrap>
                 <Card interactive className="overflow-hidden">
                   <Link
                     href={`/buoi-tap/${session.id}`}
@@ -164,6 +165,7 @@ export default async function SessionsPage() {
                     </div>
                   </Link>
                 </Card>
+                </TiltWrap>
               </div>
             );
           })}

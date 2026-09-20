@@ -22,6 +22,7 @@ import {
   PageIntro,
   SectionTitle,
 } from "@/components/ui";
+import { BeamRing, TiltWrap } from "@/components/ui/beam-frame";
 import { LinkButton } from "@/components/ui/button";
 import { isModerator, requireProfile } from "@/lib/auth";
 import { STAKES, formatStake, type StakeKey } from "@/lib/constants";
@@ -86,8 +87,13 @@ async function SideRail({ viewerId }: { viewerId: string }) {
             {sessions.map((s) => {
               const going = s.attendees.filter((a) => a.status === "going");
               return (
-                <Card key={s.id} interactive className="overflow-hidden">
-                  <Link href={`/buoi-tap/${s.id}`} className="block p-3.5">
+                <TiltWrap key={s.id}>
+                <Card interactive className="overflow-hidden">
+                  <Link
+                    href={`/buoi-tap/${s.id}`}
+                    className="relative block p-3.5"
+                  >
+                    <BeamRing />
                     <div className="flex items-start justify-between gap-2">
                       <p className="text-[14px] leading-snug font-bold text-ink-100">
                         {s.title}
@@ -121,6 +127,7 @@ async function SideRail({ viewerId }: { viewerId: string }) {
                     </div>
                   </Link>
                 </Card>
+                </TiltWrap>
               );
             })}
           </div>
@@ -161,8 +168,10 @@ async function SideRail({ viewerId }: { viewerId: string }) {
         ) : (
           <div className="space-y-2">
             {openChallenges.map((c) => (
-              <Card key={c.id} interactive className="overflow-hidden">
-                <Link href={`/keo/${c.id}`} className="block p-3.5">
+              <TiltWrap key={c.id}>
+              <Card interactive className="overflow-hidden">
+                <Link href={`/keo/${c.id}`} className="relative block p-3.5">
+                  <BeamRing />
                   <p className="text-[14px] leading-snug font-bold text-ink-100">
                     {c.title}
                   </p>
@@ -181,6 +190,7 @@ async function SideRail({ viewerId }: { viewerId: string }) {
                   </p>
                 </Link>
               </Card>
+              </TiltWrap>
             ))}
           </div>
         )}

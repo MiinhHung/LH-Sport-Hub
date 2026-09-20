@@ -222,6 +222,83 @@ export function BeamRing({ radiusPx = 16 }: { radiusPx?: number }) {
   );
 }
 
+/**
+ * Chỉ riêng phần nghiêng theo con trỏ.
+ *
+ * Tách ra để mấy cái thẻ trong app dùng được mà không kéo theo vòng sáng
+ * của `BeamFrame` — chúng đã có `BeamRing` nằm sẵn bên trong rồi, bọc
+ * thêm một vòng nữa là thành hai vòng lồng nhau.
+ *
+ * ĐẶT NGOÀI CÙNG, ngoài cả thẻ. Chuyển động nhấc lên khi rê chuột nằm ở
+ * chính thẻ, còn góc nghiêng nằm ở đây — hai phép biến đổi ở hai tầng
+ * khác nhau thì cộng vào nhau; viết chung một tầng thì cái sau xoá cái
+ * trước.
+ */
+export function TiltWrap({
+  children,
+  className,
+  deg = 6,
+}: {
+  children: React.ReactNode;
+  className?: string;
+  /**
+   * Góc nghiêng khi con trỏ ở sát mép, tính bằng độ.
+   *
+   * Mặc định 6° là để KHỚP CẢM GIÁC với thẻ đăng nhập, không phải khớp
+   * con số. Thẻ đăng nhập khai 9° nhưng quy đổi theo một quãng cố định
+   * 300px, mà nó chỉ rộng chừng 400px — nên thực tế rê tới mép cũng mới
+   * được khoảng 6°.
+   */
+  deg?: number;
+}) {
+  const [bat, setBat] = React.useState(false);
+
+  React.useEffect(() => {
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const apply = () => setBat(!mq.matches);
+    apply();
+    mq.addEventListener("change", apply);
+    return () => mq.removeEventListener("change", apply);
+  }, []);
+
+  const mx = useMotionValue(0);
+  const my = useMotionValue(0);
+  const lx = useSpring(mx, { stiffness: 140, damping: 18, mass: 0.6 });
+  const ly = useSpring(my, { stiffness: 140, damping: 18, mass: 0.6 });
+  /*
+   * QUY ĐỔI THEO TỈ LỆ CỦA CHÍNH THẺ, không theo một quãng pixel cố định.
+   *
+   * `BeamFrame` quy đổi vị trí con trỏ theo quãng cố định 300px. Cách đó
+   * chỉ đúng với đúng một cỡ thẻ: đem sang thẻ tóm tắt ở cột phải, rộng
+   * chừng 300px và cao 150px, thì rê tới tận mép cũng chỉ ra hơn 2° —
+   * gần như đứng yên. Ở đây đưa về -1…1 theo chính bề ngang và bề cao của
+   * thẻ, nên thẻ to hay nhỏ đều nghiêng đúng chừng ấy khi chạm mép.
+   */
+  const rotateX = useTransform(ly, [-1, 1], [deg, -deg]);
+  const rotateY = useTransform(lx, [-1, 1], [-deg, deg]);
+
+  return (
+    <div className={className} style={bat ? { perspective: 1200 } : undefined}>
+      <motion.div
+        style={bat ? { rotateX, rotateY } : undefined}
+        onPointerMove={(e) => {
+          if (!bat) return;
+          const r = e.currentTarget.getBoundingClientRect();
+          if (!r.width || !r.height) return;
+          mx.set((e.clientX - r.left - r.width / 2) / (r.width / 2));
+          my.set((e.clientY - r.top - r.height / 2) / (r.height / 2));
+        }}
+        onPointerLeave={() => {
+          mx.set(0);
+          my.set(0);
+        }}
+      >
+        {children}
+      </motion.div>
+    </div>
+  );
+}
+
 export function BeamFrame({
   children,
   tilt = true,
