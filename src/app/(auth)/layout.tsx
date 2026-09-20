@@ -1,7 +1,7 @@
 import Image from "next/image";
 
 import { AuthReveal } from "@/components/auth-reveal";
-import { TiltCard } from "@/components/auth/tilt-card";
+import { GlassCard } from "@/components/auth/glass-card";
 import { HeroVideo } from "@/components/hero-video";
 
 export default function AuthLayout({
@@ -109,7 +109,7 @@ export default function AuthLayout({
             </p>
           </div>
 
-          <TiltCard>{children}</TiltCard>
+          <GlassCard>{children}</GlassCard>
 
           <p className="mt-7 text-center text-xs leading-relaxed text-white/40">
             Dành riêng cho nhân viên Light Human

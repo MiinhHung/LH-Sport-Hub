@@ -74,6 +74,11 @@
          navy chữ trắng đổi màu theo, mà chúng vốn đang đúng. --- */
   --color-link: #0d3f8a;
 
+  /* --- Vệt sáng chạy viền thẻ.
+         Trên mặt thẻ TRẮNG thì vàng nhạt gần như không thấy, nên nền
+         sáng phải dùng mức đậm hơn hẳn so với nền tối. --- */
+  --color-beam: #c8951a;
+
   /* --- Chữ --- */
   --font-sans:
     var(--font-be-vietnam), ui-sans-serif, system-ui, -apple-system, "Segoe UI",
@@ -142,6 +147,9 @@
   --color-lime-deep: #dcae42;
 
   --color-link: #8ab4f8; /* 8,2:1 trên mặt thẻ */
+
+  /* Trên mặt thẻ tối thì ngược lại: vàng đậm chìm, phải lên mức sáng. */
+  --color-beam: #e8c56a;
 
   /* Bóng ám navy vô hình trên nền tối — đổi sang đen và đậm hơn, vì trên
      nền tối cái tách được lớp ra khỏi nền là vùng tối chứ không phải vệt

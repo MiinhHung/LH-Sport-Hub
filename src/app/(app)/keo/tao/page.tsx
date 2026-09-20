@@ -4,6 +4,7 @@ import Link from "next/link";
 
 import { ChallengeForm } from "@/components/forms/challenge-form";
 import { PageIntro } from "@/components/ui";
+import { BeamFrame } from "@/components/ui/beam-frame";
 import { requireProfile } from "@/lib/auth";
 import { listMembers, listSelectableSessions } from "@/lib/queries";
 
@@ -41,7 +42,12 @@ export default async function CreateChallengePage() {
         lead="Chốt thể thức, chốt điểm, chốt ăn gì. Xong là có kèo."
       />
 
-      <ChallengeForm members={others} sessions={sessions} />
+      {/* Biểu mẫu này là năm thẻ xếp chồng chứ không phải một khối, nên
+          vệt sáng chạy quanh cả cụm. Không nghiêng — xem ghi chú trong
+          BeamFrame. */}
+      <BeamFrame tilt={false} spread={3}>
+        <ChallengeForm members={others} sessions={sessions} />
+      </BeamFrame>
     </div>
   );
 }
