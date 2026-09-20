@@ -4,7 +4,6 @@ import Link from "next/link";
 
 import { SessionForm } from "@/components/forms/session-form";
 import { Card, CardBody, PageIntro } from "@/components/ui";
-import { BeamFrame } from "@/components/ui/beam-frame";
 
 export const metadata: Metadata = { title: "Tạo buổi tập" };
 
@@ -25,16 +24,11 @@ export default function CreateSessionPage() {
         lead="Chốt sân, chốt giờ. Mặc định là sáng thứ 7 tuần này, 7h–9h."
       />
 
-      {/* Vệt sáng chạy viền như thẻ đăng nhập. Không nghiêng theo chuột:
-          biểu mẫu này cao hơn màn hình, mà nghiêng cả tấm trong lúc người
-          ta đang nhắm vào một ô nhập thì khó bấm thật. */}
-      <BeamFrame tilt={false} spread={3}>
-        <Card>
-          <CardBody className="sm:p-6">
-            <SessionForm />
-          </CardBody>
-        </Card>
-      </BeamFrame>
+      <Card>
+        <CardBody className="sm:p-6">
+          <SessionForm />
+        </CardBody>
+      </Card>
     </div>
   );
 }

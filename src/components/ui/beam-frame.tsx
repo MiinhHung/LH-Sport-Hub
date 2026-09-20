@@ -57,6 +57,16 @@ const TOC_DO = 320;
 const CHU_KY_MIN = 2.4; // giữ đúng nhịp cũ của thẻ đăng nhập
 const CHU_KY_MAX = 6;
 
+/**
+ * Thời lượng một vòng cho một cạnh dài `canh` pixel.
+ *
+ * Quãng đường một vệt đi là 1,5 lần cạnh — nó dài bằng nửa cạnh và chạy
+ * từ ngoài mép này sang hẳn ngoài mép kia.
+ */
+function nhipTheoCanh(canh: number) {
+  return Math.min(CHU_KY_MAX, Math.max(CHU_KY_MIN, (canh * 1.5) / TOC_DO));
+}
+
 type Canh = "top" | "right" | "bottom" | "left";
 
 /** Vệt sáng chạy dọc một cạnh rồi lặp lại. */
@@ -151,6 +161,64 @@ function Dot({ goc, size, delay }: { goc: string; size: number; delay: number })
         delay,
       }}
     />
+  );
+}
+
+/**
+ * Chỉ riêng vòng sáng, dán đè lên một khối đã có sẵn.
+ *
+ * DÙNG CHO THẺ TRONG DANH SÁCH, thay vì bọc chúng lại bằng `BeamFrame`.
+ * Mấy thẻ kèo và thẻ buổi tập nhấc lên 2px khi rê chuột; bọc ngoài thì cái
+ * khung đứng yên còn thẻ nhích lên, vòng sáng rời khỏi mép thẻ — lệch 2px
+ * trên một vòng dày 3px là nhìn ra ngay. Nằm trong thẻ thì nó đi theo.
+ *
+ * Đặt vào một khối có `relative` và `overflow-hidden`; nó tự phủ kín và
+ * không nhận sự kiện chuột, nên không chắn đường bấm vào thẻ.
+ */
+export function BeamRing({ radiusPx = 16 }: { radiusPx?: number }) {
+  const [bat, setBat] = React.useState(false);
+  const ref = React.useRef<HTMLDivElement>(null);
+  const [co, setCo] = React.useState({ w: 400, h: 200 });
+
+  React.useEffect(() => {
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const apply = () => setBat(!mq.matches);
+    apply();
+    mq.addEventListener("change", apply);
+    return () => mq.removeEventListener("change", apply);
+  }, []);
+
+  React.useEffect(() => {
+    const el = ref.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    const ro = new ResizeObserver(([e]) =>
+      setCo({ w: e.contentRect.width, h: e.contentRect.height }),
+    );
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  return (
+    <div
+      ref={ref}
+      aria-hidden
+      className="pointer-events-none absolute inset-0 overflow-hidden"
+      style={{ borderRadius: radiusPx }}
+    >
+      {bat && (
+        <>
+          <Beam canh="top" delay={0} chuKy={nhipTheoCanh(co.w)} />
+          <Beam canh="right" delay={0.6} chuKy={nhipTheoCanh(co.h)} />
+          <Beam canh="bottom" delay={1.2} chuKy={nhipTheoCanh(co.w)} />
+          <Beam canh="left" delay={1.8} chuKy={nhipTheoCanh(co.h)} />
+
+          <Dot goc="top-0 left-0" size={5} delay={0} />
+          <Dot goc="top-0 right-0" size={8} delay={0.5} />
+          <Dot goc="right-0 bottom-0" size={8} delay={1} />
+          <Dot goc="bottom-0 left-0" size={5} delay={1.5} />
+        </>
+      )}
+    </div>
   );
 }
 
@@ -262,13 +330,8 @@ export function BeamFrame({
     borderRadius: radiusPx + spread,
   };
 
-  // Quãng đường một vệt đi là 1,5 lần cạnh (nó dài bằng nửa cạnh và chạy
-  // từ ngoài mép này sang hẳn ngoài mép kia).
-  const chuKy = (canh: number) =>
-    Math.min(CHU_KY_MAX, Math.max(CHU_KY_MIN, (canh * 1.5) / TOC_DO));
-
-  const chuKyNgang = chuKy(co.w);
-  const chuKyDoc = chuKy(co.h);
+  const chuKyNgang = nhipTheoCanh(co.w);
+  const chuKyDoc = nhipTheoCanh(co.h);
 
   return (
     <div style={nghieng ? { perspective: 1500 } : undefined}>

@@ -2,6 +2,7 @@ import { CalendarClock, Clock, MapPin, Trophy } from "lucide-react";
 import Link from "next/link";
 
 import { Avatar, Card, Dot, MetaLine } from "@/components/ui";
+import { BeamRing } from "@/components/ui/beam-frame";
 import {
   CHALLENGE_STATUS_META,
   teamCounts,
@@ -312,6 +313,9 @@ export function ChallengeCard({
   return (
     <Card interactive className="overflow-hidden">
       <Link href={href} className={shell}>
+        {/* Vòng sáng nằm TRONG thẻ, không bọc ngoài: thẻ nhấc lên 2px khi
+            rê chuột, khung bọc ngoài sẽ đứng yên và vòng sáng rời mép. */}
+        <BeamRing />
         {accent}
         {body}
       </Link>

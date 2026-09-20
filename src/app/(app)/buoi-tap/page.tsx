@@ -9,6 +9,7 @@ import {
   MetaLine,
   PageIntro,
 } from "@/components/ui";
+import { BeamRing } from "@/components/ui/beam-frame";
 import { LinkButton } from "@/components/ui/button";
 import { requireProfile } from "@/lib/auth";
 import { SPORTS, type SportKey } from "@/lib/constants";
@@ -67,6 +68,10 @@ export default async function SessionsPage() {
                     href={`/buoi-tap/${session.id}`}
                     className="group relative block p-4 sm:p-[18px]"
                   >
+                    {/* Vòng sáng nằm trong thẻ để đi theo lúc thẻ nhấc lên
+                        — xem ghi chú ở BeamRing. */}
+                    <BeamRing />
+
                     <span
                       aria-hidden
                       className={cn(
