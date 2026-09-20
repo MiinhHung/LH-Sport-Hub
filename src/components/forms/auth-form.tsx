@@ -100,7 +100,7 @@ export function SignInForm({ domainHint }: { domainHint: string | null }) {
         <input type="hidden" name="next" value={next} />
 
         <AuthField
-          label="Email công ty"
+          label="Email"
           htmlFor="email"
           required
           error={state.errors?.email}
@@ -179,7 +179,7 @@ export function SignUpForm({ domainHint }: { domainHint: string | null }) {
         </AuthField>
 
         <AuthField
-          label="Email công ty"
+          label="Email"
           htmlFor="email"
           required
           error={state.errors?.email}

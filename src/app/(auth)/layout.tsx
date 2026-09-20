@@ -112,8 +112,7 @@ export default function AuthLayout({
           <TiltCard>{children}</TiltCard>
 
           <p className="mt-7 text-center text-xs leading-relaxed text-white/40">
-            Dành riêng cho nhân viên Light Human.
-            <br className="sm:hidden" /> Vui lòng không chia sẻ link ra ngoài.
+            Dành riêng cho nhân viên Light Human
           </p>
         </AuthReveal>
       </main>
