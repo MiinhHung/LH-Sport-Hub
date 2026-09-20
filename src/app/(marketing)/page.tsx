@@ -57,11 +57,6 @@ const FEATURES = [
     body: "Ai đứng ra đặt sân thì lên lịch, mọi người bấm báo đi hay không. Kèm bản đồ cho người tới lần đầu.",
   },
   {
-    href: "/bang-phong-than",
-    title: "Bảng phong thần",
-    body: "Vua kèo, chuỗi thắng, người chăm nhất. Chỉ tính những trận cả hai đội đã xác nhận kết quả.",
-  },
-  {
     href: "/cam-nang",
     title: "Cẩm nang",
     body: "Luật, kỹ thuật, khởi động, chọn vợt chọn giày. Mười ba bài, đủ để không phải tra Google giữa trận.",
