@@ -390,3 +390,37 @@ input[type="time"]::-webkit-calendar-picker-indicator:hover {
     opacity: 0;
   }
 }
+
+/* Vệt sáng quét ngang nút gửi trong lúc server action đang chạy. */
+@keyframes nut-quet {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
+/*
+ * Ô tự điền của Chrome trên hai trang đăng nhập / đăng ký.
+ *
+ * Chrome tô nền ô đã tự điền bằng rgb(232,240,254) ở một tầng mà `background`
+ * thường không với tới — trên mặt kính navy nó thành hai ô xanh nhạt chói,
+ * phá đúng thứ hiệu ứng vừa dựng. Cách duy nhất ghi đè được là phủ một bóng
+ * đổ trong ô đủ dày, và đổi màu chữ bằng -webkit-text-fill-color (color
+ * thường cũng bị Chrome ghi đè).
+ *
+ * `transition: background-color 9999s` là mẹo quen: Chrome vẽ nền qua một
+ * chuyển tiếp, đẩy nó ra xa vô hạn thì nó không bao giờ tới nơi.
+ *
+ * Chỉ áp cho ô có data-auth-input, không áp toàn app: ô nhập trong app nằm
+ * trên nền sáng, làm vậy sẽ thành ô đen.
+ */
+input[data-auth-input]:-webkit-autofill,
+input[data-auth-input]:-webkit-autofill:hover,
+input[data-auth-input]:-webkit-autofill:focus {
+  -webkit-text-fill-color: #ffffff;
+  -webkit-box-shadow: 0 0 0 1000px #0f1c33 inset;
+  caret-color: #ffffff;
+  transition: background-color 9999s ease-in-out 0s;
+}

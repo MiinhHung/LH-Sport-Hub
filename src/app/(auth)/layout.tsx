@@ -1,4 +1,7 @@
+import Image from "next/image";
+
 import { AuthReveal } from "@/components/auth-reveal";
+import { TiltCard } from "@/components/auth/tilt-card";
 import { HeroVideo } from "@/components/hero-video";
 
 export default function AuthLayout({
@@ -63,30 +66,52 @@ export default function AuthLayout({
         </div>
       </aside>
 
-      {/* Bảng biểu mẫu */}
-      {/* Nền phẳng riêng: gradient của body vắt ngang chỗ nối hai cột
-          trông như vệt bẩn. */}
+      {/*
+        Bảng biểu mẫu.
+
+        NỀN TỐI, KHÔNG PHẢI NỀN SÁNG NHƯ TRƯỚC. Mặt kính mờ, vệt sáng chạy
+        viền và quầng vàng đều là hiệu ứng ÁNH SÁNG — chúng chỉ hiện ra khi
+        có nền tối để nổi lên. Đặt nguyên bộ đó lên nền ink-950 (vốn là màu
+        sáng nhất của hệ màu) thì lớp kính thành một ô xám và bốn vệt sáng
+        biến mất hoàn toàn. Đổi luôn cả cột cũng khiến hai nửa trang liền
+        một mạch, thay vì tối một bên sáng một bên như trước.
+      */}
       <main
         id="noi-dung"
-        className="flex items-center justify-center bg-ink-950 px-5 py-12 sm:px-8"
+        className="relative flex items-center justify-center overflow-hidden bg-navy-950 px-5 py-12 sm:px-8"
       >
+        {/* Hai quầng sáng nằm ngoài luồng, cho nền đỡ phẳng */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -top-1/4 left-1/2 h-[70vh] w-[110vh] -translate-x-1/2 rounded-b-full bg-gold-400/10 blur-[90px]"
+        />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -bottom-1/3 left-1/2 h-[70vh] w-[90vh] -translate-x-1/2 rounded-t-full bg-navy-600/20 blur-[90px]"
+        />
+
         <AuthReveal>
-          {/* Khoá thương hiệu cho màn hình nhỏ */}
-          <div className="mb-8 flex flex-col items-center text-center lg:hidden">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/logo.png"
+          {/* Khoá thương hiệu cho màn hình nhỏ. Dùng bản nét sáng nền trong
+              suốt: logo.png có nền TRẮNG ĐẶC, trước đây nó dựa vào
+              mix-blend-multiply với nền sáng để tan nền đi — trên navy thì
+              thủ thuật đó cho ra đúng một ô trắng. */}
+          <div className="mb-7 flex flex-col items-center text-center lg:hidden">
+            <Image
+              src="/logo-light.png"
               alt="Light Human"
-              className="h-20 w-auto object-contain mix-blend-multiply"
+              width={656}
+              height={562}
+              priority
+              className="h-16 w-auto object-contain"
             />
-            <p className="mt-1.5 text-[15px] font-semibold tracking-[0.18em] text-gold-600 uppercase">
+            <p className="mt-1.5 text-[14px] font-semibold tracking-[0.18em] text-gold-300 uppercase">
               Sport Hub
             </p>
           </div>
 
-          {children}
+          <TiltCard>{children}</TiltCard>
 
-          <p className="mt-8 text-center text-xs leading-relaxed text-ink-500">
+          <p className="mt-7 text-center text-xs leading-relaxed text-white/40">
             Dành riêng cho nhân viên Light Human.
             <br className="sm:hidden" /> Vui lòng không chia sẻ link ra ngoài.
           </p>
