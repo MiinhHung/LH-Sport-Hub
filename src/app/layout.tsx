@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Be_Vietnam_Pro, Playfair_Display } from "next/font/google";
 
+import { THEME_SCRIPT } from "@/components/theme";
 import { APP_DESCRIPTION, APP_NAME } from "@/lib/constants";
 import { publicEnv } from "@/lib/env";
 import "./globals.css";
@@ -54,8 +55,23 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="vi" className={`${sans.variable} ${display.variable}`}>
+    <html
+      lang="vi"
+      className={`${sans.variable} ${display.variable}`}
+      // Đoạn mã chặn bên dưới gắn lớp `.dark` trước khi React hydrate, nên
+      // thuộc tính class của <html> sẽ khác với bản máy chủ dựng ra. Đây là
+      // khác biệt CÓ CHỦ Ý, không phải lỗi; báo cho React biết để nó đừng
+      // cảnh báo, và chỉ báo ở đúng thẻ này chứ không phải cả cây.
+      suppressHydrationWarning
+    >
       <body className="antialiased">
+        {/*
+          Chạy trước khung hình đầu tiên để không nháy trắng. Nội dung là
+          hằng số do chính ứng dụng viết ra, không có gì từ người dùng lọt
+          vào — xem THEME_SCRIPT trong components/theme.tsx.
+        */}
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+
         <a href="#noi-dung" className="skip-link">
           Bỏ qua tới nội dung
         </a>

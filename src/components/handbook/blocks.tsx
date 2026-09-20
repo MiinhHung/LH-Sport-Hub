@@ -56,7 +56,7 @@ export function ContentBlock({ block }: { block: Block }) {
                     {item.title}
                   </span>
                   {item.meta && (
-                    <span className="text-[12px] font-semibold text-gold-600">
+                    <span className="text-[12px] font-semibold text-gold-600 dark:text-gold-300">
                       {item.meta}
                     </span>
                   )}
@@ -77,8 +77,8 @@ export function ContentBlock({ block }: { block: Block }) {
         <aside
           className={
             tip
-              ? "mt-7 flex gap-3 rounded-2xl border border-sky-200 bg-sky-50 p-4"
-              : "mt-7 flex gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4"
+              ? "mt-7 flex gap-3 rounded-2xl border border-sky-200 dark:border-sky-400/30 bg-sky-50 dark:bg-sky-500/10 p-4"
+              : "mt-7 flex gap-3 rounded-2xl border border-amber-200 dark:border-amber-400/30 bg-amber-50 dark:bg-amber-500/10 p-4"
           }
         >
           <Icon
@@ -92,8 +92,8 @@ export function ContentBlock({ block }: { block: Block }) {
           <p
             className={
               tip
-                ? "text-[15px] leading-relaxed text-sky-900"
-                : "text-[15px] leading-relaxed text-amber-900"
+                ? "text-[15px] leading-relaxed text-sky-900 dark:text-sky-200"
+                : "text-[15px] leading-relaxed text-amber-900 dark:text-amber-200"
             }
           >
             {block.text}
@@ -110,7 +110,7 @@ export function ContentBlock({ block }: { block: Block }) {
               <dt className="text-[11px] font-semibold tracking-wide text-ink-500 uppercase">
                 {item.label}
               </dt>
-              <dd className="tabular font-display mt-1.5 text-[19px] leading-tight font-bold text-navy-900">
+              <dd className="tabular font-display mt-1.5 text-[19px] leading-tight font-bold text-ink-100">
                 {item.value}
               </dd>
             </div>

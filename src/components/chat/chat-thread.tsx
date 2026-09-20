@@ -330,7 +330,7 @@ export function ChatThread({
                       type="button"
                       onClick={() => removeMessage(m.id)}
                       aria-label="Xoá tin nhắn"
-                      className="mb-5 grid size-7 shrink-0 place-items-center rounded-lg text-ink-500 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-rose-50 hover:text-rose-600 focus-visible:opacity-100"
+                      className="mb-5 grid size-7 shrink-0 place-items-center rounded-lg text-ink-500 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-rose-50 dark:hover:bg-rose-500/10 hover:text-rose-600 dark:text-rose-400 focus-visible:opacity-100"
                     >
                       <Trash2 className="size-3.5" />
                     </button>
@@ -379,7 +379,7 @@ export function ChatThread({
                             ? "rounded-br-md bg-navy-900 text-white"
                             : "rounded-bl-md bg-ink-850 text-ink-200",
                           m.pending && "opacity-55",
-                          m.failed && "bg-rose-100 text-rose-800",
+                          m.failed && "bg-rose-100 dark:bg-rose-500/20 text-rose-800 dark:text-rose-200",
                           m.imageUrl && (mine ? "rounded-tr-md" : "rounded-tl-md"),
                         )}
                       >
@@ -433,7 +433,7 @@ export function ChatThread({
         )}
 
         {error && (
-          <p className="mb-2 text-[12px] font-medium text-rose-600">{error}</p>
+          <p className="mb-2 text-[12px] font-medium text-rose-600 dark:text-rose-400">{error}</p>
         )}
 
         <div className="flex items-end gap-1.5">
@@ -441,7 +441,7 @@ export function ChatThread({
             type="button"
             onClick={() => fileRef.current?.click()}
             aria-label="Gửi ảnh"
-            className="grid size-11 shrink-0 place-items-center rounded-2xl text-ink-500 transition-colors hover:bg-ink-850 hover:text-navy-800"
+            className="grid size-11 shrink-0 place-items-center rounded-2xl text-ink-500 transition-colors hover:bg-ink-850 hover:text-ink-100"
           >
             <ImagePlus className="size-[18px]" />
           </button>
@@ -455,8 +455,8 @@ export function ChatThread({
               className={cn(
                 "grid size-11 shrink-0 place-items-center rounded-2xl transition-colors",
                 emojiOpen
-                  ? "bg-ink-850 text-navy-800"
-                  : "text-ink-500 hover:bg-ink-850 hover:text-navy-800",
+                  ? "bg-ink-850 text-ink-100"
+                  : "text-ink-500 hover:bg-ink-850 hover:text-ink-100",
               )}
             >
               <Smile className="size-[18px]" />

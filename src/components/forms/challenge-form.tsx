@@ -63,7 +63,7 @@ function Chip({
       className={cn(
         "rounded-xl border px-3 py-2.5 text-sm transition-all duration-200 active:translate-y-px",
         active
-          ? "border-gold-400 bg-gold-50 font-bold text-gold-700 shadow-[var(--shadow-soft)]"
+          ? "border-gold-400 bg-gold-50 dark:bg-gold-400/10 font-bold text-gold-700 dark:text-gold-300 shadow-[var(--shadow-soft)]"
           : "border-ink-700 bg-ink-900 text-ink-400 hover:border-ink-600 hover:bg-ink-850 hover:text-ink-200",
         className,
       )}
@@ -366,7 +366,7 @@ export function ChallengeForm({
                         className={cn(
                           "flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left transition-colors",
                           picked
-                            ? "bg-gold-50 font-semibold text-gold-700"
+                            ? "bg-gold-50 dark:bg-gold-400/10 font-semibold text-gold-700 dark:text-gold-300"
                             : "text-ink-300 hover:bg-ink-850",
                         )}
                       >

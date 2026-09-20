@@ -18,6 +18,17 @@
    Khi thêm code mới: nhớ ink số lớn = sáng, số nhỏ = tối.
    ================================================================== */
 
+/*
+ * Nền tối bật bằng LỚP `.dark` trên thẻ <html>, không theo cài đặt máy.
+ *
+ * Tailwind v4 mặc định cho `dark:` chạy theo `prefers-color-scheme`. Ở đây
+ * cần người dùng tự bấm chọn được, nên phải khai lại biến thể.
+ *
+ * `:where()` để bộ chọn có độ ưu tiên bằng 0 — nếu không, mọi lớp `dark:`
+ * sẽ nặng hơn lớp thường và thắng cả những chỗ ghi đè có chủ ý.
+ */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   /* --- Navy thương hiệu --- */
   --color-navy-950: #000d26;
@@ -57,6 +68,12 @@
   --color-lime-glow: #a87813;
   --color-lime-deep: #855c12;
 
+  /* --- Màu chữ dẫn liên kết / nhấn mạnh.
+         Tách riêng khỏi thang navy vì navy vừa làm chữ vừa làm NỀN: đổi
+         thẳng --color-navy-700 cho nền tối sẽ kéo theo mấy cái nút nền
+         navy chữ trắng đổi màu theo, mà chúng vốn đang đúng. --- */
+  --color-link: #0d3f8a;
+
   /* --- Chữ --- */
   --font-sans:
     var(--font-be-vietnam), ui-sans-serif, system-ui, -apple-system, "Segoe UI",
@@ -88,6 +105,55 @@
   scroll-behavior: smooth;
 }
 
+/* ==================================================================
+   NỀN TỐI
+   ------------------------------------------------------------------
+   Chỉ định nghĩa lại BIẾN, không đụng tới một lớp tiện ích nào.
+
+   Cả app đi qua thang `ink` — đếm được 423 chỗ dùng — nên viết đè 11
+   biến ở đây là lật được gần hết giao diện. Cách còn lại là rải `dark:`
+   lên từng chỗ trong hơn sáu chục tệp, vừa dài vừa chắc chắn sót, và mỗi
+   lần thêm màn hình mới lại phải nhớ làm lại.
+
+   Thang `ink` vẫn ĐẢO như cũ: số lớn = nền, số nhỏ = chữ. Ở nền tối thì
+   "nền" thành tối và "chữ" thành sáng, nhưng vai trò của từng bậc không
+   đổi, nên mọi chỗ đang dùng vẫn đúng ý.
+
+   Các số tương phản dưới đây là đo thật, không phải ước lượng.
+   ================================================================== */
+.dark {
+  color-scheme: dark;
+
+  --color-ink-950: #0a1020; /* nền trang */
+  --color-ink-900: #101a2e; /* mặt thẻ */
+  --color-ink-850: #16223a; /* nền ô nhập, vùng chìm */
+  --color-ink-800: #22314e; /* viền */
+  --color-ink-700: #2e3f60; /* viền đậm / hover */
+  --color-ink-600: #7d8ba5; /* icon mờ, chữ vô hiệu – 5,0:1 trên mặt thẻ */
+  --color-ink-500: #94a3bd; /* chữ phụ      – 6,8:1 */
+  --color-ink-400: #b4c0d4; /* chữ thứ cấp  – 9,5:1 */
+  --color-ink-300: #d3dced; /* chữ nội dung – 12,6:1 */
+  --color-ink-200: #e6ecf7; /* chữ đậm */
+  --color-ink-100: #f4f7fd; /* tiêu đề      – 16,2:1 */
+
+  /* Vàng mức 600/700 chọn cho nền trắng, đặt lên nền tối thì chìm.
+     Lên mức 300/400: 10,4:1 và 8,4:1 trên mặt thẻ. */
+  --color-lime-glow: #e8c56a;
+  --color-lime-deep: #dcae42;
+
+  --color-link: #8ab4f8; /* 8,2:1 trên mặt thẻ */
+
+  /* Bóng ám navy vô hình trên nền tối — đổi sang đen và đậm hơn, vì trên
+     nền tối cái tách được lớp ra khỏi nền là vùng tối chứ không phải vệt
+     xám nhạt. */
+  --shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-card:
+    0 1px 2px rgba(0, 0, 0, 0.4), 0 10px 28px -12px rgba(0, 0, 0, 0.6);
+  --shadow-lift:
+    0 2px 4px rgba(0, 0, 0, 0.45), 0 18px 40px -16px rgba(0, 0, 0, 0.7);
+  --shadow-pop: 0 20px 50px -18px rgba(0, 0, 0, 0.8);
+}
+
 html {
   -webkit-text-size-adjust: 100%;
 }
@@ -113,6 +179,22 @@ body {
   padding-bottom: env(safe-area-inset-bottom);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+}
+
+/* Ở nền tối, ánh vàng ấm phía trên hoá thành vệt xám bẩn — đổi sang một
+   quầng vàng mờ hơn nhiều, đủ để mép trên không phẳng lì. */
+.dark body {
+  background-image:
+    radial-gradient(
+      ellipse 70% 40% at 50% -5%,
+      rgba(220, 174, 66, 0.07),
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse 50% 40% at 95% 5%,
+      rgba(13, 63, 138, 0.14),
+      transparent 70%
+    );
 }
 
 /* Lớp nhiễu rất mảnh phá cảm giác phẳng lì của màu đặc. */

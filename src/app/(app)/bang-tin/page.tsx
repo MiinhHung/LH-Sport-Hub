@@ -56,7 +56,7 @@ async function SideRail({ viewerId }: { viewerId: string }) {
           action={
             <Link
               href="/buoi-tap"
-              className="text-[12px] font-bold text-navy-700 hover:underline"
+              className="text-[12px] font-bold text-link hover:underline"
             >
               Tất cả
             </Link>
@@ -92,7 +92,7 @@ async function SideRail({ viewerId }: { viewerId: string }) {
                       <p className="text-[14px] leading-snug font-bold text-ink-100">
                         {s.title}
                       </p>
-                      <span className="shrink-0 text-[11px] font-bold text-gold-700">
+                      <span className="shrink-0 text-[11px] font-bold text-gold-700 dark:text-gold-300">
                         {timeUntil(s.startsAt)}
                       </span>
                     </div>
@@ -133,7 +133,7 @@ async function SideRail({ viewerId }: { viewerId: string }) {
           action={
             <Link
               href="/keo"
-              className="text-[12px] font-bold text-navy-700 hover:underline"
+              className="text-[12px] font-bold text-link hover:underline"
             >
               Tất cả
             </Link>
@@ -166,7 +166,7 @@ async function SideRail({ viewerId }: { viewerId: string }) {
                   <p className="text-[14px] leading-snug font-bold text-ink-100">
                     {c.title}
                   </p>
-                  <p className="mt-1.5 flex items-center gap-1.5 text-[12px] font-semibold text-gold-700">
+                  <p className="mt-1.5 flex items-center gap-1.5 text-[12px] font-semibold text-gold-700 dark:text-gold-300">
                     <span aria-hidden>
                       {STAKES[c.stakeType as StakeKey].icon}
                     </span>
@@ -192,7 +192,7 @@ async function SideRail({ viewerId }: { viewerId: string }) {
           action={
             <Link
               href="/cam-nang"
-              className="text-[12px] font-bold text-navy-700 hover:underline"
+              className="text-[12px] font-bold text-link hover:underline"
             >
               Tất cả
             </Link>

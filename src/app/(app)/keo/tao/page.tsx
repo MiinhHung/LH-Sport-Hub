@@ -29,7 +29,7 @@ export default async function CreateChallengePage() {
     <div className="mx-auto max-w-2xl space-y-5">
       <Link
         href="/keo"
-        className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-ink-500 transition-colors hover:text-navy-900"
+        className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-ink-500 transition-colors hover:text-ink-100"
       >
         <ArrowLeft className="size-4" aria-hidden />
         Tất cả kèo

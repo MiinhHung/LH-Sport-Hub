@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { BottomNav, TopNav } from "@/components/nav";
+import { ThemeToggle } from "@/components/theme";
 import { UserMenu } from "@/components/user-menu";
 import { requireProfile } from "@/lib/auth";
 import { unreadConversationCount } from "@/lib/chat";
@@ -28,7 +29,20 @@ export default async function AppLayout({
             aria-label="Light Human Sport Hub — về bảng tin"
             className="group flex shrink-0 items-center gap-2.5"
           >
-            {/* next/image để file logo 340KB không tải nguyên cỡ cho ô 36px. */}
+            {/*
+              HAI BẢN LOGO, ĐỔI THEO NỀN.
+
+              logo.png có nền TRẮNG ĐẶC; ở nền sáng nó tan đi được là nhờ
+              mix-blend-multiply. Nhưng multiply với nền tối cho ra tối —
+              nghĩa là trên nền tối cái logo biến mất hẳn, không phải mờ
+              đi. Nên nền tối dùng bản đã tách nền sẵn.
+
+              Cả hai đều dựng ra HTML từ máy chủ và để CSS chọn hiện cái
+              nào; chọn bằng JavaScript sẽ nháy sai logo một nhịp mỗi lần
+              tải trang.
+
+              next/image để file logo 340KB không tải nguyên cỡ cho ô 36px.
+            */}
             <Image
               src="/logo.png"
               alt=""
@@ -36,14 +50,23 @@ export default async function AppLayout({
               width={36}
               height={36}
               priority
-              className="h-9 w-9 object-contain mix-blend-multiply transition-transform duration-300 group-hover:scale-105"
+              className="h-9 w-9 object-contain mix-blend-multiply transition-transform duration-300 group-hover:scale-105 dark:hidden"
               style={{ objectPosition: "center 28%" }}
             />
+            <Image
+              src="/logo-light.png"
+              alt=""
+              aria-hidden
+              width={656}
+              height={562}
+              priority
+              className="hidden h-9 w-auto object-contain transition-transform duration-300 group-hover:scale-105 dark:block"
+            />
             <span className="hidden leading-none sm:block">
-              <span className="font-display block text-[15px] font-bold text-navy-900">
+              <span className="font-display block text-[15px] font-bold text-ink-100">
                 Light Human
               </span>
-              <span className="mt-0.5 block text-[13px] font-semibold tracking-[0.14em] text-gold-600 uppercase">
+              <span className="mt-0.5 block text-[13px] font-semibold tracking-[0.14em] text-gold-600 dark:text-gold-300 uppercase">
                 Sport Hub
               </span>
             </span>
@@ -62,13 +85,17 @@ export default async function AppLayout({
                 ? `Tin nhắn — ${unreadMessages} cuộc chưa đọc`
                 : "Tin nhắn"
             }
-            className="relative grid size-9 shrink-0 place-items-center rounded-xl text-ink-500 transition-colors hover:bg-ink-850 hover:text-navy-900"
+            className="relative grid size-9 shrink-0 place-items-center rounded-xl text-ink-500 transition-colors hover:bg-ink-850 hover:text-ink-100"
           >
             <MessagesSquare className="size-[18px]" strokeWidth={2} />
             {unreadMessages > 0 && (
               <span className="absolute top-1 right-1 size-2.5 rounded-full bg-gold-500 ring-2 ring-ink-950" />
             )}
           </Link>
+
+          {/* Công tắc sáng/tối. Ẩn trên điện thoại — thanh trên ở đó đã
+              chật, nên bản nhỏ nằm trong menu tài khoản. */}
+          <ThemeToggle className="hidden sm:block" />
 
           <UserMenu
             id={profile.id}

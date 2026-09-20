@@ -109,7 +109,7 @@ export function PageIntro({
       <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-4">
         <div className="min-w-0">
           {eyebrow && (
-            <p className="text-[11px] font-semibold tracking-[0.2em] text-gold-600 uppercase">
+            <p className="text-[11px] font-semibold tracking-[0.2em] text-gold-600 dark:text-gold-300 uppercase">
               {eyebrow}
             </p>
           )}
@@ -157,14 +157,14 @@ export function SectionTitle({
  * vốn dành cho nền tối, đặt lên nền sáng thì đọc không nổi.
  */
 const TONES = {
-  lime: "bg-gold-50 text-gold-700 border-gold-200",
-  emerald: "bg-emerald-50 text-emerald-700 border-emerald-200",
-  amber: "bg-amber-50 text-amber-800 border-amber-200",
-  rose: "bg-rose-50 text-rose-700 border-rose-200",
-  sky: "bg-sky-50 text-sky-700 border-sky-200",
-  violet: "bg-violet-50 text-violet-700 border-violet-200",
+  lime: "bg-gold-50 dark:bg-gold-400/10 text-gold-700 dark:text-gold-300 border-gold-200 dark:border-gold-400/30",
+  emerald: "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-400/30",
+  amber: "bg-amber-50 dark:bg-amber-500/10 text-amber-800 dark:text-amber-300 border-amber-200 dark:border-amber-400/30",
+  rose: "bg-rose-50 dark:bg-rose-500/10 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-400/30",
+  sky: "bg-sky-50 dark:bg-sky-500/10 text-sky-700 dark:text-sky-300 border-sky-200 dark:border-sky-400/30",
+  violet: "bg-violet-50 dark:bg-violet-500/10 text-violet-700 dark:text-violet-300 border-violet-200 dark:border-violet-400/30",
   slate: "bg-ink-850 text-ink-400 border-ink-800",
-  navy: "bg-navy-50 text-navy-800 border-navy-100",
+  navy: "bg-navy-50 dark:bg-navy-600/15 text-ink-100 border-navy-100 dark:border-navy-600/35",
 } as const;
 
 export type Tone = keyof typeof TONES;
@@ -245,7 +245,7 @@ export function Field({
       </label>
       {children}
       {error ? (
-        <p className="flex items-start gap-1 text-xs font-medium text-rose-600">
+        <p className="flex items-start gap-1 text-xs font-medium text-rose-600 dark:text-rose-400">
           {error}
         </p>
       ) : hint ? (
@@ -300,7 +300,7 @@ export function EmptyState({
   return (
     <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-ink-700 bg-ink-900/60 px-6 py-14 text-center">
       {icon && (
-        <div className="mb-4 grid size-12 place-items-center rounded-2xl bg-gold-50 text-gold-600 ring-1 ring-gold-200">
+        <div className="mb-4 grid size-12 place-items-center rounded-2xl bg-gold-50 dark:bg-gold-400/10 text-gold-600 dark:text-gold-300 ring-1 ring-gold-200">
           {icon}
         </div>
       )}

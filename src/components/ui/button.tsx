@@ -20,7 +20,7 @@ const VARIANTS = {
   danger:
     "bg-rose-600 text-white font-semibold shadow-[var(--shadow-card)] hover:bg-rose-700 active:translate-y-px",
   outline:
-    "border border-navy-900/20 text-navy-900 font-medium hover:border-navy-900/40 hover:bg-navy-50 active:translate-y-px",
+    "border border-ink-100/20 text-ink-100 font-medium hover:border-ink-100/40 hover:bg-navy-50 dark:hover:bg-navy-600/15 active:translate-y-px",
 } as const;
 
 const SIZES = {

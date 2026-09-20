@@ -81,7 +81,7 @@ function TeamSide({
         className={cn(
           "w-full truncate text-[11.5px] leading-tight",
           align === "right" && "text-right",
-          isMine ? "font-bold text-navy-900" : "font-medium text-ink-500",
+          isMine ? "font-bold text-ink-100" : "font-medium text-ink-500",
         )}
       >
         {members.length === 0
@@ -150,9 +150,9 @@ export function ChallengeCard({
               key="status"
               className={cn(
                 "flex items-center gap-1.5",
-                challenge.status === "open" && "text-gold-700",
-                challenge.status === "disputed" && "text-rose-600",
-                challenge.status === "completed" && "text-emerald-700",
+                challenge.status === "open" && "text-gold-700 dark:text-gold-300",
+                challenge.status === "disputed" && "text-rose-600 dark:text-rose-400",
+                challenge.status === "completed" && "text-emerald-700 dark:text-emerald-300",
               )}
             >
               <Dot tone={statusMeta.tone} />
@@ -178,7 +178,7 @@ export function ChallengeCard({
 
       {/* Tiêu đề — cỡ chữ lớn hơn và dùng font serif, để nó là thứ đập vào
           mắt đầu tiên thay vì hàng nhãn phía trên. */}
-      <h3 className="font-display mt-2 text-[21px] leading-[1.15] font-bold text-ink-100 transition-colors group-hover:text-navy-700 sm:text-[23px]">
+      <h3 className="font-display mt-2 text-[21px] leading-[1.15] font-bold text-ink-100 transition-colors group-hover:text-link sm:text-[23px]">
         {challenge.title}
       </h3>
       {challenge.description && (
@@ -202,7 +202,7 @@ export function ChallengeCard({
           {challenge.result?.status === "confirmed" &&
           challenge.result.scoreA !== null &&
           challenge.result.scoreB !== null ? (
-            <span className="font-display tabular text-[19px] leading-none font-bold text-navy-900">
+            <span className="font-display tabular text-[19px] leading-none font-bold text-ink-100">
               {challenge.result.scoreA}–{challenge.result.scoreB}
             </span>
           ) : (
@@ -234,7 +234,7 @@ export function ChallengeCard({
           {stake.icon}
         </span>
         <div className="min-w-0 flex-1">
-          <p className="truncate text-[15.5px] leading-tight font-bold text-gold-700">
+          <p className="truncate text-[15.5px] leading-tight font-bold text-gold-700 dark:text-gold-300">
             {formatStake(stakeKey, challenge.stakeQty, challenge.stakeNote)}
           </p>
           <p className="mt-0.5 text-[10.5px] font-semibold tracking-[0.12em] text-ink-500 uppercase">
@@ -242,7 +242,7 @@ export function ChallengeCard({
           </p>
         </div>
         {challenge.status === "open" && openSlots > 0 && (
-          <span className="shrink-0 text-right text-[11.5px] leading-tight font-bold text-gold-700">
+          <span className="shrink-0 text-right text-[11.5px] leading-tight font-bold text-gold-700 dark:text-gold-300">
             Còn {openSlots}
             <br />
             <span className="font-semibold text-ink-500">chỗ trống</span>
@@ -272,7 +272,7 @@ export function ChallengeCard({
             </span>
           )}
           {myTeam && (
-            <span className="ml-auto font-bold text-navy-800">Có bạn</span>
+            <span className="ml-auto font-bold text-ink-100">Có bạn</span>
           )}
         </div>
       )}

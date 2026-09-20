@@ -89,7 +89,7 @@ export default async function NotificationsPage() {
               key={n.id}
               className={cn(
                 "relative flex items-start gap-3 p-4 transition-colors",
-                !n.isRead && "bg-gold-50/60",
+                !n.isRead && "bg-gold-50/60 dark:bg-gold-400/10",
               )}
             >
               {!n.isRead && (
@@ -150,7 +150,7 @@ export default async function NotificationsPage() {
                   {n.href && (
                     <Link
                       href={n.href}
-                      className="text-xs font-bold text-navy-700 underline-offset-2 hover:underline"
+                      className="text-xs font-bold text-link underline-offset-2 hover:underline"
                     >
                       Xem chi tiết
                     </Link>

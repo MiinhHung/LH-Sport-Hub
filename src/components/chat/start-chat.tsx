@@ -37,7 +37,7 @@ export function StartChatTile({
         </span>
       </button>
       {state.status === "error" && state.message && (
-        <p className="mt-1 text-[10.5px] text-rose-600">{state.message}</p>
+        <p className="mt-1 text-[10.5px] text-rose-600 dark:text-rose-400">{state.message}</p>
       )}
     </form>
   );
@@ -62,7 +62,7 @@ export function StartChatButton({
         {label}
       </SubmitButton>
       {state.status === "error" && state.message && (
-        <p className="mt-1 text-[11px] text-rose-600">{state.message}</p>
+        <p className="mt-1 text-[11px] text-rose-600 dark:text-rose-400">{state.message}</p>
       )}
     </form>
   );

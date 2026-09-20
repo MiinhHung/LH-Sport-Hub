@@ -84,7 +84,7 @@ export default async function AdminPage() {
               key={p.id}
               className={cn(
                 "flex flex-wrap items-center gap-3 p-4",
-                p.status === "suspended" && "bg-rose-50/50",
+                p.status === "suspended" && "bg-rose-50/50 dark:bg-rose-500/10",
               )}
             >
               <Avatar
@@ -141,7 +141,7 @@ export default async function AdminPage() {
                   key={log.id}
                   className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 border-b border-ink-800 pb-2 last:border-0 last:pb-0"
                 >
-                  <code className="rounded bg-ink-850 px-1.5 py-0.5 text-[11.5px] font-semibold text-navy-800">
+                  <code className="rounded bg-ink-850 px-1.5 py-0.5 text-[11.5px] font-semibold text-ink-100">
                     {log.action}
                   </code>
                   <span className="text-[13px] text-ink-400">

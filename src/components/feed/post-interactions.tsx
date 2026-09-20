@@ -120,7 +120,7 @@ function ReactionControl({
           "inline-flex items-center gap-1.5 rounded-lg font-semibold transition-colors",
           compact ? "px-1.5 py-0.5 text-[11.5px]" : "px-2.5 py-1.5 text-[12.5px]",
           mine
-            ? "text-gold-700 hover:bg-gold-50"
+            ? "text-gold-700 dark:text-gold-300 hover:bg-gold-50 dark:hover:bg-gold-400/10"
             : "text-ink-500 hover:bg-ink-850 hover:text-ink-300",
         )}
       >
@@ -206,7 +206,7 @@ function CommentRow({
       />
       <div className="min-w-0 flex-1">
         <div className="inline-block max-w-full rounded-2xl rounded-tl-md bg-ink-850 px-3.5 py-2">
-          <p className="text-[13px] font-bold text-navy-900">
+          <p className="text-[13px] font-bold text-ink-100">
             {comment.author.fullName}
           </p>
           <p className="mt-0.5 text-[14px] leading-relaxed break-words whitespace-pre-wrap text-ink-300">
@@ -231,7 +231,7 @@ function CommentRow({
             <button
               type="button"
               onClick={remove}
-              className="rounded px-1.5 py-0.5 text-[11px] font-semibold text-ink-500 opacity-0 transition-opacity group-hover:opacity-100 hover:text-rose-600 focus-visible:opacity-100"
+              className="rounded px-1.5 py-0.5 text-[11px] font-semibold text-ink-500 opacity-0 transition-opacity group-hover:opacity-100 hover:text-rose-600 dark:text-rose-400 focus-visible:opacity-100"
             >
               <Trash2 className="size-3" />
               <span className="sr-only">Xoá bình luận</span>
@@ -311,7 +311,7 @@ export function PostInteractions({
           <button
             type="button"
             onClick={() => setShowAll(true)}
-            className="text-[12.5px] font-bold text-navy-700 hover:underline"
+            className="text-[12.5px] font-bold text-link hover:underline"
           >
             Xem thêm {hidden} bình luận
           </button>
@@ -366,7 +366,7 @@ export function PostInteractions({
               </button>
             </div>
             {error && (
-              <p className="mt-1 text-[12px] font-medium text-rose-600">
+              <p className="mt-1 text-[12px] font-medium text-rose-600 dark:text-rose-400">
                 {error}
               </p>
             )}

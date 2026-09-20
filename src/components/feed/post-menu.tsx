@@ -74,7 +74,7 @@ export function PostMenu({
               type="button"
               role="menuitem"
               onClick={() => run(togglePinPostAction)}
-              className="flex w-full items-center gap-2.5 px-3.5 py-2.5 text-[13.5px] font-medium text-ink-300 transition-colors hover:bg-ink-850 hover:text-navy-900"
+              className="flex w-full items-center gap-2.5 px-3.5 py-2.5 text-[13.5px] font-medium text-ink-300 transition-colors hover:bg-ink-850 hover:text-ink-100"
             >
               {isPinned ? (
                 <PinOff className="size-4 text-ink-500" />
@@ -91,7 +91,7 @@ export function PostMenu({
               onClick={() =>
                 run(deletePostAction, "Xoá bài này? Không khôi phục lại được.")
               }
-              className="flex w-full items-center gap-2.5 px-3.5 py-2.5 text-[13.5px] font-medium text-rose-600 transition-colors hover:bg-rose-50"
+              className="flex w-full items-center gap-2.5 px-3.5 py-2.5 text-[13.5px] font-medium text-rose-600 dark:text-rose-400 transition-colors hover:bg-rose-50 dark:hover:bg-rose-500/10"
             >
               <Trash2 className="size-4" />
               Xoá bài
@@ -101,7 +101,7 @@ export function PostMenu({
       )}
 
       {error && (
-        <p className="absolute right-0 z-20 mt-1 w-52 rounded-lg border border-rose-200 bg-rose-50 px-2.5 py-1.5 text-[11.5px] font-medium text-rose-700">
+        <p className="absolute right-0 z-20 mt-1 w-52 rounded-lg border border-rose-200 dark:border-rose-400/30 bg-rose-50 dark:bg-rose-500/10 px-2.5 py-1.5 text-[11.5px] font-medium text-rose-700 dark:text-rose-300">
           {error}
         </p>
       )}

@@ -40,9 +40,9 @@ export function SessionOwnerActions({
 
   if (cancelling) {
     return (
-      <Card className="w-full border-rose-200 bg-rose-50">
+      <Card className="w-full border-rose-200 dark:border-rose-400/30 bg-rose-50 dark:bg-rose-500/10">
         <CardBody>
-          <h3 className="mb-3 text-sm font-bold text-rose-700">
+          <h3 className="mb-3 text-sm font-bold text-rose-700 dark:text-rose-300">
             Huỷ buổi tập này?
           </h3>
           <form action={cancelAction} className="space-y-3">
@@ -82,7 +82,7 @@ export function SessionOwnerActions({
           variant="ghost"
           size="sm"
           onClick={() => setCancelling(true)}
-          className="text-ink-500 hover:text-rose-600"
+          className="text-ink-500 hover:text-rose-600 dark:text-rose-400"
         >
           <X className="size-4" />
           Huỷ buổi
@@ -99,7 +99,7 @@ export function SessionOwnerActions({
         <SubmitButton
           variant="ghost"
           size="sm"
-          className="text-rose-600 hover:bg-rose-50 hover:text-rose-700"
+          className="text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 hover:text-rose-700 dark:text-rose-300"
           pendingText="Đang xoá…"
         >
           <Trash2 className="size-4" />

@@ -36,9 +36,9 @@ function Crown({
   if (!entry) return null;
 
   const tones = {
-    gold: "border-gold-200 bg-gold-50",
-    rose: "border-rose-200 bg-rose-50",
-    sky: "border-sky-200 bg-sky-50",
+    gold: "border-gold-200 dark:border-gold-400/30 bg-gold-50 dark:bg-gold-400/10",
+    rose: "border-rose-200 dark:border-rose-400/30 bg-rose-50 dark:bg-rose-500/10",
+    sky: "border-sky-200 dark:border-sky-400/30 bg-sky-50 dark:bg-sky-500/10",
   };
   const chips = {
     gold: "bg-gold-500",
@@ -206,7 +206,7 @@ export default async function LeaderboardPage() {
                       key={entry.profile.id}
                       className={cn(
                         "grid grid-cols-[auto_1fr_auto] items-center gap-3 px-4 py-3 sm:grid-cols-[auto_1fr_repeat(4,4.5rem)]",
-                        isMe && "bg-navy-50",
+                        isMe && "bg-navy-50 dark:bg-navy-600/15",
                       )}
                     >
                       <RankBadge rank={i + 1} />
@@ -222,7 +222,7 @@ export default async function LeaderboardPage() {
                           <p className="truncate text-[14px] font-semibold text-ink-200">
                             {entry.profile.fullName}
                             {isMe && (
-                              <span className="ml-1.5 text-[11px] font-bold text-navy-700">
+                              <span className="ml-1.5 text-[11px] font-bold text-link">
                                 bạn
                               </span>
                             )}
@@ -232,14 +232,14 @@ export default async function LeaderboardPage() {
                             {Math.round(entry.winRate * 100)}%
                           </p>
                           {entry.currentStreak >= 2 && (
-                            <p className="hidden text-[11px] font-semibold text-gold-700 sm:block">
+                            <p className="hidden text-[11px] font-semibold text-gold-700 dark:text-gold-300 sm:block">
                               🔥 {entry.currentStreak} trận thắng liên tiếp
                             </p>
                           )}
                         </div>
                       </div>
 
-                      <span className="tabular hidden text-right text-[14px] font-bold text-emerald-700 sm:block">
+                      <span className="tabular hidden text-right text-[14px] font-bold text-emerald-700 dark:text-emerald-300 sm:block">
                         {entry.wins}
                       </span>
                       <span className="tabular hidden text-right text-[14px] font-semibold text-ink-400 sm:block">

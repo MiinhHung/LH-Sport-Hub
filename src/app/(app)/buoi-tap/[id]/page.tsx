@@ -81,7 +81,7 @@ export default async function SessionDetailPage({
     <div className="mx-auto max-w-3xl space-y-5">
       <Link
         href="/buoi-tap"
-        className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-ink-500 transition-colors hover:text-navy-900"
+        className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-ink-500 transition-colors hover:text-ink-100"
       >
         <ArrowLeft className="size-4" aria-hidden />
         Lịch tập
@@ -94,7 +94,7 @@ export default async function SessionDetailPage({
           </Badge>
           <Badge tone={status.tone}>{status.label}</Badge>
           {session.status === "open" && (
-            <span className="text-[11.5px] font-semibold text-gold-700">
+            <span className="text-[11.5px] font-semibold text-gold-700 dark:text-gold-300">
               {timeUntil(session.startsAt)}
             </span>
           )}
@@ -106,9 +106,9 @@ export default async function SessionDetailPage({
       </header>
 
       {session.status === "cancelled" && session.cancellationReason && (
-        <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3">
-          <p className="text-[13px] font-bold text-rose-700">Buổi này đã huỷ</p>
-          <p className="mt-0.5 text-[13.5px] text-rose-800/80">
+        <div className="rounded-xl border border-rose-200 dark:border-rose-400/30 bg-rose-50 dark:bg-rose-500/10 px-4 py-3">
+          <p className="text-[13px] font-bold text-rose-700 dark:text-rose-300">Buổi này đã huỷ</p>
+          <p className="mt-0.5 text-[13.5px] text-rose-800 dark:text-rose-200/80">
             {session.cancellationReason}
           </p>
         </div>
@@ -266,7 +266,7 @@ export default async function SessionDetailPage({
                   <p className="truncate text-[14px] font-semibold text-ink-200">
                     {a.user.fullName}
                     {a.userId === session.creatorId && (
-                      <span className="ml-1.5 text-[11px] font-semibold text-gold-700">
+                      <span className="ml-1.5 text-[11px] font-semibold text-gold-700 dark:text-gold-300">
                         chủ kèo
                       </span>
                     )}

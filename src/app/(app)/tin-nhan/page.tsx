@@ -24,7 +24,7 @@ export default async function MessagesPage() {
   return (
     <div className="mx-auto max-w-2xl">
       <header className="pb-10">
-        <p className="text-[11px] font-semibold tracking-[0.2em] text-gold-600 uppercase">
+        <p className="text-[11px] font-semibold tracking-[0.2em] text-gold-600 dark:text-gold-300 uppercase">
           Riêng tư
         </p>
         <h1 className="font-display mt-2 text-[40px] leading-[1.05] font-bold text-ink-100 sm:text-[52px]">
@@ -94,7 +94,7 @@ export default async function MessagesPage() {
                   <div className="flex items-baseline justify-between gap-3">
                     <p
                       className={cn(
-                        "truncate text-[16.5px] transition-colors group-hover:text-navy-700",
+                        "truncate text-[16.5px] transition-colors group-hover:text-link",
                         c.unread
                           ? "font-bold text-ink-100"
                           : "font-semibold text-ink-200",

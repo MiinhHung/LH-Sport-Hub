@@ -12,12 +12,13 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
 import { signOutAction } from "@/actions/auth";
+import { ThemeToggle } from "@/components/theme";
 import { Avatar } from "@/components/ui";
 import { ROLES, type RoleKey } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
 const ITEM =
-  "flex w-full items-center gap-3 px-3.5 py-2.5 text-sm font-medium text-ink-300 transition-colors hover:bg-ink-850 hover:text-navy-900";
+  "flex w-full items-center gap-3 px-3.5 py-2.5 text-sm font-medium text-ink-300 transition-colors hover:bg-ink-850 hover:text-ink-100";
 
 export function UserMenu({
   id,
@@ -84,10 +85,10 @@ export function UserMenu({
           <div className="flex items-center gap-3 border-b border-ink-800 bg-ink-850/60 px-3.5 py-3">
             <Avatar name={fullName} src={avatarUrl} seed={id} size="md" />
             <div className="min-w-0">
-              <p className="truncate text-sm font-bold text-navy-900">
+              <p className="truncate text-sm font-bold text-ink-100">
                 {fullName}
               </p>
-              <p className="mt-0.5 text-[11.5px] font-semibold text-gold-600">
+              <p className="mt-0.5 text-[11.5px] font-semibold text-gold-600 dark:text-gold-300">
                 {ROLES[role].label}
               </p>
             </div>
@@ -138,11 +139,18 @@ export function UserMenu({
             )}
           </div>
 
+          {/* Bản cho điện thoại — trên máy tính công tắc đã nằm ở thanh
+              trên, nên chỉ hiện ở đây khi thanh trên không còn chỗ. */}
+          <div className="flex items-center justify-between gap-3 border-t border-ink-800 px-3.5 py-2.5 sm:hidden">
+            <span className="text-sm font-medium text-ink-300">Nền tối</span>
+            <ThemeToggle />
+          </div>
+
           <form action={signOutAction} className="border-t border-ink-800 py-1">
             <button
               type="submit"
               role="menuitem"
-              className="flex w-full items-center gap-3 px-3.5 py-2.5 text-sm font-medium text-rose-600 transition-colors hover:bg-rose-50"
+              className="flex w-full items-center gap-3 px-3.5 py-2.5 text-sm font-medium text-rose-600 dark:text-rose-400 transition-colors hover:bg-rose-50 dark:hover:bg-rose-500/10"
             >
               <LogOut className="size-4" />
               Đăng xuất

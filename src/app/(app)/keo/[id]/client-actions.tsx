@@ -140,7 +140,7 @@ export function CancelChallengeForm({ challengeId }: { challengeId: string }) {
         variant="ghost"
         size="sm"
         onClick={() => setOpen(true)}
-        className="text-rose-600 hover:bg-rose-50 hover:text-rose-700"
+        className="text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 hover:text-rose-700 dark:text-rose-300"
       >
         <X className="size-4" />
         Huỷ kèo
@@ -149,9 +149,9 @@ export function CancelChallengeForm({ challengeId }: { challengeId: string }) {
   }
 
   return (
-    <Card className="w-full border-rose-200 bg-rose-50">
+    <Card className="w-full border-rose-200 dark:border-rose-400/30 bg-rose-50 dark:bg-rose-500/10">
       <CardBody>
-        <h3 className="mb-3 text-sm font-bold text-rose-700">
+        <h3 className="mb-3 text-sm font-bold text-rose-700 dark:text-rose-300">
           Huỷ kèo này?
         </h3>
         <form action={action} className="space-y-3">
@@ -203,7 +203,7 @@ export function DeleteChallengeForm({ challengeId }: { challengeId: string }) {
       <SubmitButton
         variant="ghost"
         size="sm"
-        className="text-rose-600 hover:bg-rose-50 hover:text-rose-700"
+        className="text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 hover:text-rose-700 dark:text-rose-300"
         pendingText="Đang xoá…"
       >
         <Trash2 className="size-4" />
@@ -359,8 +359,8 @@ export function ConfirmResultActions({ challengeId }: { challengeId: string }) {
 
   if (disputing) {
     return (
-      <div className="mt-5 rounded-xl border border-rose-200 bg-rose-50 p-4">
-        <h3 className="mb-3 text-sm font-bold text-rose-700">
+      <div className="mt-5 rounded-xl border border-rose-200 dark:border-rose-400/30 bg-rose-50 dark:bg-rose-500/10 p-4">
+        <h3 className="mb-3 text-sm font-bold text-rose-700 dark:text-rose-300">
           Không đồng ý kết quả
         </h3>
         <form action={disputeAction} className="space-y-3">

@@ -46,7 +46,7 @@ export default async function MembersPage() {
             return (
               <Card
                 key={m.id}
-                className={cn("p-4", isMe && "border-navy-100 bg-navy-50")}
+                className={cn("p-4", isMe && "border-navy-100 dark:border-navy-600/35 bg-navy-50 dark:bg-navy-600/15")}
               >
                 <div className="flex items-center gap-3">
                   <Avatar
@@ -59,7 +59,7 @@ export default async function MembersPage() {
                     <p className="truncate text-[15px] font-bold text-ink-100">
                       {m.fullName}
                       {isMe && (
-                        <span className="ml-1.5 text-[11px] font-bold text-navy-700">
+                        <span className="ml-1.5 text-[11px] font-bold text-link">
                           bạn
                         </span>
                       )}
@@ -81,7 +81,7 @@ export default async function MembersPage() {
                     <dt className="text-[10.5px] font-semibold tracking-wide text-ink-500 uppercase">
                       Thắng
                     </dt>
-                    <dd className="tabular text-[15px] font-bold text-emerald-700">
+                    <dd className="tabular text-[15px] font-bold text-emerald-700 dark:text-emerald-300">
                       {stats?.wins ?? 0}
                     </dd>
                   </div>
@@ -101,7 +101,7 @@ export default async function MembersPage() {
                       className={cn(
                         "tabular text-[15px] font-bold",
                         (stats?.winRate ?? 0) >= 0.5
-                          ? "text-gold-700"
+                          ? "text-gold-700 dark:text-gold-300"
                           : "text-ink-600",
                       )}
                     >

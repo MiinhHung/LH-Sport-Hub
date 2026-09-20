@@ -130,7 +130,7 @@ export function BottomNav({ unread }: { unread: number }) {
                 <span
                   className={cn(
                     "text-[10.5px] leading-none font-semibold transition-colors",
-                    active ? "text-navy-900" : "text-ink-500",
+                    active ? "text-ink-100" : "text-ink-500",
                   )}
                 >
                   {item.short}
@@ -167,7 +167,7 @@ function TopNavItem({ item, active }: { item: Item; active: boolean }) {
         className={cn(
           "relative flex items-center gap-2 rounded-lg px-3 py-2 text-[13.5px] font-semibold transition-colors duration-200",
           active
-            ? "bg-ink-850 text-navy-900"
+            ? "bg-ink-850 text-ink-100"
             : "text-ink-500 hover:bg-ink-850/70 hover:text-ink-200",
         )}
       >

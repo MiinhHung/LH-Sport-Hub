@@ -38,7 +38,7 @@ export default async function ConversationPage({
     <div className="mx-auto flex h-[calc(100dvh-13rem)] max-w-2xl flex-col md:h-[calc(100dvh-11rem)]">
       <Link
         href="/tin-nhan"
-        className="inline-flex items-center gap-1.5 self-start text-[13px] font-semibold text-ink-500 transition-colors hover:text-navy-900"
+        className="inline-flex items-center gap-1.5 self-start text-[13px] font-semibold text-ink-500 transition-colors hover:text-ink-100"
       >
         <ArrowLeft className="size-4" aria-hidden />
         Tin nhắn

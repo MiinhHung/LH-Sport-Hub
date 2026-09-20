@@ -39,10 +39,10 @@ function buildHref(tab: string, sport: string | null) {
 }
 
 const TODO_STYLES = {
-  violet: "border-violet-200 bg-violet-50 hover:bg-violet-100/70",
-  amber: "border-amber-200 bg-amber-50 hover:bg-amber-100/70",
-  sky: "border-sky-200 bg-sky-50 hover:bg-sky-100/70",
-  rose: "border-rose-200 bg-rose-50 hover:bg-rose-100/70",
+  violet: "border-violet-200 dark:border-violet-400/30 bg-violet-50 dark:bg-violet-500/10 hover:bg-violet-100/70 dark:hover:bg-violet-500/20",
+  amber: "border-amber-200 dark:border-amber-400/30 bg-amber-50 dark:bg-amber-500/10 hover:bg-amber-100/70 dark:hover:bg-amber-500/20",
+  sky: "border-sky-200 dark:border-sky-400/30 bg-sky-50 dark:bg-sky-500/10 hover:bg-sky-100/70 dark:hover:bg-sky-500/20",
+  rose: "border-rose-200 dark:border-rose-400/30 bg-rose-50 dark:bg-rose-500/10 hover:bg-rose-100/70 dark:hover:bg-rose-500/20",
 } as const;
 
 const TODO_ICON_STYLES = {
@@ -204,7 +204,7 @@ export default async function ChallengesPage({
               className={cn(
                 "-mb-px border-b-2 pb-2.5 text-[14px] font-semibold whitespace-nowrap transition-colors duration-200",
                 tab === t.key
-                  ? "border-navy-900 text-navy-900"
+                  ? "border-ink-100 text-ink-100"
                   : "border-transparent text-ink-500 hover:border-ink-700 hover:text-ink-200",
               )}
             >
@@ -219,7 +219,7 @@ export default async function ChallengesPage({
             className={cn(
               "text-[11px] font-semibold tracking-[0.12em] whitespace-nowrap uppercase transition-colors",
               !sport
-                ? "text-gold-700"
+                ? "text-gold-700 dark:text-gold-300"
                 : "text-ink-500 hover:text-ink-300",
             )}
           >
@@ -232,7 +232,7 @@ export default async function ChallengesPage({
               className={cn(
                 "text-[11px] font-semibold tracking-[0.12em] whitespace-nowrap uppercase transition-colors",
                 sport === key
-                  ? "text-gold-700"
+                  ? "text-gold-700 dark:text-gold-300"
                   : "text-ink-500 hover:text-ink-300",
               )}
             >

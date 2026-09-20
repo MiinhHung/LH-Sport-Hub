@@ -31,8 +31,8 @@ function Choice({
       aria-pressed={active}
       className={cn(
         "flex flex-1 items-center justify-center gap-2 rounded-xl border px-4 py-3 text-sm font-bold transition-all duration-200 disabled:opacity-60",
-        active && tone === "gold" && "border-gold-300 bg-gold-100 text-gold-700",
-        active && tone === "rose" && "border-rose-200 bg-rose-100 text-rose-700",
+        active && tone === "gold" && "border-gold-300 bg-gold-100 dark:bg-gold-400/20 text-gold-700 dark:text-gold-300",
+        active && tone === "rose" && "border-rose-200 dark:border-rose-400/30 bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300",
         !active &&
           "border-ink-700 bg-ink-900 text-ink-400 hover:border-ink-600 hover:bg-ink-850 hover:text-ink-200 active:translate-y-px",
       )}

@@ -38,14 +38,14 @@ export default async function ArticlePage({
     <article className="mx-auto max-w-[44rem]">
       <Link
         href="/cam-nang"
-        className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-ink-500 transition-colors hover:text-navy-900"
+        className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-ink-500 transition-colors hover:text-ink-100"
       >
         <ArrowLeft className="size-4" aria-hidden />
         Cẩm nang
       </Link>
 
       <header className="pt-6 pb-2">
-        <p className="text-[11px] font-semibold tracking-[0.2em] text-gold-600 uppercase">
+        <p className="text-[11px] font-semibold tracking-[0.2em] text-gold-600 dark:text-gold-300 uppercase">
           {article.category}
         </p>
         <h1 className="font-display mt-3 text-[34px] leading-[1.08] font-bold text-ink-100 sm:text-[44px]">
@@ -92,7 +92,7 @@ export default async function ArticlePage({
           className="group mt-3 flex items-center justify-between gap-4"
         >
           <span className="min-w-0">
-            <span className="font-display block text-[20px] leading-tight font-bold text-ink-100 transition-colors group-hover:text-navy-700">
+            <span className="font-display block text-[20px] leading-tight font-bold text-ink-100 transition-colors group-hover:text-link">
               {next.title}
             </span>
             <span className="mt-1 block truncate text-[13.5px] text-ink-500">

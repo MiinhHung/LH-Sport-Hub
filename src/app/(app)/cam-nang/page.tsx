@@ -98,13 +98,13 @@ function ArticleCard({ article }: { article: Article }) {
             <BookOpen className="size-9 text-white/35" aria-hidden />
           </div>
         )}
-        <span className="absolute top-3 left-3 rounded-md bg-ink-950/85 px-2 py-1 text-[10.5px] font-bold tracking-wide text-navy-900 uppercase backdrop-blur-sm">
+        <span className="absolute top-3 left-3 rounded-md bg-ink-950/85 px-2 py-1 text-[10.5px] font-bold tracking-wide text-ink-100 uppercase backdrop-blur-sm">
           {article.category}
         </span>
       </div>
 
       <div className="flex flex-1 flex-col bg-ink-900 p-4">
-        <h3 className="text-[16.5px] leading-snug font-bold text-ink-100 transition-colors group-hover:text-navy-700">
+        <h3 className="text-[16.5px] leading-snug font-bold text-ink-100 transition-colors group-hover:text-link">
           {article.title}
         </h3>
         <p className="mt-2 line-clamp-2 flex-1 text-[13.5px] leading-relaxed text-ink-500">

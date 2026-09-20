@@ -165,7 +165,7 @@ export function PostComposer({
                         className={cn(
                           "inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[12.5px] font-semibold transition-colors",
                           active
-                            ? "bg-gold-100 text-gold-700"
+                            ? "bg-gold-100 dark:bg-gold-400/20 text-gold-700 dark:text-gold-300"
                             : "text-ink-500 hover:bg-ink-850 hover:text-ink-300",
                         )}
                       >
@@ -186,7 +186,7 @@ export function PostComposer({
                       type="button"
                       onClick={() => fileRef.current?.click()}
                       disabled={drafts.length >= MAX_POST_IMAGES}
-                      className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[12.5px] font-semibold text-ink-500 transition-colors hover:bg-ink-850 hover:text-navy-800 disabled:opacity-40"
+                      className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[12.5px] font-semibold text-ink-500 transition-colors hover:bg-ink-850 hover:text-ink-100 disabled:opacity-40"
                     >
                       <ImagePlus className="size-4" />
                       Ảnh
@@ -199,7 +199,7 @@ export function PostComposer({
                       <span
                         className={cn(
                           "tabular text-[12px] font-semibold",
-                          overLimit ? "text-rose-600" : "text-ink-500",
+                          overLimit ? "text-rose-600 dark:text-rose-400" : "text-ink-500",
                         )}
                       >
                         {content.length}/{LIMITS.postContent}

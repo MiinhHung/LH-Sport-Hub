@@ -71,12 +71,12 @@ export function PostCard({
     <Card
       className={cn(
         "overflow-hidden",
-        post.isPinned && "border-gold-200",
-        isAnnouncement && "border-amber-200",
+        post.isPinned && "border-gold-200 dark:border-gold-400/30",
+        isAnnouncement && "border-amber-200 dark:border-amber-400/30",
       )}
     >
       {post.isPinned && (
-        <p className="flex items-center gap-1.5 border-b border-gold-200 bg-gold-50 px-4 py-1.5 text-[11.5px] font-bold text-gold-700 sm:px-5">
+        <p className="flex items-center gap-1.5 border-b border-gold-200 dark:border-gold-400/30 bg-gold-50 dark:bg-gold-400/10 px-4 py-1.5 text-[11.5px] font-bold text-gold-700 dark:text-gold-300 sm:px-5">
           <Pin className="size-3.5" aria-hidden />
           Bài được ghim
         </p>
@@ -92,7 +92,7 @@ export function PostCard({
             size="md"
           />
           <div className="min-w-0 flex-1">
-            <p className="truncate text-[14.5px] leading-tight font-bold text-navy-900">
+            <p className="truncate text-[14.5px] leading-tight font-bold text-ink-100">
               {post.author.fullName}
             </p>
             <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11.5px] text-ink-500">
@@ -134,18 +134,18 @@ export function PostCard({
             {post.challenge && (
               <Link
                 href={`/keo/${post.challenge.id}`}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-ink-800 bg-ink-850 px-2.5 py-1.5 text-[12.5px] font-semibold text-navy-800 transition-colors hover:border-ink-700 hover:bg-ink-900"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-ink-800 bg-ink-850 px-2.5 py-1.5 text-[12.5px] font-semibold text-ink-100 transition-colors hover:border-ink-700 hover:bg-ink-900"
               >
-                <Swords className="size-3.5 text-gold-600" aria-hidden />
+                <Swords className="size-3.5 text-gold-600 dark:text-gold-300" aria-hidden />
                 {post.challenge.title}
               </Link>
             )}
             {post.session && (
               <Link
                 href={`/buoi-tap/${post.session.id}`}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-ink-800 bg-ink-850 px-2.5 py-1.5 text-[12.5px] font-semibold text-navy-800 transition-colors hover:border-ink-700 hover:bg-ink-900"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-ink-800 bg-ink-850 px-2.5 py-1.5 text-[12.5px] font-semibold text-ink-100 transition-colors hover:border-ink-700 hover:bg-ink-900"
               >
-                <CalendarDays className="size-3.5 text-gold-600" aria-hidden />
+                <CalendarDays className="size-3.5 text-gold-600 dark:text-gold-300" aria-hidden />
                 {post.session.title}
                 <span className="font-normal text-ink-500">
                   {formatDateTime(post.session.startsAt)}

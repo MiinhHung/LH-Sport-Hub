@@ -81,7 +81,7 @@ export function MemberControls({
         </form>
       </div>
 
-      {error && <p className="text-[12px] font-medium text-rose-600">{error}</p>}
+      {error && <p className="text-[12px] font-medium text-rose-600 dark:text-rose-400">{error}</p>}
     </div>
   );
 }

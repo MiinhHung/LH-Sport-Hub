@@ -82,23 +82,23 @@ export default async function SessionsPage() {
                             {sport.icon} {sport.label}
                           </span>,
                           isGoing ? (
-                            <span key="going" className="text-emerald-700">
+                            <span key="going" className="text-emerald-700 dark:text-emerald-300">
                               Bạn có đi
                             </span>
                           ) : null,
                           isFull ? (
-                            <span key="full" className="text-rose-600">
+                            <span key="full" className="text-rose-600 dark:text-rose-400">
                               Đã đủ người
                             </span>
                           ) : null,
                         ]}
                       />
-                      <span className="shrink-0 text-[10.5px] font-semibold tracking-wide text-gold-700">
+                      <span className="shrink-0 text-[10.5px] font-semibold tracking-wide text-gold-700 dark:text-gold-300">
                         {timeUntil(session.startsAt)}
                       </span>
                     </div>
 
-                    <h3 className="font-display mt-2 text-[21px] leading-[1.15] font-bold text-ink-100 transition-colors group-hover:text-navy-700 sm:text-[23px]">
+                    <h3 className="font-display mt-2 text-[21px] leading-[1.15] font-bold text-ink-100 transition-colors group-hover:text-link sm:text-[23px]">
                       {session.title}
                     </h3>
 

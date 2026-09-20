@@ -76,9 +76,9 @@ function TeamColumn({
       className={cn(
         "flex flex-col rounded-2xl border p-4 transition-colors",
         isWinner
-          ? "border-gold-300 bg-gold-50"
+          ? "border-gold-300 bg-gold-50 dark:bg-gold-400/10"
           : myTeam === team
-            ? "border-navy-100 bg-navy-50"
+            ? "border-navy-100 dark:border-navy-600/35 bg-navy-50 dark:bg-navy-600/15"
             : "border-ink-800 bg-ink-850/60",
       )}
     >
@@ -208,7 +208,7 @@ export default async function ChallengeDetailPage({
     <div className="mx-auto max-w-3xl space-y-5">
       <Link
         href="/keo"
-        className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-ink-500 transition-colors hover:text-navy-900"
+        className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-ink-500 transition-colors hover:text-ink-100"
       >
         <ArrowLeft className="size-4" aria-hidden />
         Tất cả kèo
@@ -239,15 +239,15 @@ export default async function ChallengeDetailPage({
       </header>
 
       {/* Phần thưởng — luôn nổi bật nhất */}
-      <div className="flex items-center gap-4 rounded-2xl border border-gold-200 bg-gold-50 p-4">
+      <div className="flex items-center gap-4 rounded-2xl border border-gold-200 dark:border-gold-400/30 bg-gold-50 dark:bg-gold-400/10 p-4">
         <span className="text-3xl leading-none" aria-hidden>
           {STAKES[stakeKey].icon}
         </span>
         <div className="min-w-0 flex-1">
-          <p className="text-[10.5px] font-bold tracking-[0.1em] text-gold-600 uppercase">
+          <p className="text-[10.5px] font-bold tracking-[0.1em] text-gold-600 dark:text-gold-300 uppercase">
             Cả đội thua bao cả đội thắng
           </p>
-          <p className="mt-0.5 text-xl leading-tight font-bold text-gold-700">
+          <p className="mt-0.5 text-xl leading-tight font-bold text-gold-700 dark:text-gold-300">
             {formatStake(stakeKey, challenge.stakeQty, challenge.stakeNote)}
           </p>
         </div>
@@ -255,12 +255,12 @@ export default async function ChallengeDetailPage({
 
       {/* Lời mời đang chờ bạn */}
       {respondDec.ok && (
-        <Card className="border-violet-200 bg-violet-50">
+        <Card className="border-violet-200 dark:border-violet-400/30 bg-violet-50 dark:bg-violet-500/10">
           <CardBody>
-            <h2 className="mb-1 text-base font-bold text-violet-800">
+            <h2 className="mb-1 text-base font-bold text-violet-800 dark:text-violet-200">
               Bạn bị thách kèo này
             </h2>
-            <p className="mb-4 text-[13.5px] text-violet-700/80">
+            <p className="mb-4 text-[13.5px] text-violet-700 dark:text-violet-300/80">
               Nhận hay né? Nhận rồi thì nhớ đánh, thua phải bao đấy.
             </p>
             <RespondInviteForm challengeId={challenge.id} />
@@ -302,8 +302,8 @@ export default async function ChallengeDetailPage({
       {challenge.result && (
         <Card
           className={cn(
-            challenge.status === "disputed" && "border-rose-200",
-            challenge.status === "pending_confirm" && "border-violet-200",
+            challenge.status === "disputed" && "border-rose-200 dark:border-rose-400/30",
+            challenge.status === "pending_confirm" && "border-violet-200 dark:border-violet-400/30",
           )}
         >
           <CardBody>
@@ -327,7 +327,7 @@ export default async function ChallengeDetailPage({
                   Đội {challenge.result.winningTeam} thắng
                 </p>
               )}
-              <p className="mt-2 text-[13px] font-semibold text-gold-700">
+              <p className="mt-2 text-[13px] font-semibold text-gold-700 dark:text-gold-300">
                 Đội {challenge.result.winningTeam} thắng
                 {challenge.result.autoConfirmed && " · tự động xác nhận"}
               </p>
@@ -340,12 +340,12 @@ export default async function ChallengeDetailPage({
 
             {challenge.status === "disputed" &&
               challenge.result.disputeReason && (
-                <div className="rounded-xl border border-rose-200 bg-rose-50 p-3.5">
-                  <p className="mb-1 flex items-center gap-1.5 text-[13px] font-bold text-rose-700">
+                <div className="rounded-xl border border-rose-200 dark:border-rose-400/30 bg-rose-50 dark:bg-rose-500/10 p-3.5">
+                  <p className="mb-1 flex items-center gap-1.5 text-[13px] font-bold text-rose-700 dark:text-rose-300">
                     <ShieldAlert className="size-4" aria-hidden />
                     Lý do phản đối
                   </p>
-                  <p className="text-[13.5px] text-rose-800/80">
+                  <p className="text-[13.5px] text-rose-800 dark:text-rose-200/80">
                     {challenge.result.disputeReason}
                   </p>
                 </div>
@@ -399,7 +399,7 @@ export default async function ChallengeDetailPage({
               <p className="text-[11px] font-semibold text-ink-500">Buổi tập</p>
               <Link
                 href={`/buoi-tap/${challenge.session.id}`}
-                className="block truncate text-[13.5px] font-semibold text-navy-700 hover:underline"
+                className="block truncate text-[13.5px] font-semibold text-link hover:underline"
               >
                 {challenge.session.title}
               </Link>

@@ -129,7 +129,7 @@ export function SessionForm() {
         <label className="flex cursor-pointer items-center justify-between gap-3">
           <span>
             <span className="flex items-center gap-1.5 text-[13px] font-semibold text-ink-300">
-              <MapPin className="size-4 text-gold-600" aria-hidden />
+              <MapPin className="size-4 text-gold-600 dark:text-gold-300" aria-hidden />
               Hiện Google Maps
             </span>
             <span className="mt-0.5 block text-xs text-ink-500">
