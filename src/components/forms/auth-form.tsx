@@ -18,13 +18,13 @@ import { AuthField, AuthInput, AuthSubmit } from "@/components/auth/dark-field";
  * chuyển sang bảng màu nền tối cho hợp mặt kính bao ngoài.
  */
 
-function Heading({ title, sub }: { title: string; sub: string }) {
+function Heading({ title, sub }: { title: string; sub?: string }) {
   return (
     <div className="mb-6 text-center">
       <h1 className="font-display text-[26px] leading-tight font-bold text-white">
         {title}
       </h1>
-      <p className="mt-1.5 text-[13px] text-white/55">{sub}</p>
+      {sub && <p className="mt-1.5 text-[13px] text-white/55">{sub}</p>}
     </div>
   );
 }
@@ -151,14 +151,7 @@ export function SignUpForm({ domainHint }: { domainHint: string | null }) {
 
   return (
     <>
-      <Heading
-        title="Tạo tài khoản"
-        sub={
-          domainHint
-            ? `Dùng email ${domainHint} của công ty.`
-            : "Dùng email công ty của bạn."
-        }
-      />
+      <Heading title="Tạo tài khoản" />
 
       <form action={formAction} className="space-y-4">
         <AuthField
