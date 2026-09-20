@@ -1,6 +1,18 @@
 import "server-only";
 
-import { and, asc, desc, eq, gte, inArray, or, sql } from "drizzle-orm";
+import {
+  and,
+  asc,
+  desc,
+  eq,
+  gte,
+  inArray,
+  isNull,
+  ne,
+  notExists,
+  or,
+  sql,
+} from "drizzle-orm";
 
 import { db } from "@/db";
 import {
@@ -294,6 +306,48 @@ export async function listMembers() {
 
 export async function getProfileById(id: string) {
   return db.query.profiles.findFirst({ where: eq(profiles.id, id) });
+}
+
+/**
+ * Đếm kèo mở mà người này còn vào được.
+ *
+ * Kèo mở không sinh thông báo cho ai cả — nó được đăng lên bảng chứ không
+ * gửi tới một người cụ thể, nên bảng `notifications` không biết gì về nó.
+ * Muốn báo "có người đang lên kèo" thì phải đếm trực tiếp ở đây.
+ *
+ * Bỏ ra ba nhóm: kèo của chính họ, kèo họ đã nhảy vào rồi, và kèo đã quá
+ * hạn đánh. Thiếu vế cuối thì một cái kèo bỏ quên từ tháng trước sẽ báo
+ * đỏ mãi mãi.
+ */
+export async function openChallengeCount(userId: string): Promise<number> {
+  const [row] = await db
+    .select({ value: sql<number>`count(*)::int` })
+    .from(challenges)
+    .where(
+      and(
+        eq(challenges.status, "open"),
+        eq(challenges.kind, "open"),
+        ne(challenges.creatorId, userId),
+        or(
+          isNull(challenges.playDeadline),
+          gte(challenges.playDeadline, new Date()),
+        ),
+        notExists(
+          db
+            .select({ one: sql`1` })
+            .from(challengeParticipants)
+            .where(
+              and(
+                eq(challengeParticipants.challengeId, challenges.id),
+                eq(challengeParticipants.userId, userId),
+                ne(challengeParticipants.status, "left"),
+              ),
+            ),
+        ),
+      ),
+    );
+
+  return row?.value ?? 0;
 }
 
 /* ------------------------------------------------------------------ */

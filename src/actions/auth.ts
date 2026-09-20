@@ -43,7 +43,10 @@ export async function signInAction(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  let target = "/bang-tin";
+  // Đăng nhập xong thì về trang chủ, không nhảy thẳng vào bảng tin — trừ
+  // khi họ bấm một đường dẫn sâu rồi mới bị hỏi đăng nhập, lúc đó đưa họ
+  // về đúng chỗ đang định tới mới phải.
+  let target = "/";
 
   const result = await runAction(async () => {
     const parsed = signInSchema.safeParse(formDataToObject(formData));
@@ -110,7 +113,7 @@ export async function signUpAction(
     return success();
   });
 
-  if (shouldRedirect) redirect("/bang-tin");
+  if (shouldRedirect) redirect("/");
   return result;
 }
 

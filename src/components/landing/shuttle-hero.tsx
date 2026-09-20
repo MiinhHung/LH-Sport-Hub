@@ -330,6 +330,7 @@ export function ShuttleHero({
   description,
   action,
   secondaryAction,
+  topRight,
   meta = [],
 }: {
   eyebrow?: string;
@@ -337,6 +338,8 @@ export function ShuttleHero({
   description?: string;
   action?: React.ReactNode;
   secondaryAction?: React.ReactNode;
+  /** Góc phải trên, ngang hàng với logo. */
+  topRight?: React.ReactNode;
   meta?: string[];
 }) {
   const sectionRef = React.useRef<HTMLDivElement>(null);
@@ -611,7 +614,11 @@ export function ShuttleHero({
             khi chạy hiệu ứng vào trang, nên độ mờ theo cuộn phải nằm ở một
             thẻ khác thì hai thứ mới không giành nhau cùng một thuộc tính. */}
         <div ref={copyRef} className="flex h-full flex-col">
-          <motion.div variants={ENTER} className="flex items-center gap-3">
+          <motion.div
+            variants={ENTER}
+            className="flex items-center justify-between gap-3"
+          >
+            <div className="flex items-center gap-3">
             {/* Logo bản nét sáng, nền trong suốt. File logo.png gốc có nền
                 TRẮNG ĐẶC (0% điểm trong suốt) nên đặt lên navy sẽ thành một
                 ô trắng; bản này tách nền và tô lại một màu kem, vì phần
@@ -624,6 +631,9 @@ export function ShuttleHero({
               priority
               className="h-11 w-auto object-contain sm:h-12"
             />
+            </div>
+
+            {topRight}
           </motion.div>
 
           {/* Chỗ cho quả cầu 3D phía trên dòng tiêu đề. */}

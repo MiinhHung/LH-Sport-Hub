@@ -10,7 +10,18 @@ import { publicEnv } from "@/lib/env";
  * so `pathname === p`, còn nhánh `startsWith(`${p}/`)` với p="/" sẽ là
  * "//" nên không bao giờ khớp. Nhờ vậy mở "/" không vô tình mở cả app.
  */
-const PUBLIC_PATHS = ["/", "/dang-nhap", "/dang-ky", "/auth", "/api/cron"];
+const PUBLIC_PATHS = [
+  "/",
+  "/dang-nhap",
+  "/dang-ky",
+  "/auth",
+  "/api/cron",
+  // Ô thông báo ở trang chủ gọi vào đây. Phải công khai ở lớp này, nếu
+  // không người chưa đăng nhập sẽ bị đá sang trang đăng nhập và nhận về
+  // HTML thay cho JSON. Bản thân route vẫn tự kiểm tra phiên và chỉ trả
+  // `{ signedIn: false }` khi chưa đăng nhập.
+  "/api/toi/tom-tat",
+];
 
 function isPublicPath(pathname: string) {
   return PUBLIC_PATHS.some(
@@ -67,9 +78,11 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
+  // Đã đăng nhập mà còn mở trang đăng nhập thì đưa về trang chủ, đúng
+  // chỗ mà `signInAction` cũng dẫn tới.
   if (user && (pathname === "/dang-nhap" || pathname === "/dang-ky")) {
     const url = request.nextUrl.clone();
-    url.pathname = "/bang-tin";
+    url.pathname = "/";
     url.search = "";
     return NextResponse.redirect(url);
   }

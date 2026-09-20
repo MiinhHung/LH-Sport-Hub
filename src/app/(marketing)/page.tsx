@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 
+import { HeroAlert } from "@/components/landing/hero-alert";
 import { IntroCurtain } from "@/components/landing/intro-curtain";
 import { Eyebrow, Quote, WordFade } from "@/components/landing/text-bits";
 import { CutReveal } from "@/components/landing/cut-reveal";
@@ -90,6 +91,7 @@ export default async function LandingPage() {
         eyebrow="Light Human"
         headline="LH Sport Hub"
         meta={["Cầu lông & bơi", "Sáng thứ 7", "Nội bộ công ty"]}
+        topRight={<HeroAlert />}
         action={
           <Link
             href={signedIn ? "/bang-tin" : "/dang-nhap"}
