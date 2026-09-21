@@ -269,7 +269,7 @@ export default async function LandingPage() {
             chỗ để thấy khe che của CutReveal có xén mất dấu hay không. */}
         <CutReveal
           as="h2"
-          text="Công ty Light Human được thành lập ngày nào?"
+          text="Light Human được thành lập ngày/tháng/năm nào?"
           className="font-display mx-auto mt-5 block max-w-2xl text-[32px] leading-[1.14] font-bold sm:text-[46px]"
           step={75}
         />

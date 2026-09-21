@@ -88,6 +88,18 @@ const CHO_NAM = [
 const NGUOI_X = 6;
 const NGUOI_Y = 90;
 
+/**
+ * Tám ô đáp án chia làm ba nhóm, mỗi nhóm có nhãn riêng.
+ *
+ * Phải khớp với thứ tự chữ số trong `NGAY_THANH_LAP`: hai số ngày, hai
+ * số tháng, bốn số năm.
+ */
+const NHOM = [
+  { nhan: "Ngày", batDau: 0, soChuSo: 2 },
+  { nhan: "Tháng", batDau: 2, soChuSo: 2 },
+  { nhan: "Năm", batDau: 4, soChuSo: 4 },
+];
+
 /* ------------------------------------------------------------------ */
 
 /** Quả cầu lông mang số. */
@@ -451,35 +463,64 @@ export function DoVui({
       <div
         className="flex flex-wrap items-center justify-center gap-2 sm:gap-2.5"
         role="group"
-        aria-label="Ngày thành lập, tám chữ số"
+        aria-label="Ngày thành lập: hai số ngày, hai số tháng, bốn số năm"
       >
-        {Array.from({ length: soO }).map((_, i) => (
-          <React.Fragment key={i}>
-            <div
-              ref={(el) => {
-                oRefs.current[i] = el;
-              }}
-              className="font-display grid size-11 place-items-center rounded-xl border-2 text-[20px] font-bold transition-colors duration-200 sm:size-12 sm:text-[22px]"
-              style={{
-                borderColor:
-                  ketQua === "sai"
-                    ? "#e11d48"
-                    : ketQua === "dung" || i === oDangCho
-                      ? gold
-                      : line,
-                color: ink,
-                background:
-                  i === oDangCho && !xong ? `${gold}12` : "transparent",
-              }}
-            >
-              {daNhap[i] ?? ""}
-            </div>
-
-            {(i === 1 || i === 3) && (
-              <span aria-hidden className="text-[18px]" style={{ color: line }}>
+        {NHOM.map((nhom, iNhom) => (
+          <React.Fragment key={nhom.nhan}>
+            {iNhom > 0 && (
+              <span
+                aria-hidden
+                className="self-start pt-2 text-[18px]"
+                style={{ color: line }}
+              >
                 /
-              </span> 
+              </span>
             )}
+
+            <div className="flex flex-col items-center gap-1.5">
+              <div className="flex gap-2 sm:gap-2.5">
+                {Array.from({ length: nhom.soChuSo }).map((_, j) => {
+                  const i = nhom.batDau + j;
+                  return (
+                    <div
+                      key={i}
+                      ref={(el) => {
+                        oRefs.current[i] = el;
+                      }}
+                      className="font-display grid size-11 place-items-center rounded-xl border-2 text-[20px] font-bold transition-colors duration-200 sm:size-12 sm:text-[22px]"
+                      style={{
+                        borderColor:
+                          ketQua === "sai"
+                            ? "#e11d48"
+                            : ketQua === "dung" || i === oDangCho
+                              ? gold
+                              : line,
+                        color: ink,
+                        background:
+                          i === oDangCho && !xong ? `${gold}12` : "transparent",
+                      }}
+                    >
+                      {daNhap[i] ?? ""}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/*
+                Ghi hẳn chữ NGÀY / THÁNG / NĂM dưới từng nhóm.
+
+                Trước chỉ có hai dấu gạch chéo ngăn giữa tám cái ô. Người
+                Việt quen ngày trước năm sau nên phần lớn sẽ đoán đúng,
+                nhưng "đoán đúng" không phải là "biết chắc" — mà ở đây
+                đoán sai thì mất luôn cả tám phát cầu rồi mới biết.
+              */}
+              <span
+                className="text-[10px] font-bold tracking-[0.14em] uppercase"
+                style={{ color: muted, opacity: 0.8 }}
+              >
+                {nhom.nhan}
+              </span>
+            </div>
           </React.Fragment>
         ))}
       </div>
