@@ -45,29 +45,25 @@ const FEATURES: Feature[] = [
     href: "/keo",
     title: "Kèo",
     body: "Thách nhau 1v1 hay 2v2, đặt mốc điểm, ghi rõ cược gì. Cả đội thua bao cả đội thắng — đã chốt thì khỏi cãi.",
-    anh: "/images/feed-3.jpg",
-    alt: "Anh em cầm vợt trước giờ vào trận",
+    anh: "/images/landing/muc-keo.jpg",
   },
   {
     href: "/buoi-tap",
     title: "Buổi tập",
     body: "Ai đứng ra đặt sân thì lên lịch, mọi người bấm báo đi hay không. Kèm bản đồ cho người tới lần đầu.",
-    anh: "/images/feed-1.jpg",
-    alt: "Cả team trên sân",
+    anh: "/images/landing/muc-buoi-tap.jpg",
   },
   {
     href: "/cam-nang",
     title: "Cẩm nang",
     body: "Luật, kỹ thuật, khởi động, chọn vợt chọn giày. Mười ba bài, đủ để không phải tra Google giữa trận.",
     anh: "/images/cam-nang/di-chuyen.webp",
-    alt: "Minh hoạ bài cẩm nang về di chuyển",
   },
   {
     href: "/bang-tin",
     title: "Bảng tin & nhắn riêng",
     body: "Khoe ảnh buổi vừa đánh, chém gió, hoặc nhắn riêng rủ nhau đi tập.",
     anh: "/images/feed-4.jpg",
-    alt: "Ảnh tập thể cuối buổi",
   },
 ];
 

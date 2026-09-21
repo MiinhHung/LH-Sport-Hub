@@ -15,7 +15,7 @@ import * as React from "react";
 import { Reveal } from "@/components/landing/reveal";
 
 /**
- * Mục lục "1 chỗ cho tất cả" — rê chuột vào dòng nào thì ảnh của mục đó
+ * Mục lục "Một chỗ cho tất cả" — rê chuột vào dòng nào thì ảnh của mục đó
  * hiện ra và bám theo con trỏ.
  *
  * BỐN ĐIỀU KHÔNG CÓ TRONG BẢN MẪU, nhưng bỏ đi thì hỏng thật:
@@ -40,9 +40,15 @@ export type Feature = {
   href: string;
   title: string;
   body: string;
-  /** Ảnh hiện lên khi rê chuột vào dòng này. */
+  /**
+   * Ảnh hiện lên khi rê chuột vào dòng này.
+   *
+   * KHÔNG KÈM `alt`, và đó là cố ý. Ô ảnh này thuần trang trí: nó chỉ
+   * hiện khi rê chuột, và tên mục ngay bên cạnh đã nói đủ. Gán chữ thay
+   * thế vào đây thì máy đọc màn hình đọc lặp lại một lần nữa thứ vừa
+   * đọc xong. Nên ảnh để `alt=""` và cả khối mang `aria-hidden`.
+   */
   anh: string;
-  alt: string;
 };
 
 /** Cỡ ô ảnh xem trước, pixel. */
