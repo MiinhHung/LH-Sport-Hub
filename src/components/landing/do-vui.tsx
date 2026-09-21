@@ -146,8 +146,23 @@ function NguoiQue({
   ink: string;
   gold: string;
 }) {
+  /*
+   * KHUNG NHÌN PHẢI RỘNG HƠN NGƯỜI QUE.
+   *
+   * Bản trước để khung khít đúng 96×120 quanh người. Nhưng cánh tay cầm
+   * vợt XOAY quanh khớp vai, nên mặt vợt quét ra tới tận ngoài khung —
+   * và SVG cắt phăng phần thò ra. Nhìn thành cây vợt cụt mất một khúc.
+   * Chừa lề rộng ở cả bốn phía để vợt có chỗ quét, còn toạ độ người thì
+   * giữ nguyên.
+   */
   return (
-    <svg width={96} height={120} viewBox="0 0 96 120" aria-hidden>
+    <svg
+      width={170}
+      height={190}
+      viewBox="-44 -48 170 190"
+      className="overflow-visible"
+      aria-hidden
+    >
       <g stroke={ink} strokeWidth={4} strokeLinecap="round" fill="none">
         {/* Đầu */}
         <circle cx={44} cy={16} r={10} />
@@ -264,7 +279,18 @@ export function DoVui({
       : d.dinh + (d.y1 - d.dinh) * ((t - 0.5) * 2) ** 2;
   });
 
-  /** Chúc đầu theo hướng bay — lấy đạo hàm của chính hai nhánh trên. */
+  /**
+   * ĐẾ BẦN ĐI TRƯỚC, KHÔNG PHẢI CHÙM LÔNG.
+   *
+   * Quả cầu lông nặng hết ở đế bần, nên bay kiểu gì nó cũng quay đế về
+   * phía trước — lên thì đế hướng lên, rơi thì đế chúc xuống. Bản trước
+   * cộng 90 độ, tức là lệch đúng nửa vòng, thành ra cầu bay chổng lông
+   * đi trước suốt cả đường. Hình vẽ để đế ở phía DƯỚI, nên muốn đế theo
+   * hướng bay thì phải TRỪ 90.
+   *
+   * Góc lấy từ đạo hàm của chính hai nhánh parabol ở trên, nên tới đỉnh
+   * quả cầu tự lộn đầu như thật, không cần xử lý riêng.
+   */
   const bayXoay = useTransform(tienDo, (t) => {
     const d = duong.current;
     const dx = d.x1 - d.x0;
@@ -272,7 +298,7 @@ export function DoVui({
       t < 0.5
         ? (d.dinh - d.y0) * 4 * (1 - 2 * t)
         : (d.y1 - d.dinh) * 8 * (t - 0.5);
-    return (Math.atan2(dy, dx) * 180) / Math.PI + 90;
+    return (Math.atan2(dy, dx) * 180) / Math.PI - 90;
   });
 
   const oDangCho = daNhap.length;
@@ -436,7 +462,7 @@ export function DoVui({
             {(i === 1 || i === 3) && (
               <span aria-hidden className="text-[18px]" style={{ color: line }}>
                 /
-              </span>
+              </span> 
             )}
           </React.Fragment>
         ))}
@@ -486,13 +512,22 @@ export function DoVui({
           style={{ background: line }}
         />
 
-        {/* Người que */}
+        {/*
+          Người que.
+
+          NEO THEO TOẠ ĐỘ TRONG HÌNH VẼ, không phải theo mép khung SVG.
+          Khung đã được nới rộng ra bốn phía để cây vợt có chỗ quét, nên
+          mép dưới khung không còn là bàn chân nữa — cứ neo theo mép thì
+          người que lơ lửng trên mặt sân. Bàn chân nằm ở y=98, cách mép
+          trên khung (-48) đúng 146; thân người ở x=44, cách mép trái
+          (-44) đúng 88.
+        */}
         <div
           className="absolute"
           style={{
             left: `${NGUOI_X}%`,
             top: `${NGUOI_Y}%`,
-            transform: "translate(-50%, -100%)",
+            transform: "translate(-88px, -146px)",
           }}
         >
           <NguoiQue goc={gocVot} ink={ink} gold={gold} />
@@ -503,8 +538,10 @@ export function DoVui({
           ref={tayRef}
           className="absolute"
           style={{
-            left: `calc(${NGUOI_X}% + 30px)`,
-            top: `calc(${NGUOI_Y}% - 78px)`,
+            // Bàn tay không cầm vợt ở (64,44) trong hình vẽ, tức là lệch
+            // (20, -54) so với điểm neo của người que ở trên.
+            left: `calc(${NGUOI_X}% + 20px)`,
+            top: `calc(${NGUOI_Y}% - 54px)`,
             transform: "translate(-50%, -50%)",
           }}
         >
@@ -531,6 +568,47 @@ export function DoVui({
           >
             <QuaCau so={dangCam} size={38} gold={gold} ink={ink} />
           </button>
+
+          {/*
+            CHỈ THẲNG VÀO CHỖ CẦN KÉO.
+
+            Chỉ viết "kéo xuống lấy đà" ở dòng chữ phía trên là chưa đủ:
+            đọc xong người ta vẫn không biết kéo vào đâu, vì cả cái sân
+            chỗ nào cũng kéo được trông như nhau. Mũi tên nhấp nháy dính
+            ngay dưới quả cầu thì chỉ đúng vào vật cần kéo.
+
+            Tắt ngay khi tay bắt đầu kéo — chỉ dẫn đã xong việc, để lại
+            thì che mất chính thứ nó đang chỉ.
+          */}
+          {dangCam !== null && !dangKeo && !dangBay && !xong && (
+            <motion.div
+              aria-hidden
+              className="pointer-events-none absolute top-full left-1/2 mt-1 flex flex-col items-center"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1, y: [0, 5, 0] }}
+              transition={{
+                opacity: { duration: 0.25 },
+                y: { duration: 1.4, repeat: Infinity, ease: "easeInOut" },
+              }}
+            >
+              <svg width="14" height="20" viewBox="0 0 14 20">
+                <path
+                  d="M 7 1 L 7 15 M 2 10 L 7 16 L 12 10"
+                  fill="none"
+                  stroke={gold}
+                  strokeWidth={2}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+              <span
+                className="mt-0.5 text-[11px] font-bold whitespace-nowrap"
+                style={{ color: gold }}
+              >
+                Kéo xuống
+              </span>
+            </motion.div>
+          )}
         </div>
 
         {/* Mười quả cầu nằm rải dưới sân */}
