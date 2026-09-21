@@ -27,14 +27,33 @@ export function ShowcaseVideo({
   label: string;
 }) {
   const ref = React.useRef<HTMLVideoElement>(null);
-  const [armed, setArmed] = React.useState(false);
+  const [nguon, setNguon] = React.useState<string | null>(null);
+
+  /*
+   * GẮN `src` LÊN CHÍNH THẺ VIDEO, VÀ GỌI `load()`.
+   *
+   * Bản trước gắn muộn bằng cách chèn thêm một thẻ `<source>` vào trong
+   * thẻ video. Cách đó không chạy: trình duyệt chọn nguồn phát MỘT LẦN
+   * lúc dựng thẻ, thêm `<source>` sau đó thì nó không ngó tới nữa, trừ
+   * khi gọi `load()` để bắt chọn lại. Nên video nằm im ở khung ảnh bìa,
+   * còn `play()` thì bị từ chối và bị nuốt mất trong khối catch rỗng.
+   *
+   * Đổi `src` của chính thẻ video thì trình duyệt tự chạy lại việc chọn
+   * nguồn, nhưng vẫn gọi `load()` cho chắc rồi mới phát.
+   */
+  React.useEffect(() => {
+    const el = ref.current;
+    if (!el || !nguon) return;
+    el.load();
+    void el.play().catch(() => {});
+  }, [nguon]);
 
   React.useEffect(() => {
     const el = ref.current;
     if (!el) return;
 
     if (typeof IntersectionObserver === "undefined") {
-      setArmed(true);
+      setNguon(src);
       return;
     }
 
@@ -42,7 +61,7 @@ export function ShowcaseVideo({
     const loader = new IntersectionObserver(
       ([e]) => {
         if (e.isIntersecting) {
-          setArmed(true);
+          setNguon(src);
           loader.disconnect();
         }
       },
@@ -71,7 +90,7 @@ export function ShowcaseVideo({
       loader.disconnect();
       player.disconnect();
     };
-  }, []);
+  }, [src]);
 
   return (
     <video
@@ -84,9 +103,8 @@ export function ShowcaseVideo({
       preload="none"
       poster={poster}
       aria-label={label}
+      src={nguon ?? undefined}
       className="size-full object-cover"
-    >
-      {armed ? <source src={src} type="video/mp4" /> : null}
-    </video>
+    />
   );
 }
