@@ -201,7 +201,7 @@ export default async function LandingPage() {
 
           <CutReveal
             as="h2"
-            text="1 chỗ cho tất cả thay cho năm cái group chat"
+            text="Một chỗ cho tất cả thay cho năm cái group chat"
             className="font-display mt-5 block max-w-2xl text-[32px] leading-[1.1] font-bold sm:text-[46px]"
             delay={120}
           />
