@@ -1,22 +1,34 @@
 "use client";
 
-import { motion, useAnimate, useMotionValue } from "motion/react";
+import { animate, motion, useMotionValue, useTransform } from "motion/react";
 import * as React from "react";
 
 /**
- * Đố vui cuối trang chủ: bắn ná để điền ngày thành lập công ty.
+ * Đố vui cuối trang chủ: phát cầu để điền ngày thành lập công ty.
  *
- * Cách chơi: bấm một con số ở hàng dưới để nạp lên ná, kéo túi ná xuống
- * rồi thả — viên số bay lên rơi vào ô đang chờ. Điền đủ thì tự chấm.
+ * Cách chơi: mấy quả cầu lông mang số nằm rải dưới sân. Bấm một quả để
+ * người que cầm lên, kéo xuống để vung vợt lấy đà, thả ra thì cầu bay
+ * vòng cung qua lưới rơi vào ô đang chờ. Đủ tám số thì tự chấm.
  *
- * KHÔNG BẮT NGƯỜI CHƠI NGẮM. Ná chỉ cần kéo đủ mạnh là viên số vào đúng
- * ô; kéo yếu quá thì nó tuột về chứ không bắn hụt. Đây là câu đố về ngày
- * thành lập, không phải trò thi bắn cung — bắt ngắm thì người trả lời
- * đúng vẫn có thể thua, mà thua vì tay chứ không vì không biết.
+ * ĐƯỜNG BAY TÍNH TỪNG KHUNG HÌNH, KHÔNG PHẢI BA ĐIỂM MỐC.
  *
- * CÓ ĐƯỜNG CHƠI KHÔNG CẦN KÉO. Kéo thả là thao tác chuột/cảm ứng; ai
- * dùng bàn phím sẽ kẹt ở bước bắn. Nên chính viên số trên ná cũng là một
- * cái nút: bấm hoặc Enter là nó bay.
+ * Bản đầu cho quả cầu đi qua ba điểm mốc rồi để trình duyệt nội suy —
+ * nhìn ra gãy khúc ở giữa và tốc độ đều đều như bị kéo dây. Ở đây chạy
+ * một biến tiến độ 0→1 rồi mỗi khung hình tự tính toạ độ trên một đường
+ * parabol thật, nên đường cong liền mạch: rời vợt thì nhanh, lên tới
+ * đỉnh chậm lại, rơi xuống lại nhanh dần. Quả cầu cũng tự xoay theo
+ * hướng đang bay, vì cầu lông thật luôn chúc đầu bần về phía trước.
+ *
+ * VỢT VÀ CẦU PHẢI KHỚP NHAU. Cầu chỉ rời tay đúng lúc mặt vợt quét qua
+ * nó, chứ không phải bay ngay khi thả chuột. Sai một nhịp này thì thành
+ * ra cầu tự bay còn vợt vung theo sau.
+ *
+ * KÉO YẾU THÌ KHÔNG MẤT LƯỢT. Đây là câu đố về ngày thành lập, không
+ * phải trò thi phát cầu — bắt ngắm thì người biết đáp án vẫn thua vì
+ * tay. Kéo chưa đủ thì vợt về lại thế chuẩn bị, cầu vẫn trên tay.
+ *
+ * CÓ ĐƯỜNG CHƠI KHÔNG CẦN KÉO. Ai dùng bàn phím sẽ kẹt ở bước kéo, nên
+ * quả cầu trên tay cũng là một cái nút: bấm hoặc Enter là phát.
  */
 
 /**
@@ -31,19 +43,161 @@ import * as React from "react";
  */
 export const NGAY_THANH_LAP = "29052020";
 
-/** Bao nhiêu pixel kéo xuống thì coi là đủ lực bắn. */
-const LUC_TOI_THIEU = 28;
+/** Kéo xuống bao nhiêu pixel thì đủ đà phát cầu. */
+const DA_TOI_THIEU = 26;
 
-/** Kéo xa nhất chừng này, quá thì dây không giãn thêm. */
-const KEO_TOI_DA = 120;
+/** Kéo xa nhất chừng này, quá thì tay không ngả thêm. */
+const KEO_TOI_DA = 110;
 
-function ChuThich({ text, color }: { text: string; color: string }) {
+/** Góc vợt ở thế chuẩn bị, và góc lúc quét hết đà, tính bằng độ. */
+const GOC_CHUAN_BI = -38;
+const GOC_KET = 46;
+
+/** Vợt quét qua góc này thì coi như chạm cầu. */
+const GOC_CHAM = -4;
+
+/**
+ * Chỗ nằm của mười quả cầu dưới sân, theo phần trăm khung sân.
+ *
+ * Đặt tay từng quả chứ không rải ngẫu nhiên: ngẫu nhiên thì máy chủ và
+ * trình duyệt ra hai chỗ khác nhau, hỏng hydrate. Cũng cố ý chừa trống
+ * khoảng bên trái cho người que đứng.
+ */
+const CHO_NAM = [
+  { x: 47, y: 62, r: -14 },
+  { x: 60, y: 76, r: 9 },
+  { x: 73, y: 61, r: -6 },
+  { x: 86, y: 74, r: 17 },
+  { x: 95, y: 58, r: -11 },
+  { x: 41, y: 84, r: 6 },
+  { x: 54, y: 91, r: -20 },
+  { x: 68, y: 86, r: 13 },
+  { x: 81, y: 92, r: -8 },
+  { x: 93, y: 85, r: 21 },
+];
+
+/**
+ * Người que đứng ở đâu trong khung sân, theo phần trăm.
+ *
+ * PHẢI ĐỨNG SÁT MÉP TRÁI. Đo bản trước với người đứng ở 17%: bàn tay
+ * nằm ở x=127 còn ô đáp án đầu tiên ở x=97 — tức là ô ở BÊN TRÁI tay,
+ * nên quả cầu bay giật lùi về sau. Phát cầu mà bay ngược thì hỏng hết
+ * cả ý. Dời sang 6% thì cả tám ô đều nằm bên phải, cầu bay tới trước
+ * như thật.
+ */
+const NGUOI_X = 6;
+const NGUOI_Y = 90;
+
+/* ------------------------------------------------------------------ */
+
+/** Quả cầu lông mang số. */
+function QuaCau({
+  so,
+  size,
+  gold,
+  ink,
+}: {
+  so: number | null;
+  size: number;
+  gold: string;
+  ink: string;
+}) {
   return (
-    <p className="mt-2 text-[12.5px]" style={{ color }}>
-      {text}
-    </p>
+    <svg width={size} height={size} viewBox="0 0 40 40" aria-hidden>
+      {/* Váy lông — hình thang xoè lên trên */}
+      <path
+        d="M 13 24 L 6 6 Q 20 1 34 6 L 27 24 Z"
+        fill="#ffffff"
+        stroke={ink}
+        strokeWidth={1.6}
+        strokeLinejoin="round"
+      />
+      {/* Mấy nan lông */}
+      <path
+        d="M 20 23 L 20 3 M 16 23 L 12 4.5 M 24 23 L 28 4.5"
+        stroke={ink}
+        strokeWidth={1}
+        opacity={0.45}
+      />
+      {/* Đế bần, và con số nằm trên đó */}
+      <circle cx={20} cy={29} r={8.5} fill={gold} />
+      <text
+        x={20}
+        y={29}
+        textAnchor="middle"
+        dominantBaseline="central"
+        fontSize={11}
+        fontWeight={700}
+        fill="#00112e"
+      >
+        {so ?? ""}
+      </text>
+    </svg>
   );
 }
+
+/** Người que cầm vợt. Cánh tay cầm vợt xoay theo `goc`. */
+function NguoiQue({
+  goc,
+  ink,
+  gold,
+}: {
+  goc: ReturnType<typeof useMotionValue<number>>;
+  ink: string;
+  gold: string;
+}) {
+  return (
+    <svg width={96} height={120} viewBox="0 0 96 120" aria-hidden>
+      <g stroke={ink} strokeWidth={4} strokeLinecap="round" fill="none">
+        {/* Đầu */}
+        <circle cx={44} cy={16} r={10} />
+        {/* Thân */}
+        <path d="M 44 26 L 44 66" />
+        {/* Hai chân, tấn hơi rộng */}
+        <path d="M 44 66 L 32 98 M 44 66 L 58 96" />
+        {/* Tay không cầm vợt đưa ra trước, đỡ quả cầu */}
+        <path d="M 44 38 L 64 44" />
+      </g>
+
+      {/* Tay cầm vợt — cả cụm xoay quanh khớp vai */}
+      <motion.g style={{ rotate: goc, originX: "44px", originY: "36px" }}>
+        <path
+          d="M 44 36 L 26 22"
+          stroke={ink}
+          strokeWidth={4}
+          strokeLinecap="round"
+          fill="none"
+        />
+        {/* Cán vợt nối tiếp bàn tay */}
+        <path
+          d="M 26 22 L 14 10"
+          stroke={ink}
+          strokeWidth={3}
+          strokeLinecap="round"
+        />
+        {/* Mặt vợt */}
+        <ellipse
+          cx={9}
+          cy={5}
+          rx={8}
+          ry={10}
+          transform="rotate(-42 9 5)"
+          fill="none"
+          stroke={gold}
+          strokeWidth={2.6}
+        />
+        <path
+          d="M 4 1 L 14 9 M 4 9 L 14 1"
+          stroke={gold}
+          strokeWidth={1}
+          opacity={0.7}
+        />
+      </motion.g>
+    </svg>
+  );
+}
+
+/* ------------------------------------------------------------------ */
 
 export function DoVui({
   dapAn = NGAY_THANH_LAP,
@@ -61,121 +215,196 @@ export function DoVui({
   const soO = dapAn.length;
 
   const [daNhap, setDaNhap] = React.useState<string[]>([]);
-  const [dangTai, setDangTai] = React.useState<number | null>(null);
+  const [dangCam, setDangCam] = React.useState<number | null>(null);
   const [dangBay, setDangBay] = React.useState(false);
   const [ketQua, setKetQua] = React.useState<null | "dung" | "sai">(null);
+  const [dangKeo, setDangKeo] = React.useState(false);
 
   const khungRef = React.useRef<HTMLDivElement>(null);
-  const naRef = React.useRef<HTMLDivElement>(null);
+  const sanRef = React.useRef<HTMLDivElement>(null);
+  const tayRef = React.useRef<HTMLDivElement>(null);
   const oRefs = React.useRef<(HTMLDivElement | null)[]>([]);
-  const [scope, animate] = useAnimate();
 
-  // Độ căng của dây ná, theo pixel kéo xuống.
-  const kx = useMotionValue(0);
-  const ky = useMotionValue(0);
-  const [dangKeo, setDangKeo] = React.useState(false);
+  /** Góc vợt, và tiến độ đường bay — motion value để chuyển động không
+   *  đi qua vòng render của React. */
+  const gocVot = useMotionValue(GOC_CHUAN_BI);
+  const tienDo = useMotionValue(0);
+  const bayHien = useMotionValue(0);
+
+  /**
+   * Hai đầu đường bay, đo ngay lúc phát cầu.
+   *
+   * Để trong ref chứ không trong state: `useTransform` bên dưới đọc nó
+   * ở mỗi khung hình, mà đổi state giữa chừng thì cả cây render lại.
+   */
+  const duong = React.useRef({ x0: 0, y0: 0, x1: 0, y1: 0, dinh: 0 });
+
+  /*
+   * TOẠ ĐỘ TÍNH TỪ TIẾN ĐỘ, KHÔNG PHẢI GÁN TAY TRONG `onUpdate`.
+   *
+   * Bản trước gọi `animate(0, 1, { onUpdate })` — truyền hai con số trần
+   * chứ không phải một motion value. Dạng đó không chạy như mong đợi:
+   * nó nhảy thẳng tới đích trong đúng một khung hình, nên quả cầu chưa
+   * bao giờ thật sự bay, chỉ là con số xuất hiện luôn trong ô. Nhìn thì
+   * tưởng "hiệu ứng chưa mượt", thật ra là không có hiệu ứng nào cả.
+   *
+   * Ở đây chạy hẳn một motion value `tienDo` — đúng dạng mà cú vung vợt
+   * vẫn dùng và vẫn chạy tốt — rồi suy ra toạ độ.
+   */
+  const bayX = useTransform(tienDo, (t) => {
+    const d = duong.current;
+    return d.x0 + (d.x1 - d.x0) * t;
+  });
+
+  /** Hai nhánh parabol nối ở đỉnh: lên chậm dần, rơi nhanh dần. */
+  const bayY = useTransform(tienDo, (t) => {
+    const d = duong.current;
+    return t < 0.5
+      ? d.y0 + (d.dinh - d.y0) * (1 - (1 - t * 2) ** 2)
+      : d.dinh + (d.y1 - d.dinh) * ((t - 0.5) * 2) ** 2;
+  });
+
+  /** Chúc đầu theo hướng bay — lấy đạo hàm của chính hai nhánh trên. */
+  const bayXoay = useTransform(tienDo, (t) => {
+    const d = duong.current;
+    const dx = d.x1 - d.x0;
+    const dy =
+      t < 0.5
+        ? (d.dinh - d.y0) * 4 * (1 - 2 * t)
+        : (d.y1 - d.dinh) * 8 * (t - 0.5);
+    return (Math.atan2(dy, dx) * 180) / Math.PI + 90;
+  });
 
   const oDangCho = daNhap.length;
   const xong = daNhap.length === soO;
 
   const lamLai = () => {
     setDaNhap([]);
-    setDangTai(null);
+    setDangCam(null);
     setKetQua(null);
+    gocVot.set(GOC_CHUAN_BI);
   };
 
-  /** Cho viên số bay từ ná lên ô đang chờ, rồi mới ghi vào kết quả. */
-  const ban = React.useCallback(async () => {
-    if (dangTai === null || dangBay || xong) return;
+  /** Cho quả cầu bay theo parabol từ mặt vợt tới ô đang chờ. */
+  const bay = React.useCallback(
+    async (so: number) => {
+      const khung = khungRef.current;
+      const tay = tayRef.current;
+      const o = oRefs.current[oDangCho];
+      if (!khung || !tay || !o) return;
 
-    const khung = khungRef.current;
-    const na = naRef.current;
-    const o = oRefs.current[oDangCho];
-    if (!khung || !na || !o) return;
+      const k = khung.getBoundingClientRect();
+      const a = tay.getBoundingClientRect();
+      const b = o.getBoundingClientRect();
 
+      duong.current = {
+        x0: a.left - k.left + a.width / 2,
+        y0: a.top - k.top + a.height / 2,
+        x1: b.left - k.left + b.width / 2,
+        y1: b.top - k.top + b.height / 2,
+        // Đỉnh vòng cung nhô cao hơn cả hai đầu, nhưng chỉ nhô vừa phải.
+        // Đo bản trước để 110: đỉnh lên tới y = -127, tức là quả cầu bay
+        // vọt ra khỏi khối, lượn qua cả dòng tiêu đề rồi mới rơi xuống.
+        // Chặn không cho vượt quá mép trên: đo bản trước, đỉnh lên tới
+        // y = -61 nên quả cầu lượn ra ngoài khối, chồng lên dòng tiêu đề.
+        dinh: Math.max(-12, Math.min(a.top - k.top, b.top - k.top) - 28),
+      };
+
+      tienDo.jump(0);
+      bayHien.set(1);
+
+      await animate(tienDo, 1, { duration: 0.78, ease: "linear" });
+
+      bayHien.set(0);
+      setDaNhap((cu) => [...cu, String(so)]);
+      setDangCam(null);
+      setDangBay(false);
+    },
+    [bayHien, oDangCho, tienDo],
+  );
+
+  /** Vung hết đà; tới lúc mặt vợt quét qua cầu thì mới thả cầu đi. */
+  const phatCau = React.useCallback(async () => {
+    if (dangCam === null || dangBay || xong) return;
     setDangBay(true);
-    kx.set(0);
-    ky.set(0);
 
-    const k = khung.getBoundingClientRect();
-    const a = na.getBoundingClientRect();
-    const b = o.getBoundingClientRect();
-
-    const x0 = a.left - k.left + a.width / 2;
-    const y0 = a.top - k.top + a.height / 2;
-    const x1 = b.left - k.left + b.width / 2;
-    const y1 = b.top - k.top + b.height / 2;
-
+    const so = dangCam;
     const it = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     if (it) {
-      // Bật giảm chuyển động thì bỏ luôn đường bay, đặt thẳng vào ô.
-      setDaNhap((cu) => [...cu, String(dangTai)]);
-      setDangTai(null);
+      gocVot.set(GOC_CHUAN_BI);
+      setDaNhap((cu) => [...cu, String(so)]);
+      setDangCam(null);
       setDangBay(false);
       return;
     }
 
-    await animate(
-      scope.current,
-      {
-        // Điểm giữa nhô cao hơn cả hai đầu — đó là cái làm ra đường vòng
-        // cung. Đi thẳng thì giống viên số bị hút chứ không phải bị bắn.
-        x: [x0, (x0 + x1) / 2, x1],
-        y: [y0, Math.min(y0, y1) - 90, y1],
-        scale: [1, 1.08, 0.9],
-        opacity: [1, 1, 0],
+    let daThaCau = false;
+    await animate(gocVot, GOC_KET, {
+      duration: 0.17,
+      ease: [0.5, 0, 0.9, 0.6],
+      onUpdate: (g) => {
+        if (!daThaCau && g >= GOC_CHAM) {
+          daThaCau = true;
+          void bay(so);
+        }
       },
-      { duration: 0.52, ease: [0.3, 0, 0.2, 1] },
-    );
+    });
 
-    setDaNhap((cu) => [...cu, String(dangTai)]);
-    setDangTai(null);
-    setDangBay(false);
-  }, [animate, dangBay, dangTai, kx, ky, oDangCho, scope, xong]);
+    // Vợt theo đà rồi mới thu về thế chuẩn bị.
+    void animate(gocVot, GOC_CHUAN_BI, {
+      duration: 0.5,
+      delay: 0.1,
+      ease: [0.16, 1, 0.3, 1],
+    });
+  }, [bay, dangBay, dangCam, gocVot, xong]);
 
-  // Chấm bài khi vừa đủ số.
   React.useEffect(() => {
     if (daNhap.length !== soO) return;
     setKetQua(daNhap.join("") === dapAn ? "dung" : "sai");
   }, [daNhap, dapAn, soO]);
 
+  /* --- kéo lấy đà --- */
+
   const batDauKeo = (e: React.PointerEvent) => {
-    if (dangTai === null || dangBay) return;
-    (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
+    if (dangCam === null || dangBay) return;
+    (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
     setDangKeo(true);
   };
 
-  const dangKeoTay = (e: React.PointerEvent) => {
+  const keoTay = (e: React.PointerEvent) => {
     if (!dangKeo) return;
-    const na = naRef.current;
-    if (!na) return;
-    const r = na.getBoundingClientRect();
-    const dx = e.clientX - (r.left + r.width / 2);
-    const dy = e.clientY - (r.top + r.height / 2);
-    const d = Math.min(Math.hypot(dx, dy), KEO_TOI_DA);
-    const goc = Math.atan2(dy, dx);
-    kx.set(Math.cos(goc) * d);
-    // Chỉ cho kéo xuống: kéo lên thì viên số sẽ phải bay xuống dưới, mà
-    // mấy cái ô lại nằm phía trên.
-    ky.set(Math.max(0, Math.sin(goc) * d));
+    const tay = tayRef.current;
+    if (!tay) return;
+    const r = tay.getBoundingClientRect();
+    const dy = Math.max(0, e.clientY - (r.top + r.height / 2));
+    const d = Math.min(dy, KEO_TOI_DA);
+    // Kéo càng sâu, vợt càng ngả ra sau.
+    gocVot.set(GOC_CHUAN_BI - (d / KEO_TOI_DA) * 100);
   };
 
   const thaTay = () => {
     if (!dangKeo) return;
     setDangKeo(false);
-    const du = ky.get() >= LUC_TOI_THIEU;
-    if (du) {
-      void ban();
+    const daNgaThem = GOC_CHUAN_BI - gocVot.get();
+    if (daNgaThem >= (DA_TOI_THIEU / KEO_TOI_DA) * 100) {
+      void phatCau();
     } else {
-      // Chưa đủ lực thì dây tuột về, không mất lượt.
-      kx.set(0);
-      ky.set(0);
+      void animate(gocVot, GOC_CHUAN_BI, {
+        type: "spring",
+        stiffness: 260,
+        damping: 18,
+      });
     }
   };
 
+  const loiNhac =
+    dangCam === null
+      ? "Bấm một quả cầu ở dưới sân để cầm lên."
+      : "Kéo xuống lấy đà rồi thả — hoặc bấm thẳng vào quả cầu trên tay.";
+
   return (
-    <div ref={khungRef} className="relative mx-auto max-w-xl">
+    <div ref={khungRef} className="relative mx-auto max-w-2xl">
       {/* Ô đáp án */}
       <div
         className="flex flex-wrap items-center justify-center gap-2 sm:gap-2.5"
@@ -193,19 +422,17 @@ export function DoVui({
                 borderColor:
                   ketQua === "sai"
                     ? "#e11d48"
-                    : ketQua === "dung"
+                    : ketQua === "dung" || i === oDangCho
                       ? gold
-                      : i === oDangCho
-                        ? gold
-                        : line,
+                      : line,
                 color: ink,
-                background: i === oDangCho && !xong ? `${gold}12` : "transparent",
+                background:
+                  i === oDangCho && !xong ? `${gold}12` : "transparent",
               }}
             >
               {daNhap[i] ?? ""}
             </div>
 
-            {/* Gạch chia ngày / tháng / năm cho dễ đọc */}
             {(i === 1 || i === 3) && (
               <span aria-hidden className="text-[18px]" style={{ color: line }}>
                 /
@@ -216,126 +443,125 @@ export function DoVui({
       </div>
 
       {ketQua === null && (
-        <ChuThich
-          text={
-            dangTai === null
-              ? "Bấm một con số ở dưới để nạp lên ná."
-              : "Kéo viên số xuống rồi thả — hoặc bấm thẳng vào nó."
-          }
-          color={muted}
-        />
+        <p className="mt-2 text-[12.5px]" style={{ color: muted }}>
+          {loiNhac}
+        </p>
       )}
 
-      {/* Viên số đang bay. Nằm ngoài luồng, chỉ hiện trong lúc bay. */}
+      {/* Quả cầu đang bay — nằm ngoài luồng, chỉ hiện lúc bay */}
       <motion.div
-        ref={scope}
         aria-hidden
-        className="font-display pointer-events-none absolute top-0 left-0 z-20 grid size-11 place-items-center rounded-xl text-[20px] font-bold shadow-lg"
+        className="pointer-events-none absolute top-0 left-0 z-20"
         style={{
-          background: gold,
-          color: "#00112e",
-          opacity: 0,
+          x: bayX,
+          y: bayY,
+          rotate: bayXoay,
+          opacity: bayHien,
           translateX: "-50%",
           translateY: "-50%",
         }}
       >
-        {dangTai ?? ""}
+        <QuaCau so={dangCam} size={34} gold={gold} ink={ink} />
       </motion.div>
 
-      {/* Cái ná */}
-      <div className="mt-10 flex flex-col items-center">
-        <div className="relative h-28 w-24">
-          <svg
-            viewBox="0 0 96 112"
-            className="absolute inset-0 h-full w-full"
-            aria-hidden
-          >
-            {/* Dây: nối hai chạc tới túi, co giãn theo tay kéo */}
-            <motion.path
-              d="M 22 26 L 48 40 L 74 26"
-              fill="none"
-              stroke={gold}
-              strokeWidth={3}
-              strokeLinecap="round"
-              style={{
-                // Dây chỉ là trang trí ăn theo túi; vẽ lại bằng transform
-                // rẻ hơn tính lại đường path mỗi khung hình.
-                translateY: ky,
-                translateX: kx,
-              }}
-            />
-            {/* Hai chạc và cán */}
-            <path
-              d="M 22 26 L 30 58 Q 48 74 66 58 L 74 26"
-              fill="none"
-              stroke={ink}
-              strokeWidth={9}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            <path
-              d="M 48 70 L 48 106"
-              stroke={ink}
-              strokeWidth={9}
-              strokeLinecap="round"
-            />
-          </svg>
+      {/* Sân */}
+      <div
+        ref={sanRef}
+        className="relative mt-6 h-[300px] w-full select-none sm:h-[340px]"
+      >
+        {/* Lưới, nằm giữa người phát và mấy cái ô */}
+        <div
+          aria-hidden
+          className="absolute inset-x-0 top-[26%] h-[74px]"
+          style={{
+            borderTop: `2.5px solid ${ink}`,
+            backgroundImage: `repeating-linear-gradient(90deg, ${line} 0 1px, transparent 1px 11px), repeating-linear-gradient(0deg, ${line} 0 1px, transparent 1px 11px)`,
+          }}
+        />
 
-          {/* Túi ná — cũng là viên số đang nạp, và cũng là nút bắn */}
-          <motion.div
-            ref={naRef}
-            style={{ x: kx, y: ky }}
-            className="absolute top-[34px] left-1/2 -translate-x-1/2"
-          >
-            <button
-              type="button"
-              disabled={dangTai === null || dangBay || xong}
-              onPointerDown={batDauKeo}
-              onPointerMove={dangKeoTay}
-              onPointerUp={thaTay}
-              onPointerCancel={thaTay}
-              onClick={() => {
-                // Bấm thường (không kéo) cũng bắn — đường chơi cho bàn phím.
-                if (!dangKeo) void ban();
-              }}
-              aria-label={
-                dangTai === null
-                  ? "Chưa nạp số nào"
-                  : `Bắn số ${dangTai} vào ô thứ ${oDangCho + 1}`
-              }
-              className="font-display grid size-11 cursor-grab touch-none place-items-center rounded-xl text-[20px] font-bold shadow-md transition-opacity active:cursor-grabbing disabled:opacity-0"
-              style={{ background: gold, color: "#00112e" }}
-            >
-              {dangTai ?? ""}
-            </button>
-          </motion.div>
+        {/* Mặt sân */}
+        <div
+          aria-hidden
+          className="absolute inset-x-0 bottom-0 h-px"
+          style={{ background: line }}
+        />
+
+        {/* Người que */}
+        <div
+          className="absolute"
+          style={{
+            left: `${NGUOI_X}%`,
+            top: `${NGUOI_Y}%`,
+            transform: "translate(-50%, -100%)",
+          }}
+        >
+          <NguoiQue goc={gocVot} ink={ink} gold={gold} />
         </div>
 
-        {/* Hàng số để chọn */}
-        <div className="mt-6 flex flex-wrap items-center justify-center gap-1.5">
-          {Array.from({ length: 10 }).map((_, n) => (
+        {/* Quả cầu đang cầm trên tay — và cũng là nút phát cầu */}
+        <div
+          ref={tayRef}
+          className="absolute"
+          style={{
+            left: `calc(${NGUOI_X}% + 30px)`,
+            top: `calc(${NGUOI_Y}% - 78px)`,
+            transform: "translate(-50%, -50%)",
+          }}
+        >
+          <button
+            type="button"
+            disabled={dangCam === null || dangBay || xong}
+            onPointerDown={batDauKeo}
+            onPointerMove={keoTay}
+            onPointerUp={thaTay}
+            onPointerCancel={thaTay}
+            onClick={() => {
+              if (!dangKeo) void phatCau();
+            }}
+            aria-label={
+              dangCam === null
+                ? "Chưa cầm quả cầu nào"
+                : `Phát quả cầu số ${dangCam} vào ô thứ ${oDangCho + 1}`
+            }
+            className="grid cursor-grab touch-none place-items-center rounded-full transition-opacity duration-200 active:cursor-grabbing"
+            // Tính thẳng ở đây chứ không dùng lớp `disabled:opacity-0`:
+            // kiểu nội tuyến luôn thắng lớp tiện ích, nên để cả hai thì
+            // quả cầu rỗng vẫn hiện trên tay lúc chưa nhặt gì.
+            style={{ opacity: dangCam === null || dangBay ? 0 : 1 }}
+          >
+            <QuaCau so={dangCam} size={38} gold={gold} ink={ink} />
+          </button>
+        </div>
+
+        {/* Mười quả cầu nằm rải dưới sân */}
+        {CHO_NAM.map((cho, n) => {
+          const dangChon = dangCam === n;
+          return (
             <button
               key={n}
               type="button"
               disabled={xong || dangBay}
-              onClick={() => setDangTai(n)}
-              aria-label={`Nạp số ${n}`}
-              aria-pressed={dangTai === n}
-              className="font-display size-10 rounded-xl border text-[17px] font-bold transition-all duration-200 hover:-translate-y-0.5 disabled:opacity-40"
+              onClick={() => setDangCam(n)}
+              aria-label={`Nhặt quả cầu số ${n}`}
+              aria-pressed={dangChon}
+              className="absolute rounded-full transition-[transform,opacity] duration-200 hover:-translate-y-1 disabled:opacity-40"
               style={{
-                borderColor: dangTai === n ? gold : line,
-                background: dangTai === n ? `${gold}1f` : "transparent",
-                color: ink,
+                left: `${cho.x}%`,
+                top: `${cho.y}%`,
+                transform: `translate(-50%, -50%) rotate(${cho.r}deg)`,
+                // Quả đang cầm trên tay thì mờ đi ở dưới sân, để thấy rõ
+                // là nó đã được nhặt lên.
+                opacity: dangChon ? 0.25 : 1,
               }}
             >
-              {n}
+              <QuaCau so={n} size={38} gold={gold} ink={ink} />
             </button>
-          ))}
-        </div>
+          );
+        })}
       </div>
 
       {/* Kết quả */}
-      <div className="mt-8 min-h-[104px] text-center">
+      <div className="mt-4 min-h-[104px] text-center">
         {ketQua === "dung" && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
@@ -365,7 +591,7 @@ export function DoVui({
               className="font-display text-[22px] font-bold sm:text-[25px]"
               style={{ color: ink }}
             >
-              Chưa đúng rồi 😅
+              Cầu ra ngoài rồi 😅
             </p>
             <p className="mt-2 text-[14.5px]" style={{ color: muted }}>
               Thử lại phát nữa xem.
