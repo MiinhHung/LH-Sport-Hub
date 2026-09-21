@@ -1,4 +1,3 @@
-import { ArrowRight } from "lucide-react";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -12,6 +11,7 @@ import { ShowcaseVideo } from "@/components/landing/showcase-video";
 import { Reveal } from "@/components/landing/reveal";
 import { JourneyLine } from "@/components/landing/journey-line";
 import { ShuttleHero } from "@/components/landing/shuttle-hero";
+import { FeatureIndex, type Feature } from "@/components/landing/feature-index";
 import { FlowLink } from "@/components/ui/flow-button";
 import { createClient } from "@/lib/supabase/server";
 
@@ -40,26 +40,34 @@ const ON_DARK_NAVY = "#00112e";
 
 /** Mỗi mục trỏ thẳng vào trang tương ứng trong app. Khách chưa đăng nhập
  *  sẽ được chuyển sang trang đăng nhập rồi quay lại đúng chỗ đó. */
-const FEATURES = [
+const FEATURES: Feature[] = [
   {
     href: "/keo",
     title: "Kèo",
     body: "Thách nhau 1v1 hay 2v2, đặt mốc điểm, ghi rõ cược gì. Cả đội thua bao cả đội thắng — đã chốt thì khỏi cãi.",
+    anh: "/images/feed-3.jpg",
+    alt: "Anh em cầm vợt trước giờ vào trận",
   },
   {
     href: "/buoi-tap",
     title: "Buổi tập",
     body: "Ai đứng ra đặt sân thì lên lịch, mọi người bấm báo đi hay không. Kèm bản đồ cho người tới lần đầu.",
+    anh: "/images/feed-1.jpg",
+    alt: "Cả team trên sân",
   },
   {
     href: "/cam-nang",
     title: "Cẩm nang",
     body: "Luật, kỹ thuật, khởi động, chọn vợt chọn giày. Mười ba bài, đủ để không phải tra Google giữa trận.",
+    anh: "/images/cam-nang/di-chuyen.webp",
+    alt: "Minh hoạ bài cẩm nang về di chuyển",
   },
   {
     href: "/bang-tin",
     title: "Bảng tin & nhắn riêng",
     body: "Khoe ảnh buổi vừa đánh, chém gió, hoặc nhắn riêng rủ nhau đi tập.",
+    anh: "/images/feed-4.jpg",
+    alt: "Ảnh tập thể cuối buổi",
   },
 ];
 
@@ -210,48 +218,13 @@ export default async function LandingPage() {
             cỡ chữ lớn, và có chỗ cho một việc mà lưới icon không làm được:
             mỗi dòng bấm được để vào thẳng trang đó.
           */}
-          <ul className="mt-14 border-t" style={{ borderColor: LINE }}>
-            {FEATURES.map(({ href, title, body }, i) => (
-              <li key={title} className="border-b" style={{ borderColor: LINE }}>
-                <Reveal delay={i * 60}>
-                  <Link
-                    href={href}
-                    className="group grid grid-cols-[auto_minmax(0,1fr)_auto] items-baseline gap-x-5 gap-y-1.5 py-6 md:grid-cols-[3.5rem_minmax(0,15rem)_minmax(0,1fr)_2rem] md:gap-x-8 md:py-7"
-                  >
-                    <span
-                      aria-hidden
-                      className="font-display tabular text-[15px] leading-none font-bold transition-colors duration-300 md:text-[17px]"
-                      style={{ color: GOLD, opacity: 0.55 }}
-                    >
-                      {String(i + 1).padStart(2, "0")}
-                    </span>
-
-                    <h3
-                      className="font-display text-[22px] leading-tight font-bold transition-colors duration-300 group-hover:text-navy-700 md:text-[26px]"
-                      style={{ color: INK }}
-                    >
-                      {title}
-                    </h3>
-
-                    {/* Trên điện thoại câu mô tả xuống dòng riêng, nhảy qua
-                        cột số để thẳng hàng với tên mục. */}
-                    <p
-                      className="col-start-2 col-end-4 text-[14px] leading-relaxed md:col-auto md:text-[14.5px]"
-                      style={{ color: MUTED }}
-                    >
-                      {body}
-                    </p>
-
-                    <ArrowRight
-                      aria-hidden
-                      className="col-start-3 row-start-1 size-4 self-center opacity-0 transition-all duration-300 group-hover:translate-x-1 group-hover:opacity-100 md:col-auto md:row-auto"
-                      style={{ color: GOLD }}
-                    />
-                  </Link>
-                </Reveal>
-              </li>
-            ))}
-          </ul>
+          <FeatureIndex
+            items={FEATURES}
+            gold={GOLD}
+            ink={INK}
+            muted={MUTED}
+            line={LINE}
+          />
 
           {/* Câu cửa miệng của team — cho hẳn một dòng riêng thay vì nhét
               vào ô trống thừa của lưới như trước. */}
