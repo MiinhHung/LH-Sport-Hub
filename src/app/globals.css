@@ -162,6 +162,55 @@
   --shadow-pop: 0 20px 50px -18px rgba(0, 0, 0, 0.8);
 }
 
+/* ==================================================================
+   GHIM NỀN SÁNG
+   ------------------------------------------------------------------
+   Trang giới thiệu được thiết kế CHỈ CHO NỀN SÁNG: nền trắng viết thẳng
+   bằng mã hex trong tệp, ảnh và video chọn theo nền trắng. Nhưng lớp
+   `.dark` nằm trên thẻ <html> nên nó theo người dùng sang mọi trang —
+   ai bật nền tối trong app rồi bấm về trang chủ thì các biến đổi theo,
+   trong khi nền vẫn trắng.
+
+   Lỗi có thật, không phải đề phòng: ba tiêu đề h2 ở trang chủ không tự
+   đặt màu mà lấy `--color-ink-100` từ lớp cơ sở. Bật nền tối, đo được
+   chúng thành rgb(244,247,253) — gần trắng — nằm trên nền trắng. Nhìn ra
+   đúng như chữ bị mờ đi.
+
+   Sửa từng chỗ bằng cách gán màu tay thì vá được ba tiêu đề hôm nay, và
+   thứ thêm vào ngày mai lại hỏng y hệt. Ghim cả bảng màu cho nguyên nhánh
+   là hết hẳn.
+
+   PHẢI KHỚP VỚI KHỐI `@theme` Ở TRÊN. Sửa giá trị nào trên đó thì sửa cả
+   ở đây.
+   ================================================================== */
+.theme-sang {
+  color-scheme: light;
+
+  --color-ink-950: #f6f8fc;
+  --color-ink-900: #ffffff;
+  --color-ink-850: #f1f4fa;
+  --color-ink-800: #e4e9f2;
+  --color-ink-700: #ccd5e4;
+  --color-ink-600: #9aa6bb;
+  --color-ink-500: #69768d;
+  --color-ink-400: #4c5a72;
+  --color-ink-300: #33415a;
+  --color-ink-200: #1b2942;
+  --color-ink-100: #001a4a;
+
+  --color-lime-glow: #a87813;
+  --color-lime-deep: #855c12;
+  --color-link: #0d3f8a;
+  --color-beam: #c8951a;
+
+  --shadow-soft: 0 1px 2px rgba(0, 26, 74, 0.04);
+  --shadow-card:
+    0 1px 2px rgba(0, 26, 74, 0.04), 0 10px 28px -12px rgba(0, 26, 74, 0.1);
+  --shadow-lift:
+    0 2px 4px rgba(0, 26, 74, 0.05), 0 18px 40px -16px rgba(0, 26, 74, 0.18);
+  --shadow-pop: 0 20px 50px -18px rgba(0, 26, 74, 0.28);
+}
+
 html {
   -webkit-text-size-adjust: 100%;
 }

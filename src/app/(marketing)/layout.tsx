@@ -10,5 +10,10 @@ export default function MarketingLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <div className="min-h-dvh bg-white">{children}</div>;
+  return (
+    // `theme-sang` ghim bảng màu về bản nền sáng cho cả nhánh này — trang
+    // giới thiệu có nền trắng viết cứng, mà lớp `.dark` thì đi theo người
+    // dùng từ trong app sang. Xem ghi chú trong globals.css.
+    <div className="theme-sang min-h-dvh bg-white">{children}</div>
+  );
 }
