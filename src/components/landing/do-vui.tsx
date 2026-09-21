@@ -94,12 +94,10 @@ const NGUOI_Y = 90;
 function QuaCau({
   so,
   size,
-  gold,
   ink,
 }: {
   so: number | null;
   size: number;
-  gold: string;
   ink: string;
 }) {
   return (
@@ -119,15 +117,33 @@ function QuaCau({
         strokeWidth={1}
         opacity={0.45}
       />
-      {/* Đế bần, và con số nằm trên đó */}
-      <circle cx={20} cy={29} r={8.5} fill={gold} />
+      {/*
+        Đế bần, và con số nằm trên đó.
+
+        ĐẾ DÙNG VÀNG SÁNG, KHÔNG PHẢI MÀU VÀNG CỦA TRANG. Trang giới
+        thiệu dùng gold-700 vì đó là sắc vàng đậm vừa đủ để LÀM CHỮ trên
+        nền trắng. Nhưng ở đây vàng làm NỀN còn số mới là chữ — đo ra chữ
+        navy trên gold-700 chỉ được 3,16:1, dưới ngưỡng đọc được, nên
+        nhìn mờ mờ khó ra số. Đổi đế sang gold-400 thì lên 9,09:1.
+
+        Vẫn viền navy quanh đế để nó không bị nhoà vào nền trắng của
+        trang, vì gold-400 khá sáng.
+      */}
+      <circle
+        cx={20}
+        cy={28}
+        r={10.5}
+        fill="#dcae42"
+        stroke={ink}
+        strokeWidth={1.4}
+      />
       <text
         x={20}
-        y={29}
+        y={28.5}
         textAnchor="middle"
         dominantBaseline="central"
-        fontSize={11}
-        fontWeight={700}
+        fontSize={14}
+        fontWeight={800}
         fill="#00112e"
       >
         {so ?? ""}
@@ -487,7 +503,7 @@ export function DoVui({
           translateY: "-50%",
         }}
       >
-        <QuaCau so={dangCam} size={34} gold={gold} ink={ink} />
+        <QuaCau so={dangCam} size={40} ink={ink} />
       </motion.div>
 
       {/* Sân */}
@@ -566,7 +582,7 @@ export function DoVui({
             // quả cầu rỗng vẫn hiện trên tay lúc chưa nhặt gì.
             style={{ opacity: dangCam === null || dangBay ? 0 : 1 }}
           >
-            <QuaCau so={dangCam} size={38} gold={gold} ink={ink} />
+            <QuaCau so={dangCam} size={44} ink={ink} />
           </button>
 
           {/*
@@ -632,7 +648,7 @@ export function DoVui({
                 opacity: dangChon ? 0.25 : 1,
               }}
             >
-              <QuaCau so={n} size={38} gold={gold} ink={ink} />
+              <QuaCau so={n} size={46} ink={ink} />
             </button>
           );
         })}
