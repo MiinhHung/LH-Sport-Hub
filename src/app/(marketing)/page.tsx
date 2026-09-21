@@ -11,6 +11,7 @@ import { ShowcaseVideo } from "@/components/landing/showcase-video";
 import { Reveal } from "@/components/landing/reveal";
 import { JourneyLine } from "@/components/landing/journey-line";
 import { ShuttleHero } from "@/components/landing/shuttle-hero";
+import { DoVui } from "@/components/landing/do-vui";
 import { FeatureIndex, type Feature } from "@/components/landing/feature-index";
 import { FlowLink } from "@/components/ui/flow-button";
 import { createClient } from "@/lib/supabase/server";
@@ -260,14 +261,23 @@ export default async function LandingPage() {
         className="border-t px-5 py-24 text-center sm:px-10 sm:py-32"
         style={{ background: PAPER, borderColor: LINE }}
       >
-        {/* Câu này có "đặt" — dấu nặng thò xuống dưới con chữ. Đúng chỗ để
-            thấy khe che của CutReveal có xén mất dấu hay không. */}
+        <Eyebrow color={GOLD} className="justify-center">
+          Đố vui
+        </Eyebrow>
+
+        {/* Câu này có "được" và "lập" — dấu thò xuống dưới con chữ. Đúng
+            chỗ để thấy khe che của CutReveal có xén mất dấu hay không. */}
         <CutReveal
           as="h2"
-          text="Sáng thứ 7, sân đã đặt. Còn thiếu mỗi bạn."
-          className="font-display mx-auto block max-w-2xl text-[32px] leading-[1.14] font-bold sm:text-[46px]"
+          text="Công ty Light Human được thành lập ngày nào?"
+          className="font-display mx-auto mt-5 block max-w-2xl text-[32px] leading-[1.14] font-bold sm:text-[46px]"
           step={75}
         />
+
+        <div className="mt-12">
+          <DoVui ink={INK} muted={MUTED} gold={GOLD} line={LINE} />
+        </div>
+
         <div className="mt-9">
           <Link
             href={signedIn ? "/bang-tin" : "/dang-nhap"}
