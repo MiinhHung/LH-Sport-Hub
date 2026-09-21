@@ -1,11 +1,4 @@
-import {
-  AlertTriangle,
-  CheckCheck,
-  ClipboardPen,
-  Plus,
-  Swords,
-  Zap,
-} from "lucide-react";
+import { AlertTriangle, CheckCheck, ClipboardPen, Swords, Zap } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
@@ -13,7 +6,7 @@ import type { ReactNode } from "react";
 import { ChallengeCard } from "@/components/challenge-card";
 import { TeamFeed } from "@/components/team-feed";
 import { Card, EmptyState, PageIntro, SectionTitle } from "@/components/ui";
-import { LinkButton } from "@/components/ui/button";
+import { FlowLink } from "@/components/ui/flow-button";
 import { requireProfile } from "@/lib/auth";
 import { SPORTS, SPORT_KEYS, type SportKey } from "@/lib/constants";
 import { getMyTodos, listChallenges } from "@/lib/queries";
@@ -129,10 +122,7 @@ export default async function ChallengesPage({
         title="Kèo"
         lead="Nơi mọi người thách đấu và giao kèo với nhau hehehe"
         action={
-          <LinkButton href="/keo/tao" variant="accent" size="md">
-            <Plus className="size-4" strokeWidth={2.5} />
-            Tạo kèo
-          </LinkButton>
+          <FlowLink href="/keo/tao" text="Tạo kèo" />
         }
       />
 
@@ -259,10 +249,7 @@ export default async function ChallengesPage({
             }
             action={
               tab === "open" ? (
-                <LinkButton href="/keo/tao" variant="accent">
-                  <Plus className="size-4" strokeWidth={2.5} />
-                  Tạo kèo đầu tiên
-                </LinkButton>
+                <FlowLink href="/keo/tao" text="Tạo kèo đầu tiên" />
               ) : undefined
             }
           />

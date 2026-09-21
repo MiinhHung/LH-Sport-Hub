@@ -11,6 +11,7 @@ import {
 } from "@/components/ui";
 import { BeamRing, TiltWrap } from "@/components/ui/beam-frame";
 import { LinkButton } from "@/components/ui/button";
+import { FlowLink } from "@/components/ui/flow-button";
 import { requireProfile } from "@/lib/auth";
 import { SPORTS, type SportKey } from "@/lib/constants";
 import { listUpcomingSessions } from "@/lib/queries";
@@ -29,10 +30,7 @@ export default async function SessionsPage() {
         title="Buổi tập"
         lead="Lịch ra sân sắp tới."
         action={
-          <LinkButton href="/buoi-tap/tao" variant="accent" size="md">
-            <Plus className="size-4" strokeWidth={2.5} />
-            Tạo lịch
-          </LinkButton>
+          <FlowLink href="/buoi-tap/tao" text="Tạo lịch" />
         }
       />
 

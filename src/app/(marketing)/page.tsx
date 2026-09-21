@@ -12,6 +12,7 @@ import { ShowcaseVideo } from "@/components/landing/showcase-video";
 import { Reveal } from "@/components/landing/reveal";
 import { JourneyLine } from "@/components/landing/journey-line";
 import { ShuttleHero } from "@/components/landing/shuttle-hero";
+import { FlowLink } from "@/components/ui/flow-button";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
@@ -34,13 +35,7 @@ const MUTED = "#4c5a72"; // ink-400
 const GOLD = "#855c12"; // gold-700 — 5,9:1 trên trắng, đạt AA cho cả chữ 10px
 const LINE = "#e4e9f2"; // ink-800
 
-/*
- * Hero có nền tối riêng nên hai cái nút nằm trong đó phải dùng bảng màu
- * của nền tối. Dùng nhầm bảng sáng thì chữ navy nằm trên nền navy —
- * nút thứ hai biến mất hoàn toàn.
- */
-const ON_DARK_GOLD = "#dcae42"; // gold-400
-const ON_DARK_TEXT = "#f2ede3";
+/** Nền của khối video — navy đậm, không theo bảng màu sáng của trang. */
 const ON_DARK_NAVY = "#00112e";
 
 /** Mỗi mục trỏ thẳng vào trang tương ứng trong app. Khách chưa đăng nhập
@@ -88,22 +83,14 @@ export default async function LandingPage() {
         meta={["Cầu lông & bơi", "Sáng thứ 7", "Nội bộ công ty"]}
         topRight={<HeroAlert />}
         action={
-          <Link
+          <FlowLink
             href={signedIn ? "/bang-tin" : "/dang-nhap"}
-            className="inline-flex h-11 items-center rounded-full px-7 text-[12px] font-bold tracking-[0.16em] uppercase transition-transform duration-300 hover:-translate-y-0.5"
-            style={{ background: ON_DARK_GOLD, color: ON_DARK_NAVY }}
-          >
-            {signedIn ? "Vào bảng tin" : "Đăng nhập"}
-          </Link>
+            text={signedIn ? "Vào bảng tin" : "Đăng nhập"}
+            tone="hero"
+          />
         }
         secondaryAction={
-          <a
-            href="#co-gi"
-            className="inline-flex h-11 items-center rounded-full border px-7 text-[12px] font-bold tracking-[0.16em] uppercase transition-colors duration-300 hover:bg-white/10"
-            style={{ borderColor: `${ON_DARK_TEXT}4d`, color: ON_DARK_TEXT }}
-          >
-            Có gì trong này
-          </a>
+          <FlowLink href="#co-gi" text="Có gì trong này" tone="heroQuiet" />
         }
       />
 

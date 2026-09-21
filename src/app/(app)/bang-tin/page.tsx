@@ -24,6 +24,7 @@ import {
 } from "@/components/ui";
 import { BeamRing, TiltWrap } from "@/components/ui/beam-frame";
 import { LinkButton } from "@/components/ui/button";
+import { FlowLink } from "@/components/ui/flow-button";
 import { isModerator, requireProfile } from "@/lib/auth";
 import { STAKES, formatStake, type StakeKey } from "@/lib/constants";
 import { ARTICLES } from "@/content/cam-nang";
@@ -271,10 +272,7 @@ export default async function HomePage() {
         title="Bảng tin"
         action={
           <div className="hidden gap-2 sm:flex">
-            <LinkButton href="/keo/tao" variant="accent" size="md">
-              <Swords className="size-4" strokeWidth={2.5} />
-              Tạo kèo
-            </LinkButton>
+            <FlowLink href="/keo/tao" text="Tạo kèo" />
           </div>
         }
       />
