@@ -164,8 +164,12 @@ function TopNavItem({ item, active }: { item: Item; active: boolean }) {
       <Link
         href={item.href}
         aria-current={active ? "page" : undefined}
+        // Nhãn bị ẩn ở màn hình vừa nên luôn kèm tên đầy đủ cho máy đọc
+        // màn hình và cho mẹo chỉ dẫn khi rê chuột.
+        aria-label={item.label}
+        title={item.label}
         className={cn(
-          "relative flex items-center gap-2 rounded-lg px-3 py-2 text-[13.5px] font-semibold transition-colors duration-200",
+          "relative flex items-center gap-2 rounded-lg px-2.5 py-2 text-[13.5px] font-semibold whitespace-nowrap transition-colors duration-200 min-[1180px]:px-3",
           active
             ? "bg-ink-850 text-ink-100"
             : "text-ink-500 hover:bg-ink-850/70 hover:text-ink-200",
@@ -175,11 +179,31 @@ function TopNavItem({ item, active }: { item: Item; active: boolean }) {
           {item.icon}
           {item.badge ? <Counter value={item.badge} /> : null}
         </MagneticIcon>
-        {item.label}
+        {/*
+          CHỮ KHÔNG ĐƯỢC XUỐNG DÒNG, và chỉ hiện khi đủ chỗ.
+
+          Đo được: bảy mục kèm nhãn chiếm 668px, phần còn lại của thanh
+          (logo, chuông tin nhắn, công tắc nền, ảnh đại diện) chiếm 293px,
+          cộng lề và khoảng cách thì cần khoảng 1113px. Khung chứa chúng co lại
+          theo cửa sổ. Trước đây không chặn xuống dòng nên mỗi nhãn tự bẻ
+          làm hai — "Trang / chủ" — trông như chữ dựng đứng.
+
+          Chỉ thêm `whitespace-nowrap` thôi thì hết bẻ dòng nhưng cả hàng
+          tràn ra đè lên chuông tin nhắn và ảnh đại diện. Nên dưới ngưỡng
+          1180px chỉ để lại biểu tượng; tên vẫn còn ở `aria-label` và
+          `title`.
+
+          Ngưỡng 1180 chọn vì thanh header bị chặn ở max-w-6xl = 1152px:
+          từ 1184px trở lên, cửa sổ rộng thêm cũng không cho thêm chỗ nào,
+          nên bố cục ở mọi màn hình lớn là MỘT trường hợp duy nhất. Đo
+          trường hợp đó: vừa đủ, còn hở 20px tới chuông tin nhắn. Nghĩa là
+          thêm mục mới hoặc đặt nhãn dài hơn thì phải đo lại chỗ này.
+        */}
+        <span className="hidden min-[1180px]:inline">{item.label}</span>
         {active && (
           <span
             aria-hidden
-            className="bg-gradient-gold absolute inset-x-3 -bottom-px h-[2.5px] rounded-full"
+            className="bg-gradient-gold absolute inset-x-2.5 -bottom-px h-[2.5px] rounded-full min-[1180px]:inset-x-3"
           />
         )}
       </Link>
