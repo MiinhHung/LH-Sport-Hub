@@ -5,10 +5,10 @@ import * as React from "react";
 /**
  * Đoạn nối từ đuôi đường dây của dải kể chuyện xuống khối video.
  *
- * Đường chính kết thúc ở ĐÁY khối đó, đúng giữa bề ngang. Đoạn này bắt đầu
- * cũng ở giữa, đi thẳng xuống rồi kết bằng một chấm ngay mép trên video.
- * Hai nét khớp nhau vì cùng một toạ độ ngang và khối trên không còn lề
- * dưới — hở một khoảng là mắt thấy ngay thành hai nét rời.
+ * Đường chính kết thúc ở ĐÁY khối đó, đúng giữa bề ngang. Đoạn này bắt
+ * đầu cũng ở giữa, lượn một nhánh cong rồi kết bằng một chấm ngay mép
+ * trên video. Hai nét khớp nhau vì cùng một toạ độ ngang và khối trên
+ * không còn lề dưới — hở một khoảng là mắt thấy ngay thành hai nét rời.
  *
  * Tự vẽ theo cuộn bằng đúng mẹo của đường chính: nét đứt dài bằng chính nó,
  * rồi đẩy `stroke-dashoffset` từ full về 0.
@@ -19,6 +19,25 @@ import * as React from "react";
  */
 
 const HEIGHT = 132;
+
+/**
+ * Đường chính đi ngang bao nhiêu cho mỗi một pixel đi xuống, ngay tại
+ * điểm nó kết thúc.
+ *
+ * Đo trên trang thật: đuôi đường tới nơi ở 33,1 độ so với phương ngang,
+ * tức lệch gần 57 độ khỏi phương thẳng đứng. Bản trước đoạn nối cứ thế
+ * đổ thẳng đứng xuống, nên chỗ gặp nhau thành một góc gãy — đang chạy
+ * chéo tự dưng bẻ dựng đứng.
+ *
+ * Số này dùng để đặt điểm điều khiển đầu tiên của đoạn nối, cho nó rời
+ * đi theo ĐÚNG hướng mà đường chính đang tới, rồi mới lượn về thẳng
+ * đứng ở chỗ chấm kết.
+ */
+const DOC_NGANG_KHI_TOI = 1.53;
+
+/** Điểm điều khiển nằm ở đoạn nào của chiều cao. */
+const TAY_DAU = 0.34;
+const TAY_CUOI = 0.78;
 
 export function LineToVideo() {
   const boxRef = React.useRef<HTMLDivElement>(null);
@@ -80,6 +99,21 @@ export function LineToVideo() {
 
   const mid = w / 2;
 
+  /*
+   * Đoạn nối là một nhánh cong, không phải nét thẳng.
+   *
+   * Điểm điều khiển đầu kéo sang phải theo đúng độ dốc đường chính đang
+   * tới, nên hai nét nối vào nhau không thấy chỗ gãy. Điểm điều khiển
+   * sau nằm ngay trên trục giữa, kéo nét về lại đúng tâm để chấm kết
+   * rơi giữa mép trên khối video.
+   */
+  const ket = HEIGHT - 10;
+  const d =
+    `M ${mid} 0 ` +
+    `C ${mid + DOC_NGANG_KHI_TOI * HEIGHT * TAY_DAU} ${HEIGHT * TAY_DAU}, ` +
+    `${mid} ${HEIGHT * TAY_CUOI}, ` +
+    `${mid} ${ket}`;
+
   return (
     <div ref={boxRef} className="relative w-full" style={{ height: HEIGHT }}>
       {w > 0 && (
@@ -92,7 +126,7 @@ export function LineToVideo() {
         >
           {/* Nét mờ cho thấy trước quãng còn lại, giống đường chính */}
           <path
-            d={`M ${mid} 0 L ${mid} ${HEIGHT - 10}`}
+            d={d}
             fill="none"
             stroke="#001a4a"
             strokeOpacity={0.1}
@@ -101,7 +135,7 @@ export function LineToVideo() {
           />
           <path
             ref={pathRef}
-            d={`M ${mid} 0 L ${mid} ${HEIGHT - 10}`}
+            d={d}
             fill="none"
             stroke="#c8951a"
             strokeWidth={2.5}

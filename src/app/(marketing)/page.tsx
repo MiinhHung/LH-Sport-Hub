@@ -129,6 +129,8 @@ export default async function LandingPage() {
                 text="🌿 Không gian thư giãn của Light Human"
                 className="font-display mt-5 block text-[30px] leading-[1.14] font-bold sm:text-[40px]"
                 delay={120}
+                gachChan="Light Human"
+                mauGach={GOLD}
               />
 
               <WordFade
@@ -272,6 +274,8 @@ export default async function LandingPage() {
           text="Light Human được thành lập ngày nào?"
           className="font-display mx-auto mt-5 block max-w-2xl text-[32px] leading-[1.14] font-bold sm:text-[46px]"
           step={75}
+          gachChan="Light Human"
+          mauGach={GOLD}
         />
 
         <div className="mt-12">
