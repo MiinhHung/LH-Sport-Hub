@@ -4,6 +4,7 @@ import Image from "next/image";
 import * as React from "react";
 
 import { CutReveal } from "@/components/ui/cut-reveal";
+import { VietChu } from "@/components/ui/viet-chu";
 
 /**
  * Dải "một buổi sáng thứ 7": người đánh cầu ở góc trái, quả cầu bật ra từ
@@ -295,9 +296,13 @@ export function JourneyLine() {
 
         {/* Tiêu đề, bên phải tấm ảnh */}
         <div className="absolute top-[2%] right-0 z-20 w-[38%] sm:top-[4%] sm:w-[44%]">
-          <p className="text-[10px] font-semibold tracking-[0.3em] text-gold-700 uppercase">
-            LH Sport Hub
-          </p>
+          <VietChu
+            text="LH Sport Hub"
+            className="block text-[10px] font-semibold tracking-[0.3em] text-gold-700 uppercase"
+            delay={120}
+            thoiGian={1100}
+            netDay="0.35px"
+          />
           <CutReveal
             as="h2"
             text="🏸 Nơi chia sẻ và kết nối"

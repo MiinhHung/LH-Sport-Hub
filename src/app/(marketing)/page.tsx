@@ -122,7 +122,7 @@ export default async function LandingPage() {
         <div className="mx-auto max-w-5xl">
           <div className="grid items-center gap-x-14 gap-y-10 lg:grid-cols-2">
             <div>
-              <Eyebrow color={GOLD}>Light Human</Eyebrow>
+              <Eyebrow color={GOLD} viet="Light Human" />
 
               <CutReveal
                 as="h2"

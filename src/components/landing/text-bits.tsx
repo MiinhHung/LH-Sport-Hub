@@ -2,6 +2,8 @@
 
 import * as React from "react";
 
+import { VietChu } from "@/components/ui/viet-chu";
+
 /**
  * Hai mẩu chữ có hiệu ứng, dùng lại ở nhiều phần của trang giới thiệu.
  *
@@ -72,12 +74,24 @@ export function Eyebrow({
   color,
   className,
   ruleWidth = "2rem",
+  viet,
 }: {
-  children: React.ReactNode;
+  children?: React.ReactNode;
   color: string;
   className?: string;
   /** Bề ngang nét vàng dẫn trước nhãn. */
   ruleWidth?: string;
+  /**
+   * Chữ tự viết ra thay vì giãn khoảng cách.
+   *
+   * Chỉ nhận chuỗi, vì `VietChu` cần dựng hai lớp chữ chồng khít nhau —
+   * có node con tuỳ ý thì không nhân đôi an toàn được.
+   *
+   * Hai hiệu ứng KHÔNG chạy cùng lúc được: giãn khoảng cách thì bề ngang
+   * chữ đổi liên tục, mà lớp viền lại bị cắt theo bề ngang đó, nên nét
+   * bút sẽ trượt lung tung. Bật cái này là tắt cái kia.
+   */
+  viet?: string;
 }) {
   const { ref, run, armed } = useInView<HTMLDivElement>();
   const on = run || !armed;
@@ -95,18 +109,29 @@ export function Eyebrow({
           transition: "transform 620ms cubic-bezier(0.16,1,0.3,1)",
         }}
       />
-      <span
-        className="text-[10px] font-semibold uppercase"
-        style={{
-          color,
-          letterSpacing: on ? "0.32em" : "0.06em",
-          opacity: on ? 1 : 0,
-          transition:
-            "letter-spacing 760ms cubic-bezier(0.16,1,0.3,1) 120ms, opacity 500ms ease-out 120ms",
-        }}
-      >
-        {children}
-      </span>
+      {viet ? (
+        <VietChu
+          text={viet}
+          className="text-[10px] font-semibold uppercase"
+          style={{ color, letterSpacing: "0.32em" }}
+          delay={140}
+          thoiGian={1100}
+          netDay="0.35px"
+        />
+      ) : (
+        <span
+          className="text-[10px] font-semibold uppercase"
+          style={{
+            color,
+            letterSpacing: on ? "0.32em" : "0.06em",
+            opacity: on ? 1 : 0,
+            transition:
+              "letter-spacing 760ms cubic-bezier(0.16,1,0.3,1) 120ms, opacity 500ms ease-out 120ms",
+          }}
+        >
+          {children}
+        </span>
+      )}
     </div>
   );
 }
