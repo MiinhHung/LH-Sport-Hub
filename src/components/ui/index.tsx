@@ -1,3 +1,4 @@
+import { CutReveal } from "@/components/ui/cut-reveal";
 import type { ComponentProps, ReactNode } from "react";
 
 import { avatarColor, cn, initials } from "@/lib/utils";
@@ -113,9 +114,19 @@ export function PageIntro({
               {eyebrow}
             </p>
           )}
-          <h1 className="font-display mt-2 text-[34px] leading-[1.05] font-bold text-ink-100 sm:text-[46px]">
-            {title}
-          </h1>
+          {/*
+            Tiêu đề trang trồi lên từng từ.
+
+            Đặt ở đây chứ không đi sửa từng trang: `PageIntro` là tiêu đề
+            chung của cả chục trang trong app, nên một chỗ này là đủ, mà
+            sau thêm trang mới cũng tự có.
+          */}
+          <CutReveal
+            as="h1"
+            text={title}
+            step={45}
+            className="font-display mt-2 block text-[34px] leading-[1.05] font-bold text-ink-100 sm:text-[46px]"
+          />
         </div>
         {action && <div className="shrink-0 pb-1">{action}</div>}
       </div>

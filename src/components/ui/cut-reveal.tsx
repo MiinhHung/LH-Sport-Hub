@@ -34,6 +34,7 @@ export function CutReveal({
   as: Tag = "span",
   gachChan,
   mauGach = "#855c12",
+  chay,
 }: {
   text: string;
   className?: string;
@@ -55,31 +56,50 @@ export function CutReveal({
   gachChan?: string;
   /** Màu nét gạch. Mặc định là vàng gold-700 của trang giới thiệu. */
   mauGach?: string;
+  /**
+   * Bên ngoài tự quyết định lúc nào chạy.
+   *
+   * Bỏ trống thì chữ tự canh theo tầm nhìn như thường. Truyền vào thì
+   * bộ theo dõi tầm nhìn bị tắt hẳn — dùng cho những chỗ mà cả khối đã
+   * có nhịp riêng, ví dụ mấy chặng của dải kể chuyện hiện ra theo tiến
+   * độ đường dây chứ không theo lúc lọt vào màn hình. Để chữ tự canh ở
+   * đó thì nó chạy xong từ lúc cả thẻ còn đang trong suốt, tới lúc thẻ
+   * hiện ra thì chẳng còn gì để xem.
+   */
+  chay?: boolean;
 }) {
   const ref = React.useRef<HTMLElement>(null);
-  const [run, setRun] = React.useState(false);
+  const [tuChay, setTuChay] = React.useState(false);
   const [armed, setArmed] = React.useState(false);
+  const benNgoaiDieuKhien = chay !== undefined;
+  const run = benNgoaiDieuKhien ? chay : tuChay;
 
   React.useEffect(() => {
+    if (benNgoaiDieuKhien) {
+      // Vẫn phải trang bị khe che, nếu không chữ hiện sẵn từ đầu và lúc
+      // bên ngoài bảo chạy thì chẳng còn gì để trồi lên.
+      setArmed(true);
+      return;
+    }
     const el = ref.current;
     if (!el) return;
 
     if (typeof IntersectionObserver === "undefined") {
-      setRun(true);
+      setTuChay(true);
       return;
     }
     setArmed(true);
 
     // Đã nằm trong tầm nhìn ngay lúc mount thì chạy luôn, đừng giấu rồi hiện.
     if (el.getBoundingClientRect().top < window.innerHeight * 0.9) {
-      setRun(true);
+      setTuChay(true);
       return;
     }
 
     const io = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          setRun(true);
+          setTuChay(true);
           io.disconnect();
         }
       },
@@ -90,7 +110,7 @@ export function CutReveal({
     return () => {
       io.disconnect();
     };
-  }, []);
+  }, [benNgoaiDieuKhien]);
 
   const words = React.useMemo(() => text.split(" "), [text]);
 

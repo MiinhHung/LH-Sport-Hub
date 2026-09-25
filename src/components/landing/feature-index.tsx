@@ -13,6 +13,7 @@ import Link from "next/link";
 import * as React from "react";
 
 import { Reveal } from "@/components/landing/reveal";
+import { CutReveal } from "@/components/ui/cut-reveal";
 
 /**
  * Mục lục "Một chỗ cho tất cả" — rê chuột vào dòng nào thì ảnh của mục đó
@@ -168,12 +169,16 @@ export function FeatureIndex({
                   {String(i + 1).padStart(2, "0")}
                 </span>
 
-                <h3
-                  className="font-display text-[22px] leading-tight font-bold transition-colors duration-300 group-hover:text-navy-700 md:text-[26px]"
+                {/* Tên mục trồi lên từng từ, chạy sau khi cả dòng đã
+                    vào chỗ để hai chuyển động không chồng lên nhau. */}
+                <CutReveal
+                  as="h3"
+                  text={title}
+                  delay={i * 60 + 160}
+                  step={50}
+                  className="font-display block text-[22px] leading-tight font-bold transition-colors duration-300 group-hover:text-navy-700 md:text-[26px]"
                   style={{ color: ink }}
-                >
-                  {title}
-                </h3>
+                />
 
                 {/* Trên điện thoại câu mô tả xuống dòng riêng, nhảy qua
                     cột số để thẳng hàng với tên mục. */}

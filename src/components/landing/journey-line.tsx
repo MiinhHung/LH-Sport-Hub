@@ -3,7 +3,7 @@
 import Image from "next/image";
 import * as React from "react";
 
-import { CutReveal } from "./cut-reveal";
+import { CutReveal } from "@/components/ui/cut-reveal";
 
 /**
  * Dải "một buổi sáng thứ 7": người đánh cầu ở góc trái, quả cầu bật ra từ
@@ -128,6 +128,12 @@ export function JourneyLine() {
   const [narrow, setNarrow] = React.useState(false);
   const [calm, setCalm] = React.useState(false);
 
+  /** Chặng nào đã hiện ra — để chữ bên trong biết lúc nào trồi lên. */
+  const [hienStop, setHienStop] = React.useState<boolean[]>(() =>
+    STOPS.map(() => false),
+  );
+  const truocRef = React.useRef<boolean[]>(STOPS.map(() => false));
+
   // Đo khối, và đo luôn vị trí mặt vợt bên trong nó. Cả hai đổi theo cỡ
   // cửa sổ nên phải theo dõi liên tục chứ không đo một lần.
   React.useEffect(() => {
@@ -205,13 +211,29 @@ export function JourneyLine() {
         shuttle.style.opacity = p < 0.995 ? "1" : "0";
       }
 
-      anchors.forEach((a, i) => {
+      /*
+       * Vị trí và độ mờ ghi thẳng vào style — mỗi khung hình cuộn mà đi
+       * qua state thì render lại cả cây.
+       *
+       * Riêng cờ "chặng này đã hiện chưa" thì phải là state, vì chữ bên
+       * trong cần nó để bắt đầu trồi lên. Chỉ gọi setState đúng lúc cờ
+       * đổi giá trị, nên mỗi chặng nhiều nhất một lần render thêm cho cả
+       * quãng cuộn.
+       */
+      const moi = anchors.map((a, i) => {
         const el = stopRefs.current[i];
-        if (!el) return;
         const shown = p * 100 >= a.y - 8;
-        el.style.opacity = shown ? "1" : "0";
-        el.style.transform = shown ? "translateY(0)" : "translateY(20px)";
+        if (el) {
+          el.style.opacity = shown ? "1" : "0";
+          el.style.transform = shown ? "translateY(0)" : "translateY(20px)";
+        }
+        return shown;
       });
+
+      if (moi.some((v, i) => v !== truocRef.current[i])) {
+        truocRef.current = moi;
+        setHienStop(moi);
+      }
     };
 
     if (calm) {
@@ -358,9 +380,16 @@ export function JourneyLine() {
             <p className="mt-3.5 text-[10px] font-semibold tracking-[0.28em] text-gold-700 uppercase">
               {stop.eyebrow}
             </p>
-            <h3 className="font-display mt-1.5 text-[22px] leading-tight font-bold text-navy-900 sm:text-[26px]">
-              {stop.title}
-            </h3>
+            {/* Chữ trồi lên đúng lúc cả chặng hiện ra, không tự canh theo
+                tầm nhìn — xem ghi chú `chay` trong CutReveal. */}
+            <CutReveal
+              as="h3"
+              text={stop.title}
+              chay={hienStop[i]}
+              delay={140}
+              step={55}
+              className="font-display mt-1.5 block text-[22px] leading-tight font-bold text-navy-900 sm:text-[26px]"
+            />
           </div>
         ))}
       </div>

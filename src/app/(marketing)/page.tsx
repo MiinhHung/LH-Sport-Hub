@@ -5,7 +5,7 @@ import Link from "next/link";
 import { HeroAlert } from "@/components/landing/hero-alert";
 import { IntroCurtain } from "@/components/landing/intro-curtain";
 import { Eyebrow, Quote, WordFade } from "@/components/landing/text-bits";
-import { CutReveal } from "@/components/landing/cut-reveal";
+import { CutReveal } from "@/components/ui/cut-reveal";
 import { LineToVideo } from "@/components/landing/line-to-video";
 import { ShowcaseVideo } from "@/components/landing/showcase-video";
 import { Reveal } from "@/components/landing/reveal";
