@@ -1,3 +1,5 @@
+import { ChuyenTrang } from "@/components/chuyen-trang";
+
 /**
  * Khung riêng cho trang giới thiệu công khai.
  *
@@ -14,6 +16,8 @@ export default function MarketingLayout({
     // `theme-sang` ghim bảng màu về bản nền sáng cho cả nhánh này — trang
     // giới thiệu có nền trắng viết cứng, mà lớp `.dark` thì đi theo người
     // dùng từ trong app sang. Xem ghi chú trong globals.css.
-    <div className="theme-sang min-h-dvh bg-white">{children}</div>
+    <div className="theme-sang min-h-dvh bg-white">
+      <ChuyenTrang>{children}</ChuyenTrang>
+    </div>
   );
 }

@@ -563,3 +563,95 @@ input[data-auth-input]:-webkit-autofill:focus {
   caret-color: #ffffff;
   transition: background-color 9999s ease-in-out 0s;
 }
+
+/* ==================================================================
+   CHUYỂN TRANG — LẰN VỤT VỢT
+   ------------------------------------------------------------------
+   Trang mới không mờ dần hiện ra, mà bị một lằn chéo quét từ trái sang
+   để lộ ra, như mặt vợt vừa vụt qua màn hình.
+
+   LẰN VÀNG LÀ MỘT BÓNG ĐỔ, KHÔNG PHẢI MỘT PHẦN TỬ.
+
+   Không thể chèn thêm thẻ nào vào lớp phủ chuyển cảnh — trình duyệt chỉ
+   cho đúng mấy giả phần tử có sẵn, mà giả phần tử thì không có giả phần
+   tử con. Nhưng `drop-shadow` bám theo HÌNH DẠNG SAU KHI CẮT, nên đổ
+   bóng vàng lệch sang phải của một khối đang bị cắt chéo thì đúng bằng
+   một vệt vàng chạy dọc mép chéo đó. Cắt chạy tới đâu, vệt theo tới đó.
+
+   Hình cắt là bốn điểm, và luôn đúng bốn điểm ở cả hai đầu — clip-path
+   chỉ nội suy mượt được giữa hai đa giác cùng số đỉnh, khác số đỉnh là
+   trình duyệt nhảy phắt từ hình này sang hình kia.
+
+   Mép chéo nghiêng về sau (đáy đi sau đỉnh 30%) vì cú vụt thuận tay quét
+   từ trên xuống; nghiêng ngược lại sẽ thành cú trái tay, đọc bị lạ.
+   ================================================================== */
+
+::view-transition-group(.vut-vot) {
+  animation-duration: 520ms;
+}
+
+/* Trang cũ nằm dưới, không cần đi đâu cả — nó bị trang mới phủ kín. Chỉ
+   lùi lại một chút cho mắt biết nó là lớp sau. */
+::view-transition-old(.vut-vot) {
+  animation: 520ms cubic-bezier(0.4, 0, 0.2, 1) both trang-cu-lui;
+}
+
+::view-transition-new(.vut-vot) {
+  animation: 520ms cubic-bezier(0.22, 0.9, 0.2, 1) both lan-vut;
+}
+
+@keyframes trang-cu-lui {
+  to {
+    opacity: 0.45;
+    transform: scale(0.985);
+  }
+}
+
+@keyframes lan-vut {
+  from {
+    clip-path: polygon(-100% 0%, -30% 0%, -60% 100%, -100% 100%);
+    filter: drop-shadow(7px 0 0 #dcae42) drop-shadow(22px 0 26px rgba(220, 174, 66, 0.5));
+  }
+  to {
+    clip-path: polygon(-100% 0%, 130% 0%, 100% 100%, -100% 100%);
+    filter: drop-shadow(7px 0 0 rgba(220, 174, 66, 0)) drop-shadow(22px 0 26px rgba(220, 174, 66, 0));
+  }
+}
+
+/*
+ * Lớp phủ chuyển cảnh ăn hết sự kiện chuột trong lúc chạy, nên cú bấm nào
+ * rơi vào giữa nửa giây đó là mất. Cho nó trong suốt với con trỏ.
+ */
+::view-transition {
+  pointer-events: none;
+}
+
+/*
+ * Máy bật "giảm chuyển động" thì bỏ hẳn thời lượng: trang đổi ngay lập
+ * tức, đúng như khi trình duyệt không có tính năng này. Lằn quét chạy
+ * ngang cả khung nhìn là đúng kiểu chuyển động dễ gây chóng mặt nhất.
+ */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
+  }
+}
+
+/*
+ * TẮT HẲN CHUYỂN CẢNH CỦA LỚP `root`.
+ *
+ * Trình duyệt tự chụp thêm một ảnh cho toàn trang, tên `root`, rồi cho nó
+ * mờ chéo trong 250ms — đã bắt được sự kiện: `-ua-view-transition-fade-out`
+ * trên `::view-transition-old(root)`. Phần thân trang đã được nhấc riêng ra
+ * thành `than-trang` nên không nằm trong ảnh đó nữa; thứ còn lại trong
+ * `root` chỉ là thanh header, thanh dưới và nền. Ba thứ đó giống hệt nhau ở
+ * trang cũ lẫn trang mới, nên cho chúng mờ đi chỉ tạo một cú nháy vô nghĩa
+ * giữa lúc lằn vàng đang quét.
+ */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+}

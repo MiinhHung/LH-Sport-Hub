@@ -2,6 +2,7 @@ import { MessagesSquare } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
+import { ChuyenTrang } from "@/components/chuyen-trang";
 import { BottomNav, TopNav } from "@/components/nav";
 import { ThemeToggle } from "@/components/theme";
 import { UserMenu } from "@/components/user-menu";
@@ -110,7 +111,7 @@ export default async function AppLayout({
         id="noi-dung"
         className="mx-auto w-full max-w-6xl flex-1 px-4 pt-7 pb-28 sm:pt-9 md:pb-16"
       >
-        {children}
+        <ChuyenTrang>{children}</ChuyenTrang>
       </main>
 
       <BottomNav unread={unread} />
