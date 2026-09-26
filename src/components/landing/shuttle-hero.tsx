@@ -7,6 +7,7 @@ import Image from "next/image";
 import * as React from "react";
 import * as THREE from "three";
 
+import { NenSan } from "./nen-san";
 import { ScrollCue } from "./scroll-cue";
 import { ShuttleCrystal } from "./shuttle-crystal";
 
@@ -573,6 +574,11 @@ export function ShuttleHero({
             <Motes color={GOLD_SOLID} count={spec.motes} />
           </Canvas>
         </div>
+
+        {/* Sàn sân và hai quầng đèn. Đặt trước quầng sáng dưới quả cầu
+            để quầng đó nằm trên, nếu không mấy nét vạch sẽ cắt ngang
+            đúng chỗ sáng nhất. */}
+        <NenSan gold={GOLD} />
 
         {/*
           Quầng sáng dưới quả cầu.

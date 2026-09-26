@@ -588,3 +588,33 @@ input[data-auth-input]:-webkit-autofill:focus {
 .con-tro-cau *:not([data-con-tro-that], [data-con-tro-that] *) {
   cursor: none !important;
 }
+
+/*
+ * Hai quầng đèn nhà thi đấu ở hero: sáng lên tối xuống rất chậm, biên độ
+ * nhỏ. Đủ để nền không đứng chết, chưa đủ để ai nhận ra là nó đang động —
+ * đúng mức mong muốn, vì thứ đáng nhìn ở đó là quả cầu chứ không phải
+ * cái nền.
+ *
+ * Viết bằng CSS thuần chứ không qua JavaScript: một hiệu ứng 14 giây
+ * không cần đến một vòng lặp khung hình, và như vậy nó tự tắt theo
+ * @media bên dưới mà không phải đọc matchMedia ở đâu cả.
+ */
+@keyframes den-tho {
+  0%,
+  100% {
+    opacity: 0.82;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.den-nha-thi-dau {
+  animation: den-tho 14s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .den-nha-thi-dau {
+    animation: none;
+  }
+}
