@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 
-import { CauBayNoi } from "@/components/landing/cau-bay-noi";
 import { ConTroCau } from "@/components/landing/con-tro-cau";
 import { HeroAlert } from "@/components/landing/hero-alert";
 import { IntroCurtain } from "@/components/landing/intro-curtain";
@@ -169,10 +168,6 @@ export default async function LandingPage() {
         </div>
       </section>
 
-      {/* Quả cầu bay vắt qua chỗ nối hai phần, để mắt không bị hẫng
-          giữa bài giới thiệu và dải kể chuyện. */}
-      <CauBayNoi cao={130} />
-
       <JourneyLine />
 
       {/* Đoạn phim của team */}
@@ -202,10 +197,6 @@ export default async function LandingPage() {
           </Reveal>
         </div>
       </section>
-
-      {/* Bay ngược chiều so với quả trên: hai quả cùng chiều thì thành
-          một cái băng chuyền, ngược chiều mới ra qua lại trên sân. */}
-      <CauBayNoi cao={110} nguoc />
 
       {/* Trong này có gì */}
       <section
