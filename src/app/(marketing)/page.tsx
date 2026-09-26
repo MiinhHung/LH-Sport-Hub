@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 
+import { CauBayNoi } from "@/components/landing/cau-bay-noi";
 import { ConTroCau } from "@/components/landing/con-tro-cau";
 import { HeroAlert } from "@/components/landing/hero-alert";
 import { IntroCurtain } from "@/components/landing/intro-curtain";
@@ -15,6 +16,8 @@ import { ShuttleHero } from "@/components/landing/shuttle-hero";
 import { DoVui } from "@/components/landing/do-vui";
 import { FeatureIndex, type Feature } from "@/components/landing/feature-index";
 import { FlowLink } from "@/components/ui/flow-button";
+import { NamCham } from "@/components/ui/nam-cham";
+import { NghiengCuon } from "@/components/ui/nghieng-cuon";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
@@ -69,7 +72,6 @@ const FEATURES: Feature[] = [
   },
 ];
 
-
 export default async function LandingPage() {
   // Biết người xem đã đăng nhập hay chưa để đổi nút bấm cho đúng. Chỉ đọc
   // phiên, không đụng tới hồ sơ — trang này phải mở được cho cả khách.
@@ -90,14 +92,18 @@ export default async function LandingPage() {
         meta={["Cầu lông & bơi", "Sáng thứ 7", "Nội bộ công ty"]}
         topRight={<HeroAlert />}
         action={
-          <FlowLink
-            href={signedIn ? "/bang-tin" : "/dang-nhap"}
-            text={signedIn ? "Vào bảng tin" : "Đăng nhập"}
-            tone="hero"
-          />
+          <NamCham>
+            <FlowLink
+              href={signedIn ? "/bang-tin" : "/dang-nhap"}
+              text={signedIn ? "Vào bảng tin" : "Đăng nhập"}
+              tone="hero"
+            />
+          </NamCham>
         }
         secondaryAction={
-          <FlowLink href="#co-gi" text="Có gì trong này" tone="heroQuiet" />
+          <NamCham>
+            <FlowLink href="#co-gi" text="Có gì trong này" tone="heroQuiet" />
+          </NamCham>
         }
       />
 
@@ -123,7 +129,10 @@ export default async function LandingPage() {
       >
         <div className="mx-auto max-w-5xl">
           <div className="grid items-center gap-x-14 gap-y-10 lg:grid-cols-2">
-            <div>
+            {/* Chỉ cột chữ nghiêng, không nghiêng cả lưới: tấm ảnh bên
+                cạnh mà xiên theo thì thành méo ảnh, không thành quán
+                tính. */}
+            <NghiengCuon>
               <Eyebrow color={GOLD} viet="Light Human" />
 
               <CutReveal
@@ -141,7 +150,7 @@ export default async function LandingPage() {
                 style={{ color: MUTED }}
                 delay={420}
               />
-            </div>
+            </NghiengCuon>
 
             <Reveal delay={120}>
               <div className="overflow-hidden rounded-3xl ring-1 ring-ink-800">
@@ -159,6 +168,10 @@ export default async function LandingPage() {
           </div>
         </div>
       </section>
+
+      {/* Quả cầu bay vắt qua chỗ nối hai phần, để mắt không bị hẫng
+          giữa bài giới thiệu và dải kể chuyện. */}
+      <CauBayNoi cao={130} />
 
       <JourneyLine />
 
@@ -190,6 +203,9 @@ export default async function LandingPage() {
         </div>
       </section>
 
+      {/* Bay ngược chiều so với quả trên: hai quả cùng chiều thì thành
+          một cái băng chuyền, ngược chiều mới ra qua lại trên sân. */}
+      <CauBayNoi cao={110} nguoc />
 
       {/* Trong này có gì */}
       <section
@@ -198,16 +214,17 @@ export default async function LandingPage() {
         style={{ background: PAPER }}
       >
         <div className="mx-auto max-w-5xl">
-          <Eyebrow color={GOLD}>Trong này có gì</Eyebrow>
+          <NghiengCuon toiDa={1.8}>
+            <Eyebrow color={GOLD}>Trong này có gì</Eyebrow>
 
-          <CutReveal
-            as="h2"
-            text="Một chỗ cho tất cả thay cho năm cái group chat"
-            className="font-display mt-5 block max-w-2xl text-[32px] leading-[1.1] font-bold sm:text-[46px]"
-            delay={120}
-          />
+            <CutReveal
+              as="h2"
+              text="Một chỗ cho tất cả thay cho năm cái group chat"
+              className="font-display mt-5 block max-w-2xl text-[32px] leading-[1.1] font-bold sm:text-[46px]"
+              delay={120}
+            />
 
-          {/*
+            {/*
             Mục lục kiểu tạp chí, không phải lưới thẻ.
 
             Bản trước là lưới ba cột, mỗi ô một icon nhỏ — đúng cái kiểu làm
@@ -219,13 +236,14 @@ export default async function LandingPage() {
             cỡ chữ lớn, và có chỗ cho một việc mà lưới icon không làm được:
             mỗi dòng bấm được để vào thẳng trang đó.
           */}
-          <FeatureIndex
-            items={FEATURES}
-            gold={GOLD}
-            ink={INK}
-            muted={MUTED}
-            line={LINE}
-          />
+            <FeatureIndex
+              items={FEATURES}
+              gold={GOLD}
+              ink={INK}
+              muted={MUTED}
+              line={LINE}
+            />
+          </NghiengCuon>
 
           {/* Câu cửa miệng của team — cho hẳn một dòng riêng thay vì nhét
               vào ô trống thừa của lưới như trước. */}
@@ -285,13 +303,15 @@ export default async function LandingPage() {
         </div>
 
         <div className="mt-9">
-          <Link
-            href={signedIn ? "/bang-tin" : "/dang-nhap"}
-            className="inline-flex h-12 items-center rounded-full px-9 text-[12px] font-bold tracking-[0.16em] uppercase transition-transform duration-300 hover:-translate-y-0.5"
-            style={{ background: GOLD, color: PAPER }}
-          >
-            {signedIn ? "Vào bảng tin" : "Đăng nhập"}
-          </Link>
+          <NamCham>
+            <Link
+              href={signedIn ? "/bang-tin" : "/dang-nhap"}
+              className="inline-flex h-12 items-center rounded-full px-9 text-[12px] font-bold tracking-[0.16em] uppercase transition-transform duration-300 hover:-translate-y-0.5"
+              style={{ background: GOLD, color: PAPER }}
+            >
+              {signedIn ? "Vào bảng tin" : "Đăng nhập"}
+            </Link>
+          </NamCham>
         </div>
         <p
           className="mt-8 text-[12.5px]"
