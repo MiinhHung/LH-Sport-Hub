@@ -30,9 +30,20 @@ export const metadata: Metadata = {
   },
   description: APP_DESCRIPTION,
   applicationName: APP_NAME,
+  /*
+   * Biểu tượng tab dùng bản thu nhỏ, KHÔNG dùng logo.png gốc.
+   *
+   * logo.png là ảnh 958×1024 nặng 335KB. Trình duyệt tải nó về chỉ để vẽ
+   * một ô 16px trên thanh tab — và tải ở MỌI trang, kể cả trang giới
+   * thiệu vốn không dùng logo ở đâu khác. Đo trên bản build: đó là tệp
+   * nặng nhất của cả trang chủ, hơn cả gói JavaScript lớn nhất.
+   *
+   * Hai bản thu nhỏ sinh từ chính tệp đó: 64px cho tab (2,1KB) và 180px
+   * cho lúc lưu vào màn hình chính iOS (15,3KB).
+   */
   icons: {
-    icon: "/logo.png",
-    apple: "/logo.png",
+    icon: "/icon.png",
+    apple: "/apple-icon.png",
   },
   openGraph: {
     title: APP_NAME,
