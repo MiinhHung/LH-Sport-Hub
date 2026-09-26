@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 
+import { ConTroCau } from "@/components/landing/con-tro-cau";
 import { HeroAlert } from "@/components/landing/hero-alert";
 import { IntroCurtain } from "@/components/landing/intro-curtain";
 import { Eyebrow, Quote, WordFade } from "@/components/landing/text-bits";
@@ -80,6 +81,7 @@ export default async function LandingPage() {
 
   return (
     <main>
+      <ConTroCau />
       <IntroCurtain />
 
       <ShuttleHero

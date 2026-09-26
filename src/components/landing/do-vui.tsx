@@ -502,7 +502,13 @@ export function DoVui({
       : "Kéo xuống lấy đà rồi thả — hoặc bấm thẳng vào quả cầu trên tay.";
 
   return (
-    <div ref={khungRef} className="relative mx-auto max-w-2xl">
+    <div
+      ref={khungRef}
+      className="relative mx-auto max-w-2xl"
+      // Giữ con trỏ thật trong khu này: chỗ kéo thả cần bàn tay nắm/mở
+      // để nói rõ là kéo được, mà quả cầu vẽ tay thì không nói được.
+      data-con-tro-that
+    >
       {/* Ô đáp án */}
       <div
         className="flex flex-wrap items-center justify-center gap-2 sm:gap-2.5"

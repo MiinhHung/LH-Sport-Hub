@@ -655,3 +655,29 @@ input[data-auth-input]:-webkit-autofill:focus {
 ::view-transition-new(root) {
   animation: none;
 }
+
+/* ==================================================================
+   CON TRỎ QUẢ CẦU LÔNG (chỉ trang giới thiệu)
+   ------------------------------------------------------------------
+   Lớp này do chính thành phần con trỏ gắn vào <html>, và chỉ gắn khi
+   hiệu ứng thực sự chạy — máy cảm ứng hoặc máy bật "giảm chuyển động"
+   thì không bao giờ có lớp này, nên con trỏ thật còn nguyên.
+
+   PHẢI CÓ `!important` VÀ PHẢI QUÉT CẢ CÂY CON. `cursor` tuy là thuộc
+   tính kế thừa, nhưng trình duyệt tự đặt `cursor: pointer` cho thẻ <a>,
+   và Tailwind đặt cho <button>. Chỉ khai ở gốc thì mọi nút và mọi liên
+   kết vẫn hiện bàn tay bên cạnh quả cầu — thành hai con trỏ.
+   ================================================================== */
+
+.con-tro-cau,
+.con-tro-cau *:not([data-con-tro-that], [data-con-tro-that] *) {
+  cursor: none !important;
+}
+
+/*
+ * Vùng nào tự xin giữ con trỏ thật thì LOẠI HẲN khỏi luật trên, chứ không
+ * ghi đè lại bằng một luật khác. Ghi đè thì phải dùng `cursor: auto`, mà
+ * như vậy sẽ xoá luôn con trỏ bàn tay nắm của trò đố vui — chỗ cần kéo
+ * thả lại càng phải nói rõ là kéo được. Loại khỏi luật thì cả cây con
+ * không bị đụng tới, mọi khai báo sẵn có giữ nguyên.
+ */
