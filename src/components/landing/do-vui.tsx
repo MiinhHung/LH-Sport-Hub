@@ -264,9 +264,19 @@ export function DoVui({
   const [dangKeo, setDangKeo] = React.useState(false);
 
   const khungRef = React.useRef<HTMLDivElement>(null);
-  const sanRef = React.useRef<HTMLDivElement>(null);
   const tayRef = React.useRef<HTMLDivElement>(null);
+  const sanRef = React.useRef<HTMLDivElement>(null);
   const oRefs = React.useRef<(HTMLDivElement | null)[]>([]);
+
+  /** Hẹn giờ thu tay về. Giữ lại để dọn khi rời trang giữa cú vung. */
+  const thuTayRef = React.useRef<number | undefined>(undefined);
+
+  React.useEffect(
+    () => () => {
+      if (thuTayRef.current) window.clearTimeout(thuTayRef.current);
+    },
+    [],
+  );
 
   /** Góc vợt, và tiến độ đường bay — motion value để chuyển động không
    *  đi qua vòng render của React. */
@@ -393,10 +403,42 @@ export function DoVui({
       return;
     }
 
+    /*
+     * CÚ VUNG: LẤY ĐÀ, RỒI LÒ XO — VÀ KHÔNG ĐỢI NÓ DỪNG HẲN.
+     *
+     * Bản trước nhồi 84 độ vào 0,17 giây với đường cong dồn hết gia tốc
+     * về cuối. Đo ra: cả cú vung chỉ được 9 khung hình, khung lớn nhất
+     * nhảy 18,3 độ — mắt thấy giật một cái chứ không thấy vung. Xong lại
+     * đứng chết 117ms ở điểm cuối mới thu tay, thành ra khựng thêm lần
+     * nữa.
+     *
+     * Lò xo tự lo phần gia tốc và đà thừa: vợt lao tới, vọt quá điểm
+     * cuối một chút rồi mới dội lại — đúng cái đà theo tay của một cú
+     * đánh thật, mà không phải căn tay từng đoạn.
+     *
+     * Không `await`: thu tay bắt đầu từ giữa cú vung, nên hai chuyển động
+     * nối vào nhau. Lò xo của motion mang theo vận tốc đang có khi bị
+     * thay lệnh, nên chỗ đổi chiều không gãy.
+     */
     let daThaCau = false;
-    await animate(gocVot, GOC_KET, {
-      duration: 0.17,
-      ease: [0.5, 0, 0.9, 0.6],
+
+    // Lấy đà: ngả ra sau một nhịp rất ngắn. Mắt cần thấy vợt đi ngược
+    // trước thì mới đọc được cú lao tới là một cú đánh, chứ không phải
+    // hình bị nhảy sang chỗ khác.
+    //
+    // `await ... .finished`, KHÔNG phải `.then` trên đối tượng trả về:
+    // bản trước viết `.then` rồi đo ra vợt ngả về -56 độ và đứng im
+    // luôn — nhánh đó không bao giờ chạy, cú vung mất hẳn.
+    await animate(gocVot, GOC_CHUAN_BI - 18, {
+      duration: 0.11,
+      ease: [0.33, 1, 0.68, 1],
+    }).finished;
+
+    void animate(gocVot, GOC_KET, {
+      type: "spring",
+      stiffness: 190,
+      damping: 16,
+      mass: 1,
       onUpdate: (g) => {
         if (!daThaCau && g >= GOC_CHAM) {
           daThaCau = true;
@@ -405,12 +447,14 @@ export function DoVui({
       },
     });
 
-    // Vợt theo đà rồi mới thu về thế chuẩn bị.
-    void animate(gocVot, GOC_CHUAN_BI, {
-      duration: 0.5,
-      delay: 0.1,
-      ease: [0.16, 1, 0.3, 1],
-    });
+    thuTayRef.current = window.setTimeout(() => {
+      void animate(gocVot, GOC_CHUAN_BI, {
+        type: "spring",
+        stiffness: 90,
+        damping: 18,
+        mass: 1,
+      });
+    }, 300);
   }, [bay, dangBay, dangCam, gocVot, xong]);
 
   React.useEffect(() => {
