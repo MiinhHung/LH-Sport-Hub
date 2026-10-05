@@ -1,6 +1,12 @@
 "use client";
 
-import { ImagePlus, Megaphone, MessageSquare, UserSearch, X } from "lucide-react";
+import {
+  ImagePlus,
+  Megaphone,
+  MessageSquare,
+  UserSearch,
+  X,
+} from "lucide-react";
 import { useActionState, useEffect, useRef, useState } from "react";
 
 import { createPostAction } from "@/actions/posts";
@@ -38,6 +44,7 @@ export function PostComposer({
   const [content, setContent] = useState("");
   const [type, setType] = useState<PostTypeKey>("text");
   const [drafts, setDrafts] = useState<Draft[]>([]);
+  const [dangKeo, setDangKeo] = useState(false);
 
   // Dọn sạch sau khi đăng thành công.
   useEffect(() => {
@@ -83,6 +90,36 @@ export function PostComposer({
     setOpen(true);
   }
 
+  /**
+   * Nhận ảnh dán thẳng từ clipboard.
+   *
+   * Đây là đường ngắn nhất để khoe ảnh: chụp màn hình hoặc copy ảnh ở
+   * chỗ khác rồi Ctrl+V vào ô soạn. Không có nó thì phải lưu ảnh ra tệp
+   * rồi mới bấm nút chọn — ba bước cho một việc đáng lẽ một bước.
+   */
+  function khiDan(e: React.ClipboardEvent) {
+    const anh = Array.from(e.clipboardData.files).filter((f) =>
+      f.type.startsWith("image/"),
+    );
+    if (anh.length === 0) return;
+    e.preventDefault();
+    const dt = new DataTransfer();
+    anh.forEach((f) => dt.items.add(f));
+    addFiles(dt.files);
+  }
+
+  function khiTha(e: React.DragEvent) {
+    e.preventDefault();
+    setDangKeo(false);
+    const anh = Array.from(e.dataTransfer.files).filter((f) =>
+      f.type.startsWith("image/"),
+    );
+    if (anh.length === 0) return;
+    const dt = new DataTransfer();
+    anh.forEach((f) => dt.items.add(f));
+    addFiles(dt.files);
+  }
+
   function removeDraft(index: number) {
     setDrafts((current) => {
       URL.revokeObjectURL(current[index].url);
@@ -96,7 +133,32 @@ export function PostComposer({
 
   return (
     <Card className="overflow-hidden">
-      <form ref={formRef} action={action} className="p-4 sm:p-5">
+      <form
+        ref={formRef}
+        action={action}
+        className={cn(
+          "relative p-4 transition-colors sm:p-5",
+          dangKeo && "bg-gold-50 dark:bg-gold-400/10",
+        )}
+        onDragOver={(e) => {
+          // Chỉ bật khi thứ đang kéo là tệp, không phải chữ bôi đen.
+          if (!e.dataTransfer.types.includes("Files")) return;
+          e.preventDefault();
+          setDangKeo(true);
+        }}
+        onDragLeave={(e) => {
+          // `relatedTarget` nằm ngoài form mới là rời thật. Không kiểm thì
+          // rê qua từng phần tử con cũng bị tính là rời, khung nháy liên tục.
+          if (e.currentTarget.contains(e.relatedTarget as Node)) return;
+          setDangKeo(false);
+        }}
+        onDrop={khiTha}
+      >
+        {dangKeo && (
+          <div className="pointer-events-none absolute inset-2 grid place-items-center rounded-xl border-2 border-dashed border-gold-400 text-[13px] font-bold text-gold-700 dark:text-gold-300">
+            Thả ảnh vào đây
+          </div>
+        )}
         <input type="hidden" name="type" value={type} />
 
         <div className="flex gap-3">
@@ -114,6 +176,7 @@ export function PostComposer({
               value={content}
               onChange={(e) => setContent(e.target.value)}
               onFocus={() => setOpen(true)}
+              onPaste={khiDan}
               rows={open ? 4 : 1}
               maxLength={LIMITS.postContent + 200}
               placeholder={`${author.fullName.split(" ").slice(-1)[0]} ơi, có gì mới không?`}
@@ -147,6 +210,35 @@ export function PostComposer({
                   </li>
                 ))}
               </ul>
+            )}
+
+            {/*
+              HÀNG NÚT LUÔN HIỆN, KHÔNG GIẤU SAU CÚ BẤM ĐẦU TIÊN.
+
+              Bản trước gói cả nút ảnh, chọn loại bài và nút đăng vào
+              `{open && ...}`, nên lúc nghỉ ô soạn bài chỉ còn trơ một ô
+              chữ. Chụp bảng tin thật thì thấy đúng vậy: không một dấu
+              hiệu nào cho biết đăng được ảnh — mà "khoe ảnh buổi vừa
+              đánh" lại chính là việc người ta vào đây để làm.
+
+              Giờ nút ảnh nằm ngoài, thấy ngay từ đầu. Phần còn lại
+              (chọn loại bài, đếm chữ, nút đăng) vẫn chỉ hiện khi bắt đầu
+              viết — những thứ đó chỉ có nghĩa khi đã có nội dung.
+            */}
+            {!open && (
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => fileRef.current?.click()}
+                  className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[12.5px] font-semibold text-ink-500 transition-colors hover:bg-ink-850 hover:text-ink-100"
+                >
+                  <ImagePlus className="size-4" />
+                  Ảnh
+                </button>
+                <span className="text-[12px] text-ink-600">
+                  hoặc dán ảnh thẳng vào đây
+                </span>
+              </div>
             )}
 
             {open && (
@@ -199,7 +291,9 @@ export function PostComposer({
                       <span
                         className={cn(
                           "tabular text-[12px] font-semibold",
-                          overLimit ? "text-rose-600 dark:text-rose-400" : "text-ink-500",
+                          overLimit
+                            ? "text-rose-600 dark:text-rose-400"
+                            : "text-ink-500",
                         )}
                       >
                         {content.length}/{LIMITS.postContent}
