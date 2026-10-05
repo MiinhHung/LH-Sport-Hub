@@ -206,17 +206,7 @@ export default async function LandingPage() {
         style={{ background: PAPER }}
       >
         <div className="mx-auto max-w-5xl">
-          <NghiengCuon toiDa={1.8}>
-            <Eyebrow color={GOLD}>Trong này có gì</Eyebrow>
-
-            <CutReveal
-              as="h2"
-              text="Một chỗ cho tất cả thay cho năm cái group chat"
-              className="font-display mt-5 block max-w-2xl text-[32px] leading-[1.1] font-bold sm:text-[46px]"
-              delay={120}
-            />
-
-            {/*
+          {/*
             Mục lục kiểu tạp chí, không phải lưới thẻ.
 
             Bản trước là lưới ba cột, mỗi ô một icon nhỏ — đúng cái kiểu làm
@@ -227,9 +217,31 @@ export default async function LandingPage() {
             Dạng danh sách ngang thì số mục bao nhiêu cũng vừa, tên mục được
             cỡ chữ lớn, và có chỗ cho một việc mà lưới icon không làm được:
             mỗi dòng bấm được để vào thẳng trang đó.
+
+            CẢ KHU NÀY BỎ `NghiengCuon`. Vòng quay giờ ghim lại và chạy
+            theo cuộn, mà `NghiengCuon` áp `skewY` lên khối con — transform
+            ở phần tử cha tạo ra một khối chứa mới, làm `position: sticky`
+            bám sai chỗ. Tiêu đề đi vào trong vòng quay để ghim cùng, nên
+            nó cũng không nghiêng được nữa. Đổi một hiệu ứng lấy việc
+            người ta luôn nhìn thấy mình đang ở mục nào — đáng.
           */}
-            <VongQuayMuc items={FEATURES} ink={INK} muted={MUTED} gold={GOLD} />
-          </NghiengCuon>
+          <VongQuayMuc
+            items={FEATURES}
+            ink={INK}
+            muted={MUTED}
+            gold={GOLD}
+            tieuDe={
+              <>
+                <Eyebrow color={GOLD}>Trong này có gì</Eyebrow>
+                <CutReveal
+                  as="h2"
+                  text="Một chỗ cho tất cả thay cho năm cái group chat"
+                  className="font-display mt-5 block max-w-2xl text-[32px] leading-[1.1] font-bold sm:text-[46px]"
+                  delay={120}
+                />
+              </>
+            }
+          />
 
           {/* Câu cửa miệng của team — cho hẳn một dòng riêng thay vì nhét
               vào ô trống thừa của lưới như trước. */}

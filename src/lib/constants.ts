@@ -91,7 +91,11 @@ export const STAKES = {
   tra_sua: {
     label: "Trà sữa",
     unit: "ly trà sữa",
-    icon: "🧋",
+    // 🥤 chứ không phải 🧋. Emoji trà sữa (U+1F9CB) mãi Emoji 13.0 năm
+    // 2020 mới có, mà Segoe UI Emoji trên Windows 10 chưa kèm nó — máy
+    // nào thiếu thì hiện ra một ô vuông rỗng. 🥤 (U+1F964) có từ Emoji
+    // 11.0, mọi máy trong team đều vẽ được.
+    icon: "🥤",
     defaultQty: 1,
     createsDebt: true,
   },
