@@ -97,6 +97,27 @@ export function useTheme() {
     };
   }, []);
 
+  /**
+   * Đặt thẳng một nấc.
+   *
+   * Tách ra khỏi `doi` vì công tắc hai nấc và dãy nút chọn cần hai kiểu
+   * khác nhau: công tắc chỉ biết "đổi sang cái còn lại", còn dãy nút thì
+   * biết đích danh nấc được bấm. Bấm đúng nấc đang bật mà dùng `doi` sẽ
+   * nhảy sang nấc kia — ngược hẳn với điều người dùng vừa yêu cầu.
+   */
+  const dat = React.useCallback((moi: Theme) => {
+    setTheme((cu) => {
+      if (cu === moi) return cu;
+      document.documentElement.classList.toggle("dark", moi === "dark");
+      try {
+        localStorage.setItem(KHOA, moi);
+      } catch {
+        // Không ghi được thì vẫn đổi cho phiên này, chỉ là lần sau không nhớ.
+      }
+      return moi;
+    });
+  }, []);
+
   const doi = React.useCallback(() => {
     setTheme((cu) => {
       const moi: Theme = cu === "dark" ? "light" : "dark";
@@ -110,7 +131,7 @@ export function useTheme() {
     });
   }, []);
 
-  return { theme, doi };
+  return { theme, doi, dat };
 }
 
 /**
