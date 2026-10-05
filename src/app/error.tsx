@@ -54,12 +54,28 @@ export default function RootError({
           LH Sport Hub
         </p>
 
+        {/*
+          MÀU CHỮ PHẢI KHAI TẬN NƠI, KHÔNG ĐƯỢC TRÔNG CHỜ KẾ THỪA.
+
+          globals.css có `h1, h2, h3 { color: var(--color-ink-100) }` —
+          một quy tắc đặt THẲNG lên thẻ, nên nó thắng màu trắng kế thừa
+          từ thẻ bọc. Mà `--color-ink-100` ở nền sáng chính là navy
+          #001a4a, gần như trùng nền #00112e của trang này: đo ra tương
+          phản 1,11 trên 1, tức là chữ biến mất.
+
+          Lỗi này đã xảy ra thật và phải chụp màn hình mới thấy. Ghi chú
+          ở đầu tệp có cảnh giác đúng chuyện đó với LỚP TIỆN ÍCH, nhưng
+          bỏ sót rằng quy tắc cho thẻ gốc cũng làm y hệt. Trang lỗi thì
+          càng không được phép hỏng, vì nó là thứ duy nhất còn lại khi
+          mọi thứ khác đã hỏng.
+        */}
         <h1
           style={{
             marginTop: "1rem",
             fontSize: "26px",
             lineHeight: 1.2,
             fontWeight: 700,
+            color: "#ffffff",
           }}
         >
           Trang này đang trục trặc

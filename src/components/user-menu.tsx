@@ -256,8 +256,24 @@ function NutDangXuat({ it }: { it: boolean }) {
 type ViTri = { top: number; height: number; nguy?: boolean; truot: boolean };
 type LyDoMo = "dau" | "cuoi" | "chuot" | null;
 
+/**
+ * Các điểm dừng của bàn phím — CHỈ NHỮNG CÁI ĐANG HIỆN.
+ *
+ * "Bảng phong thần" mang `md:hidden` vì ở màn rộng nó đã nằm sẵn trên
+ * thanh điều hướng. Nhưng `display: none` thì phần tử vẫn còn trong
+ * cây, nên bản đầu phím mũi tên vẫn dừng ở đó: người đi bằng bàn phím
+ * bấm xuống một nhịp mà không thấy gì nhúc nhích, vệt sáng đứng im, rồi
+ * phải bấm thêm một nhịp nữa. Đo được: mục đó trả về `offsetTop = 0`
+ * trong khi các mục khác trả về đúng vị trí của mình.
+ *
+ * `offsetParent === null` là cách rẻ nhất để biết một phần tử có đang
+ * được dựng hình hay không, và nó bắt cả `display: none` ở tổ tiên chứ
+ * không riêng chính nó.
+ */
 const diemDung = (goc: HTMLElement | null) =>
-  Array.from(goc?.querySelectorAll<HTMLElement>("[data-diem-dung]") ?? []);
+  Array.from(
+    goc?.querySelectorAll<HTMLElement>("[data-diem-dung]") ?? [],
+  ).filter((e) => e.offsetParent !== null);
 
 function veDiemDung(d: HTMLElement | undefined) {
   if (!d) return;
