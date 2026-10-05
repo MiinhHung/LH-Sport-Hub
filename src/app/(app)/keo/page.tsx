@@ -1,11 +1,19 @@
-import { AlertTriangle, CheckCheck, ClipboardPen, Swords, Zap } from "lucide-react";
+import {
+  AlertTriangle,
+  CheckCheck,
+  ClipboardPen,
+  Swords,
+  Zap,
+} from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { ChallengeCard } from "@/components/challenge-card";
+import { ChuaCoKeo } from "@/components/keo/chua-co-keo";
+import { CotPhaiKeo } from "@/components/keo/cot-phai";
 import { TeamFeed } from "@/components/team-feed";
-import { Card, EmptyState, PageIntro, SectionTitle } from "@/components/ui";
+import { Card, PageIntro, SectionTitle } from "@/components/ui";
 import { FlowLink } from "@/components/ui/flow-button";
 import { requireProfile } from "@/lib/auth";
 import { SPORTS, SPORT_KEYS, type SportKey } from "@/lib/constants";
@@ -32,8 +40,10 @@ function buildHref(tab: string, sport: string | null) {
 }
 
 const TODO_STYLES = {
-  violet: "border-violet-200 dark:border-violet-400/30 bg-violet-50 dark:bg-violet-500/10 hover:bg-violet-100/70 dark:hover:bg-violet-500/20",
-  amber: "border-amber-200 dark:border-amber-400/30 bg-amber-50 dark:bg-amber-500/10 hover:bg-amber-100/70 dark:hover:bg-amber-500/20",
+  violet:
+    "border-violet-200 dark:border-violet-400/30 bg-violet-50 dark:bg-violet-500/10 hover:bg-violet-100/70 dark:hover:bg-violet-500/20",
+  amber:
+    "border-amber-200 dark:border-amber-400/30 bg-amber-50 dark:bg-amber-500/10 hover:bg-amber-100/70 dark:hover:bg-amber-500/20",
   sky: "border-sky-200 dark:border-sky-400/30 bg-sky-50 dark:bg-sky-500/10 hover:bg-sky-100/70 dark:hover:bg-sky-500/20",
   rose: "border-rose-200 dark:border-rose-400/30 bg-rose-50 dark:bg-rose-500/10 hover:bg-rose-100/70 dark:hover:bg-rose-500/20",
 } as const;
@@ -121,9 +131,7 @@ export default async function ChallengesPage({
         eyebrow="Thách đấu"
         title="Kèo"
         lead="Nơi mọi người thách đấu và giao kèo với nhau hehehe"
-        action={
-          <FlowLink href="/keo/tao" text="Tạo kèo" />
-        }
+        action={<FlowLink href="/keo/tao" text="Tạo kèo" />}
       />
 
       {/* Việc đang chờ chính người dùng xử lý */}
@@ -232,48 +240,67 @@ export default async function ChallengesPage({
         </div>
       </section>
 
-      {/* Danh sách kèo */}
-      <section aria-label="Danh sách kèo">
-        {challenges.length === 0 ? (
-          <EmptyState
-            icon={<Swords className="size-5" />}
-            title={
-              tab === "open"
-                ? "Chưa có kèo nào đang tìm đối"
-                : "Chưa có kèo nào ở mục này"
-            }
-            description={
-              tab === "open"
-                ? "Mở màn đi — tạo một kèo rồi xem ai dám nhận."
-                : "Thử đổi bộ lọc phía trên xem sao."
-            }
-            action={
-              tab === "open" ? (
-                <FlowLink href="/keo/tao" text="Tạo kèo đầu tiên" />
-              ) : undefined
-            }
-          />
-        ) : (
-          <div className="grid gap-3 lg:grid-cols-2">
-            {challenges.map((challenge, i) => (
-              <div
-                key={challenge.id}
-                className="animate-rise"
-                style={{ animationDelay: `${Math.min(i, 8) * 45}ms` }}
-              >
-                <ChallengeCard
-                  challenge={challenge}
-                  currentUserId={profile.id}
-                  href={`/keo/${challenge.id}`}
-                />
-              </div>
-            ))}
-          </div>
-        )}
-      </section>
+      {/*
+        HAI CỘT, như bảng tin. Trang này trước đây là một cột giữa trang
+        rộng: chụp ở màn 1536 thì khoảng 85% chiều cao không có gì. Cột
+        phải trả lời hai câu người ta thật sự có khi đang nhìn danh sách
+        kèo — thách ai, và đánh ở buổi nào.
+      */}
+      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+        <div className="min-w-0 space-y-8">
+          <section aria-label="Danh sách kèo">
+            {challenges.length === 0 ? (
+              <ChuaCoKeo
+                tieuDe={
+                  tab === "open"
+                    ? "Chưa có kèo nào đang tìm đối"
+                    : "Chưa có kèo nào ở mục này"
+                }
+                moTa={
+                  tab === "open"
+                    ? "Mở màn đi — tạo một kèo rồi xem ai dám nhận."
+                    : "Thử đổi bộ lọc phía trên xem sao."
+                }
+                choTaoKeo={tab === "open"}
+              />
+            ) : (
+              /*
+                MỘT CỘT, không phải hai.
 
-      {/* Ảnh của team — để cuối, không tranh chỗ với nội dung chính */}
-      <TeamFeed />
+                Lưới hai cột có nghĩa khi danh sách chiếm cả bề ngang
+                trang. Từ lúc có cột phải thì cột trái chỉ còn 776px,
+                chia đôi ra 382px mỗi thẻ — mà một thẻ kèo phải chứa hai
+                đội, chữ VS ở giữa, dải tiền cược và dãy avatar. Đã đo
+                đúng 382px, và nhìn thì thấy ngay là chật.
+              */
+              <div className="grid gap-3">
+                {challenges.map((challenge, i) => (
+                  <div
+                    key={challenge.id}
+                    className="animate-rise"
+                    style={{ animationDelay: `${Math.min(i, 8) * 45}ms` }}
+                  >
+                    <ChallengeCard
+                      challenge={challenge}
+                      currentUserId={profile.id}
+                      href={`/keo/${challenge.id}`}
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+
+          {/* Ảnh của team — để cuối cột trái, không tranh chỗ với nội dung chính */}
+          <TeamFeed />
+        </div>
+
+        {/* Cột phải chỉ hiện từ lg, giống bảng tin: dưới mức đó màn hình
+            chỉ đủ chỗ cho chính danh sách kèo. */}
+        <div className="hidden lg:block">
+          <CotPhaiKeo />
+        </div>
+      </div>
     </div>
   );
 }
