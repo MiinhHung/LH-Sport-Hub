@@ -5,6 +5,7 @@ import {
   Home,
   CalendarDays,
   BookOpen,
+  MessagesSquare,
   Newspaper,
   Swords,
   Trophy,
@@ -27,6 +28,8 @@ type Item = {
   short: string;
   icon: ReactNode;
   badge?: number;
+  /** Đơn vị của con số trên chấm báo, cho máy đọc màn hình. */
+  badgeDvi?: string;
 };
 
 function useItems(unread: number): Item[] {
@@ -73,6 +76,7 @@ function useItems(unread: number): Item[] {
       short: "Báo",
       icon: <Bell className="size-[18px]" strokeWidth={2} />,
       badge: unread,
+      badgeDvi: "thông báo",
     },
   ];
 }
@@ -83,10 +87,17 @@ function isActive(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-function Counter({ value }: { value: number }) {
+/**
+ * `dvi` là đơn vị của con số — "thông báo" hay "cuộc trò chuyện".
+ *
+ * Trước đây viết cứng "thông báo chưa đọc", đúng khi chấm này chỉ dùng
+ * cho chuông. Giờ Tin nhắn cũng có chấm, mà máy đọc màn hình đọc lên
+ * thành "3 thông báo chưa đọc" khi thật ra là 3 cuộc trò chuyện.
+ */
+function Counter({ value, dvi }: { value: number; dvi: string }) {
   return (
     <span
-      aria-label={`${value} thông báo chưa đọc`}
+      aria-label={`${value} ${dvi} chưa đọc`}
       className="absolute -top-1.5 -right-2 grid min-w-[17px] place-items-center rounded-full bg-rose-600 px-1 text-[10px] leading-[17px] font-bold text-white ring-2 ring-ink-900"
     >
       {value > 9 ? "9+" : value}
@@ -94,17 +105,53 @@ function Counter({ value }: { value: number }) {
   );
 }
 
-/** Thanh dưới cùng — dùng trên điện thoại. */
-export function BottomNav({ unread }: { unread: number }) {
+/**
+ * Thanh dưới cùng — dùng trên điện thoại.
+ *
+ * NĂM SUẤT, VÀ KHÔNG SUẤT NÀO ĐƯỢC PHÍ.
+ *
+ * Trước đây suất đầu dành cho "Trang chủ" tức trang giới thiệu — trang
+ * viết để thuyết phục người CHƯA dùng app. Người trong team đã đăng nhập
+ * gần như không bao giờ cần tới nó, mà lỡ chạm vào thì phải tải một quả
+ * cầu 3D, một vòng quay ghim 2880px, một video và một trò đố vui. Bảng
+ * tin thì đã có hai lối vào (nút "Tin" ở đây và logo ở thanh trên).
+ *
+ * Hệ quả của suất bị phí đó nằm ngay trong `layout.tsx`: Tin nhắn bị đẩy
+ * lên thành một biểu tượng nhỏ ở góc thanh trên, kèm chú thích "thanh
+ * dưới trên điện thoại đã đủ 5 mục". Giờ trả suất đó cho Tin nhắn —
+ * nhắn riêng là việc người ta làm hằng ngày, trang giới thiệu thì không.
+ *
+ * Xếp hạng và Cẩm nang vẫn nằm ngoài thanh này, nhưng CẢ HAI phải có
+ * trong menu tài khoản với `chiDienThoai: true` — thanh trên chỉ hiện từ
+ * `md` nên không đỡ được chỗ này. Trước đây chú thích ở đây nói là "đã
+ * có ở menu tài khoản" trong khi Cẩm nang thì chưa, và thế là nó mất lối
+ * vào trên điện thoại suốt một thời gian dài.
+ */
+export function BottomNav({
+  unread,
+  unreadMessages,
+}: {
+  unread: number;
+  unreadMessages: number;
+}) {
   const pathname = usePathname();
-  // 7 mục là quá chật trên điện thoại, nên Xếp hạng và Cẩm nang cắt khỏi
-  // thanh dưới. Cả hai PHẢI có trong menu tài khoản với `chiDienThoai:
-  // true` — thanh trên chỉ hiện từ `md` nên không đỡ được chỗ này. Trước
-  // đây chú thích ở đây nói là "đã có ở menu tài khoản" trong khi Cẩm
-  // nang thì chưa, và thế là nó mất lối vào trên điện thoại.
-  const items = useItems(unread).filter(
-    (i) => i.href !== "/bang-phong-than" && i.href !== "/cam-nang",
-  );
+  const tatCa = useItems(unread);
+  const lay = (href: string) => tatCa.find((i) => i.href === href)!;
+
+  const items: Item[] = [
+    lay("/bang-tin"),
+    lay("/keo"),
+    lay("/buoi-tap"),
+    {
+      href: "/tin-nhan",
+      label: "Tin nhắn",
+      short: "Nhắn",
+      icon: <MessagesSquare className="size-[18px]" strokeWidth={2} />,
+      badge: unreadMessages,
+      badgeDvi: "cuộc trò chuyện",
+    },
+    lay("/thong-bao"),
+  ];
 
   return (
     <nav
@@ -148,7 +195,12 @@ export function BottomNav({ unread }: { unread: number }) {
                   )}
                 >
                   {item.icon}
-                  {item.badge ? <Counter value={item.badge} /> : null}
+                  {item.badge ? (
+                    <Counter
+                      value={item.badge}
+                      dvi={item.badgeDvi ?? "thông báo"}
+                    />
+                  ) : null}
                 </span>
                 <span
                   className={cn(
@@ -202,7 +254,9 @@ function TopNavItem({ item, active }: { item: Item; active: boolean }) {
       >
         <MagneticIcon style={{ scale: iconScale }} className="relative block">
           {item.icon}
-          {item.badge ? <Counter value={item.badge} /> : null}
+          {item.badge ? (
+            <Counter value={item.badge} dvi={item.badgeDvi ?? "thông báo"} />
+          ) : null}
         </MagneticIcon>
         {/*
           CHỮ KHÔNG ĐƯỢC XUỐNG DÒNG, và chỉ hiện khi đủ chỗ.

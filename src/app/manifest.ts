@@ -14,8 +14,13 @@ import { APP_DESCRIPTION, APP_NAME } from "@/lib/constants";
  * người ta hay vào. Lý do: "/" là đường dẫn công khai duy nhất. Mở thẳng
  * vào bảng tin mà phiên đã hết hạn thì cú chạm đầu tiên rơi vào một cú
  * chuyển hướng sang trang đăng nhập — mở app ra thấy màn hình đăng nhập
- * là ấn tượng đầu tiên tệ nhất có thể. Từ "/" thì ai đã đăng nhập sẽ
- * thấy nút "Vào bảng tin" ngay giữa màn.
+ * là ấn tượng đầu tiên tệ nhất có thể.
+ *
+ * Và từ "/" thì người còn phiên KHÔNG phải bấm thêm gì: trang đó tự
+ * chuyển sang bảng tin khi đã đăng nhập (xem `(marketing)/page.tsx`).
+ * Trước đây nó dừng lại ở trang giới thiệu với một nút "Vào bảng tin",
+ * tức mỗi lần mở app là trả thêm một cú chạm để phòng một trường hợp
+ * thỉnh thoảng mới xảy ra.
  *
  * CÓ HAI BẢN BIỂU TƯỢNG 512, và đó không phải thừa. Android cắt biểu
  * tượng theo hình của từng hãng máy — tròn, vuông bo góc, giọt nước.

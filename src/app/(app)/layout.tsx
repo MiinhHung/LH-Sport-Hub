@@ -88,7 +88,7 @@ export default async function AppLayout({
                 ? `Tin nhắn — ${unreadMessages} cuộc chưa đọc`
                 : "Tin nhắn"
             }
-            className="relative grid size-9 shrink-0 place-items-center rounded-xl text-ink-500 transition-colors hover:bg-ink-850 hover:text-ink-100"
+            className="relative hidden size-9 shrink-0 place-items-center rounded-xl text-ink-500 transition-colors hover:bg-ink-850 hover:text-ink-100 md:grid"
           >
             <MessagesSquare className="size-[18px]" strokeWidth={2} />
             {unreadMessages > 0 && (
@@ -116,7 +116,7 @@ export default async function AppLayout({
         {children}
       </main>
 
-      <BottomNav unread={unread} />
+      <BottomNav unread={unread} unreadMessages={unreadMessages} />
     </div>
   );
 }

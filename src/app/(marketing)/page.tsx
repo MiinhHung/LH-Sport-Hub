@@ -19,6 +19,8 @@ import { XemCoGi } from "@/components/landing/xem-co-gi";
 import { FlowLink } from "@/components/ui/flow-button";
 import { NamCham } from "@/components/ui/nam-cham";
 import { NghiengCuon } from "@/components/ui/nghieng-cuon";
+import { redirect } from "next/navigation";
+
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
@@ -73,7 +75,14 @@ const FEATURES: Feature[] = [
   },
 ];
 
-export default async function LandingPage() {
+/** Thêm `?xem=gioi-thieu` để xem trang này dù đã đăng nhập. */
+const XEM_DU_DA_DANG_NHAP = "gioi-thieu";
+
+export default async function LandingPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ xem?: string }>;
+}) {
   // Biết người xem đã đăng nhập hay chưa để đổi nút bấm cho đúng. Chỉ đọc
   // phiên, không đụng tới hồ sơ — trang này phải mở được cho cả khách.
   const supabase = await createClient();
@@ -81,6 +90,29 @@ export default async function LandingPage() {
     data: { user },
   } = await supabase.auth.getUser();
   const signedIn = Boolean(user);
+
+  /*
+    ĐÃ ĐĂNG NHẬP THÌ VÀO THẲNG BẢNG TIN.
+
+    `start_url` của app là "/" chứ không phải "/bang-tin", và lý do đó
+    vẫn đúng: "/" là đường dẫn công khai duy nhất, nên phiên có hết hạn
+    thì người ta rơi vào trang giới thiệu chứ không đập mặt vào màn hình
+    đăng nhập (xem ghi chú đầy đủ ở `app/manifest.ts`).
+
+    Nhưng cái giá của nó là MỖI LẦN mở app đều phải xem trang giới thiệu
+    rồi bấm thêm một nút — một trang có quả cầu 3D, vòng quay ghim
+    2880px, video và trò đố vui — chỉ để tới chỗ mình thật sự muốn tới.
+    Trả một cú chạm mỗi lần mở để phòng một trường hợp thỉnh thoảng mới
+    xảy ra là lỗ.
+
+    Chuyển hướng ở đây giữ được cả hai: còn phiên thì vào thẳng app, hết
+    phiên thì `user` rỗng và trang giới thiệu hiện ra y như ý đồ cũ.
+
+    `?xem=gioi-thieu` là lối thoát — menu tài khoản có một mục "Giới
+    thiệu" trỏ vào đó, để người trong team vẫn xem lại được trang này.
+  */
+  const { xem } = await searchParams;
+  if (signedIn && xem !== XEM_DU_DA_DANG_NHAP) redirect("/bang-tin");
 
   return (
     <main>

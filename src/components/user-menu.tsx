@@ -7,6 +7,7 @@ import {
   LogOut,
   Moon,
   Shield,
+  Sparkles,
   Sun,
   SunMoon,
   Trophy,
@@ -614,6 +615,20 @@ export function UserMenu({
             nhan: "Cẩm nang",
             icon: BookOpen,
             chiDienThoai: true,
+          },
+          /*
+            Lối duy nhất để người đã đăng nhập xem lại trang giới thiệu.
+            Mở "/" trơn thì nó chuyển thẳng sang Bảng tin, nên phải kèm
+            `?xem=gioi-thieu` — xem ghi chú ở `(marketing)/page.tsx`.
+
+            Hiện ở mọi cỡ màn, khác hai mục trên: đây không phải chỗ vá
+            cho thanh dưới thiếu suất, mà là thứ không có lối nào khác.
+          */
+          {
+            href: "/?xem=gioi-thieu",
+            nhan: "Giới thiệu",
+            icon: Sparkles,
+            chiDienThoai: false,
           },
           ...(canSeeAdmin
             ? [
