@@ -546,10 +546,13 @@ export function AvatarStack({
   people,
   max = 5,
   size = "sm",
+  showRest = true,
 }: {
   people: { id: string; fullName: string; avatarUrl: string | null }[];
   max?: number;
   size?: keyof typeof AVATAR_SIZES;
+  /** Tắt nhãn "+N người" khi bên cạnh đã có dòng kể tên, kẻo nói hai lần. */
+  showRest?: boolean;
 }) {
   const shown = people.slice(0, max);
   const rest = people.length - shown.length;
@@ -568,7 +571,7 @@ export function AvatarStack({
           />
         ))}
       </div>
-      {rest > 0 && (
+      {showRest && rest > 0 && (
         <span className="ml-2 text-xs font-medium text-ink-500">
           +{rest} người
         </span>

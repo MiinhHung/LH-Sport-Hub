@@ -194,18 +194,36 @@ export function initials(name: string): string {
 }
 
 /** Màu nền avatar ổn định theo id, để mỗi người luôn cùng một màu. */
+/**
+ * Màu nền cho ảnh đại diện chữ cái, suy ra từ id người dùng.
+ *
+ * BẢNG MÀU TRẦM, KHÔNG PHẢI CẦU VỒNG. Bản trước dùng mười màu mức 500-600
+ * (hồng sen, hổ phách, xanh ngọc, tím...). Hai chỗ hỏng:
+ *
+ * 1. CHỮ TRẮNG TRÊN ĐÓ KHÔNG ĐỌC ĐƯỢC. Đo tương phản chữ trắng trên sáu
+ *    màu trong bảng cũ: rose-500 ra 3,67 · amber-500 ra 2,15 · lime-600
+ *    ra 3,09 · teal-500 ra 2,49 · sky-500 ra 2,77 · fuchsia-500 ra 3,46.
+ *    Ngưỡng cho chữ nhỏ là 4,5 — tức là trượt toàn bộ. Bảng mới đo lại
+ *    nằm trong khoảng 5,0 đến 10,0.
+ * 2. Mười màu rực đặt cạnh nhau trong một dãy avatar chửi nhau với navy
+ *    và vàng của thương hiệu; nhìn ra một tờ sticker chứ không ra một
+ *    đội.
+ *
+ * Vẫn đủ mười màu phân biệt được người nọ với người kia, chỉ là trầm
+ * xuống để chúng ngồi chung được với nhau.
+ */
 export function avatarColor(seed: string): string {
   const palette = [
-    "bg-rose-500",
-    "bg-orange-500",
-    "bg-amber-500",
-    "bg-lime-600",
-    "bg-emerald-500",
-    "bg-teal-500",
-    "bg-sky-500",
-    "bg-indigo-500",
-    "bg-violet-500",
-    "bg-fuchsia-500",
+    "bg-navy-700",
+    "bg-slate-600",
+    "bg-teal-700",
+    "bg-emerald-700",
+    "bg-amber-700",
+    "bg-rose-800",
+    "bg-indigo-700",
+    "bg-stone-600",
+    "bg-cyan-800",
+    "bg-violet-800",
   ];
   let hash = 0;
   for (let i = 0; i < seed.length; i++) {
