@@ -18,24 +18,74 @@ function domainHint(): string {
   return ` Chỉ email ${domains.map((d) => `@${d}`).join(" hoặc ")} mới đăng ký được.`;
 }
 
-/** Thông điệp của Supabase là tiếng Anh — dịch các trường hợp hay gặp. */
-function translateAuthError(message: string): string {
-  const m = message.toLowerCase();
-  if (m.includes("invalid login credentials")) {
+/**
+ * Dịch lỗi của Supabase sang tiếng Việt.
+ *
+ * NHẬN CẢ ĐỐI TƯỢNG LỖI, KHÔNG CHỈ CHUỖI. Bản trước chỉ nhận `message`
+ * rồi dò chữ trong đó. Nhưng Supabase có sẵn `code` và `status` — dò
+ * chữ thì vừa mong manh (họ đổi câu chữ là hỏng) vừa bỏ mất thông tin
+ * phân biệt được các trường hợp có cùng câu chữ.
+ *
+ * LUÔN GHI LẠI LỖI GỐC RA LOG MÁY CHỦ. Đây là bài học từ một lần gỡ lỗi
+ * thật: người dùng báo "không đăng nhập được", màn hình chỉ hiện đúng
+ * câu dự phòng "Vui lòng thử lại", và không còn manh mối nào khác —
+ * phải dựng lại cả luồng mới lần ra. Câu dự phòng là nơi duy nhất ta
+ * KHÔNG biết chuyện gì đã xảy ra, nên đúng ra nó phải là nơi ghi log kỹ
+ * nhất. Log nằm ở máy chủ nên không lộ gì cho người ngoài.
+ */
+function translateAuthError(error: { message: string; code?: string; status?: number }): string {
+  const m = error.message.toLowerCase();
+  const code = error.code ?? "";
+
+  if (code === "invalid_credentials" || m.includes("invalid login credentials")) {
     return "Email hoặc mật khẩu không đúng.";
   }
-  if (m.includes("email not confirmed")) {
+  if (code === "email_not_confirmed" || m.includes("email not confirmed")) {
     return "Email chưa được xác minh. Kiểm tra hộp thư của bạn.";
   }
-  if (m.includes("user already registered")) {
+  if (code === "user_already_exists" || m.includes("user already registered")) {
     return "Email này đã có tài khoản. Hãy đăng nhập.";
   }
-  if (m.includes("rate limit") || m.includes("too many")) {
+  if (code === "over_request_rate_limit" || m.includes("rate limit") || m.includes("too many")) {
     return "Bạn thử quá nhiều lần. Đợi một lát rồi thử lại.";
   }
+
+  /*
+   * Máy chủ chưa dậy, hoặc mạng đứt.
+   *
+   * Gói Supabase miễn phí TẠM DỪNG dự án sau 7 ngày không ai truy cập.
+   * Lần vào đầu tiên sau đó phải đợi nó khởi động, mất vài chục giây, và
+   * trong lúc chờ thì mọi yêu cầu đều hỏng. Với một đội đánh cầu hàng
+   * tuần thì nghỉ hơn một tuần là chuyện thường — nên đây sẽ là lỗi hay
+   * gặp nhất, mà trước đây nó rơi vào đúng câu dự phòng vô nghĩa.
+   *
+   * `fetch failed` là câu của Node, `Failed to fetch` là của trình
+   * duyệt; bắt cả hai vì server action có thể chạy ở cả hai nơi.
+   */
+  if (
+    m.includes("fetch failed") ||
+    m.includes("failed to fetch") ||
+    m.includes("network") ||
+    m.includes("timeout") ||
+    m.includes("econnrefused") ||
+    m.includes("enotfound") ||
+    error.status === 0 ||
+    error.status === 502 ||
+    error.status === 503 ||
+    error.status === 504
+  ) {
+    return "Máy chủ chưa phản hồi — có thể nó vừa ngủ dậy. Đợi khoảng một phút rồi thử lại.";
+  }
+
   if (m.includes("password")) {
     return "Mật khẩu chưa đạt yêu cầu (tối thiểu 8 ký tự).";
   }
+
+  console.error("[auth] lỗi chưa có bản dịch:", {
+    code: error.code,
+    status: error.status,
+    message: error.message,
+  });
   return "Không đăng nhập được. Vui lòng thử lại.";
 }
 
@@ -64,7 +114,7 @@ export async function signInAction(
       password: parsed.data.password,
     });
 
-    if (error) return failure(translateAuthError(error.message));
+    if (error) return failure(translateAuthError(error));
 
     const next = formData.get("next");
     if (typeof next === "string" && next.startsWith("/") && !next.startsWith("//")) {
@@ -100,7 +150,7 @@ export async function signUpAction(
       options: { data: { full_name: parsed.data.fullName } },
     });
 
-    if (error) return failure(translateAuthError(error.message));
+    if (error) return failure(translateAuthError(error));
 
     // Nếu Supabase bật xác minh email thì chưa có session ngay.
     if (!data.session) {

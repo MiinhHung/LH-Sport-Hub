@@ -40,10 +40,21 @@ export default function AuthLayout({
               <br />
               thua thì <span className="text-gradient-gold">bao</span>.
             </h2>
+            {/*
+              Một câu, không phải một danh sách.
+
+              Bản trước nhồi năm tính năng vào một câu 38 chữ rồi đóng lại
+              bằng "tất cả gọn trong một nơi" — câu ai cũng viết được và
+              không nói thêm điều gì. Mà ngay bên dưới đã có ba mục liệt
+              kê sẵn tính năng rồi, nên đoạn này liệt kê lần nữa là thừa.
+
+              Giữ ba động từ cụ thể nhất rồi kết bằng đúng cái khó chịu có
+              thật mà app này giải quyết. Câu cuối cố ý trùng ý với dòng
+              trên trang giới thiệu, để hai nơi nghe ra cùng một giọng.
+            */}
             <p className="mt-5 text-[15px] leading-relaxed text-white/70">
-              Chỗ để anh, chị, em trong công ty chốt kèo cầu lông, rủ nhau đi
-              bơi, ghi tỉ số sau mỗi trận và tra cứu luật lẫn bài khởi động —
-              tất cả gọn trong một nơi.
+              Chốt kèo, lên lịch ra sân, ghi tỉ số sau mỗi trận — khỏi lục
+              lại năm cái group chat.
             </p>
           </div>
 
