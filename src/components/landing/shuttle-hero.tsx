@@ -504,83 +504,77 @@ export function ShuttleHero({
   }, [reducedMotion]);
 
   return (
-    <div
-      ref={sectionRef}
-      className="relative z-10 h-[200vh] w-full"
-    >
+    <div ref={sectionRef} className="relative z-10 h-[200vh] w-full">
       <div
         ref={stageRef}
         className="sticky top-0 h-[100svh] w-full overflow-hidden will-change-[clip-path]"
         style={{ background: NAVY }}
       >
         {/* Lớp trong — trôi lên chậm hơn mép cắt để tạo chiều sâu */}
-        <div
-          ref={innerRef}
-          className="absolute inset-0 will-change-transform"
-        >
-        {/* Cảnh 3D */}
-        <div
-          className="absolute inset-0 transition-opacity duration-[1200ms] ease-out"
-          style={{ opacity: ready ? 1 : 0 }}
-        >
-          <Canvas
-            frameloop={onScreen ? "always" : "never"}
-            dpr={[1, spec.maxDpr]}
-            gl={{
-              antialias: true,
-              alpha: false,
-              powerPreference: "high-performance",
-            }}
-            camera={{ fov: 40, near: 0.1, far: 60, position: [0, 0, 7] }}
-            onCreated={({ gl }) => gl.setClearColor(new THREE.Color(NAVY), 1)}
+        <div ref={innerRef} className="absolute inset-0 will-change-transform">
+          {/* Cảnh 3D */}
+          <div
+            className="absolute inset-0 transition-opacity duration-[1200ms] ease-out"
+            style={{ opacity: ready ? 1 : 0 }}
           >
-            {/* Dàn đèn dựng bằng lightformer nên không phải tải file HDRI. */}
-            <Environment resolution={256}>
-              <Lightformer
-                intensity={6}
-                position={[0, 5, 4]}
-                scale={[12, 4, 1]}
-                color="#fff6e2"
-              />
-              <Lightformer
-                intensity={3.6}
-                position={[-6, 1, 3]}
-                scale={[4, 9, 1]}
-                color="#bcd6ff"
-              />
-              <Lightformer
-                intensity={3.4}
-                position={[6, -2, 2]}
-                scale={[5, 6, 1]}
-                color={GOLD}
-              />
-              <Lightformer
-                intensity={2.2}
-                position={[0, -4, -3]}
-                scale={[9, 3, 1]}
-                color="#ffffff"
-              />
-            </Environment>
-
-            <FocalGroup>
-              <ShuttleOffset>
-                <ShuttleCrystal
-                  progress={progress}
-                  reducedMotion={reducedMotion}
-                  gold={GOLD_SOLID}
+            <Canvas
+              frameloop={onScreen ? "always" : "never"}
+              dpr={[1, spec.maxDpr]}
+              gl={{
+                antialias: true,
+                alpha: false,
+                powerPreference: "high-performance",
+              }}
+              camera={{ fov: 40, near: 0.1, far: 60, position: [0, 0, 7] }}
+              onCreated={({ gl }) => gl.setClearColor(new THREE.Color(NAVY), 1)}
+            >
+              {/* Dàn đèn dựng bằng lightformer nên không phải tải file HDRI. */}
+              <Environment resolution={256}>
+                <Lightformer
+                  intensity={6}
+                  position={[0, 5, 4]}
+                  scale={[12, 4, 1]}
+                  color="#fff6e2"
                 />
-              </ShuttleOffset>
-            </FocalGroup>
-            <Motes color={GOLD_SOLID} count={spec.motes} />
-          </Canvas>
-        </div>
+                <Lightformer
+                  intensity={3.6}
+                  position={[-6, 1, 3]}
+                  scale={[4, 9, 1]}
+                  color="#bcd6ff"
+                />
+                <Lightformer
+                  intensity={3.4}
+                  position={[6, -2, 2]}
+                  scale={[5, 6, 1]}
+                  color={GOLD}
+                />
+                <Lightformer
+                  intensity={2.2}
+                  position={[0, -4, -3]}
+                  scale={[9, 3, 1]}
+                  color="#ffffff"
+                />
+              </Environment>
 
-        {/* Sàn sân và hai quầng đèn. Đặt trước quầng sáng dưới quả cầu
+              <FocalGroup>
+                <ShuttleOffset>
+                  <ShuttleCrystal
+                    progress={progress}
+                    reducedMotion={reducedMotion}
+                    gold={GOLD_SOLID}
+                  />
+                </ShuttleOffset>
+              </FocalGroup>
+              <Motes color={GOLD_SOLID} count={spec.motes} />
+            </Canvas>
+          </div>
+
+          {/* Sàn sân và hai quầng đèn. Đặt trước quầng sáng dưới quả cầu
             để quầng đó nằm trên, nếu không mấy nét vạch sẽ cắt ngang
             đúng chỗ sáng nhất. */}
-        <NenSan gold={GOLD} />
+          <NenSan gold={GOLD} />
 
-        {/*
+          {/*
           Quầng sáng dưới quả cầu.
 
           Nó nằm ĐÈ LÊN canvas chứ không phải phía sau, vì canvas được dựng
@@ -591,125 +585,133 @@ export function ShuttleHero({
           Không có nó thì quả cầu lơ lửng trên một mặt navy phẳng lì, không
           có gì neo nó vào không gian.
         */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 mix-blend-screen"
-          style={{
-            background: `radial-gradient(38% 30% at 52% 34%, ${GOLD}2e, transparent 70%)`,
-          }}
-        />
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 mix-blend-screen"
+            style={{
+              background: `radial-gradient(38% 30% at 52% 34%, ${GOLD}2e, transparent 70%)`,
+            }}
+          />
 
-        {/* Tối dần ra rìa */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0"
-          style={{
-            background: `radial-gradient(120% 90% at 50% 45%, transparent 45%, ${NAVY} 100%)`,
-          }}
-        />
+          {/* Tối dần ra rìa */}
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0"
+            style={{
+              background: `radial-gradient(120% 90% at 50% 45%, transparent 45%, ${NAVY} 100%)`,
+            }}
+          />
 
-        {/* Chữ */}
-        <motion.div
-          variants={GROUP}
-          initial="hidden"
-          animate={controls}
-          className="pointer-events-none absolute inset-0 px-5 py-7 sm:px-10 sm:py-10"
-        >
-        {/* Lớp trong để nhường chỗ cho quả cầu đang rơi.
+          {/* Chữ */}
+          <motion.div
+            variants={GROUP}
+            initial="hidden"
+            animate={controls}
+            className="pointer-events-none absolute inset-0 px-5 py-7 sm:px-10 sm:py-10"
+          >
+            {/* Lớp trong để nhường chỗ cho quả cầu đang rơi.
             Hai lớp chứ không một: motion ghi thẳng vào style của thẻ ngoài
             khi chạy hiệu ứng vào trang, nên độ mờ theo cuộn phải nằm ở một
             thẻ khác thì hai thứ mới không giành nhau cùng một thuộc tính. */}
-        <div ref={copyRef} className="flex h-full flex-col">
-          <motion.div
-            variants={ENTER}
-            className="flex items-center justify-between gap-3"
-          >
-            <div className="flex items-center gap-3">
-            {/* Logo bản nét sáng, nền trong suốt. File logo.png gốc có nền
+            <div ref={copyRef} className="flex h-full flex-col">
+              <motion.div
+                variants={ENTER}
+                className="flex items-center justify-between gap-3"
+              >
+                <div className="flex items-center gap-3">
+                  {/* Logo bản nét sáng, nền trong suốt. File logo.png gốc có nền
                 TRẮNG ĐẶC (0% điểm trong suốt) nên đặt lên navy sẽ thành một
                 ô trắng; bản này tách nền và tô lại một màu kem, vì phần
                 navy trong logo gốc sẽ chìm nghỉm trên nền navy của hero. */}
-            <Image
-              src="/logo-light.png"
-              alt={eyebrow}
-              width={656}
-              height={562}
-              priority
-              className="h-11 w-auto object-contain sm:h-12"
-            />
-            </div>
+                  <Image
+                    src="/logo-light.png"
+                    alt={eyebrow}
+                    width={656}
+                    height={562}
+                    priority
+                    className="h-11 w-auto object-contain sm:h-12"
+                  />
+                </div>
 
-            {topRight}
-          </motion.div>
+                {topRight}
+              </motion.div>
 
-          {/* Chỗ cho quả cầu 3D phía trên dòng tiêu đề. */}
-          <div aria-hidden className="h-[30vh] shrink-0 sm:h-[33vh]" />
+              {/* Chỗ cho quả cầu 3D phía trên dòng tiêu đề. */}
+              <div aria-hidden className="h-[30vh] shrink-0 sm:h-[33vh]" />
 
-          <motion.div variants={ENTER}>
-            <Headline text={headline} />
-          </motion.div>
+              <motion.div variants={ENTER}>
+                <Headline text={headline} />
+              </motion.div>
 
-          <div aria-hidden className="h-[4vh] shrink-0" />
+              <div aria-hidden className="h-[4vh] shrink-0" />
 
-          <div className="mx-auto w-full max-w-2xl text-center">
-            {description ? (
-              <motion.p
-                variants={ENTER}
-                className="mx-auto max-w-md text-[13.5px] leading-relaxed sm:text-[15px]"
-                style={{ color: CREAM, opacity: 0.7 }}
-              >
-                {description}
-              </motion.p>
-            ) : null}
+              <div className="mx-auto w-full max-w-2xl text-center">
+                {description ? (
+                  <motion.p
+                    variants={ENTER}
+                    className="mx-auto max-w-md text-[13.5px] leading-relaxed sm:text-[15px]"
+                    style={{ color: CREAM, opacity: 0.7 }}
+                  >
+                    {description}
+                  </motion.p>
+                ) : null}
 
-            {(action || secondaryAction) && (
+                {(action || secondaryAction) && (
+                  <motion.div
+                    variants={ENTER}
+                    /*
+                  XẾP DỌC Ở MỌI CỠ MÀN, không còn `sm:flex-row`.
+                  Hai hành động giờ khác hẳn nhau về sức nặng — một nút
+                  tô đặc và một dòng chữ. Đặt cạnh nhau thì chúng lại
+                  trông như một cặp ngang hàng, đúng cái vừa sửa xong.
+                  Xếp dọc thì mắt đọc từ trên xuống: bấm cái này, hoặc
+                  cuộn xuống xem thêm.
+                */
+                    className="pointer-events-auto mt-6 flex flex-col items-center justify-center gap-4 sm:mt-8"
+                  >
+                    {action}
+                    {secondaryAction}
+                  </motion.div>
+                )}
+              </div>
+
+              <div aria-hidden className="flex-1" />
+
+              {/* Dấu hiệu mời cuộn, đặt đúng vào khoảng trống trước đây chiếm
+              một phần năm chiều cao màn hình mà không làm gì. */}
+              <motion.div variants={ENTER} className="flex justify-center pb-6">
+                <ScrollCue />
+              </motion.div>
+
               <motion.div
                 variants={ENTER}
-                className="pointer-events-auto mt-6 flex flex-col items-center justify-center gap-3 sm:mt-8 sm:flex-row"
+                className="flex flex-wrap items-center justify-between gap-4"
               >
-                {action}
-                {secondaryAction}
-              </motion.div>
-            )}
-          </div>
+                <div className="hidden flex-wrap items-center gap-x-5 gap-y-2 sm:flex">
+                  {meta.map((m) => (
+                    <span
+                      key={m}
+                      className="text-[10px] font-semibold tracking-[0.22em] uppercase"
+                      style={{ color: CREAM, opacity: 0.55 }}
+                    >
+                      {m}
+                    </span>
+                  ))}
+                </div>
 
-          <div aria-hidden className="flex-1" />
-
-          {/* Dấu hiệu mời cuộn, đặt đúng vào khoảng trống trước đây chiếm
-              một phần năm chiều cao màn hình mà không làm gì. */}
-          <motion.div variants={ENTER} className="flex justify-center pb-6">
-            <ScrollCue />
-          </motion.div>
-
-          <motion.div
-            variants={ENTER}
-            className="flex flex-wrap items-center justify-between gap-4"
-          >
-            <div className="hidden flex-wrap items-center gap-x-5 gap-y-2 sm:flex">
-              {meta.map((m) => (
-                <span
-                  key={m}
-                  className="text-[10px] font-semibold tracking-[0.22em] uppercase"
-                  style={{ color: CREAM, opacity: 0.55 }}
+                <div
+                  className="h-px w-24 overflow-hidden"
+                  style={{ background: `${CREAM}26` }}
                 >
-                  {m}
-                </span>
-              ))}
-            </div>
-
-            <div
-              className="h-px w-24 overflow-hidden"
-              style={{ background: `${CREAM}26` }}
-            >
-              <div
-                ref={railRef}
-                className="h-full origin-left"
-                style={{ background: GOLD, transform: "scaleX(0)" }}
-              />
+                  <div
+                    ref={railRef}
+                    className="h-full origin-left"
+                    style={{ background: GOLD, transform: "scaleX(0)" }}
+                  />
+                </div>
+              </motion.div>
             </div>
           </motion.div>
-        </div>
-        </motion.div>
         </div>
 
         {/* Nét vàng chạy ở mép cắt. Nằm NGOÀI lớp trôi thị sai để nó bám

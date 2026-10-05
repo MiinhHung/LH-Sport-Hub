@@ -40,16 +40,37 @@ const TONES = {
   /** Trên nền trang của app, đổi theo chế độ sáng/tối. */
   app: {
     nut: "border-gold-600/45 text-ink-100 hover:border-transparent hover:text-navy-950",
+    nen: "bg-transparent",
     vong: "bg-gradient-gold",
   },
-  /** Hành động chính trên nền navy của hero. */
+  /** Viền vàng trên nền navy. Dùng cho hành động phụ có sức nặng. */
   hero: {
     nut: "border-[#dcae42]/60 text-[#f2ede3] hover:border-transparent hover:text-[#00112e]",
+    nen: "bg-transparent",
     vong: "bg-[#dcae42]",
+  },
+  /**
+   * HÀNH ĐỘNG CHÍNH CỦA HERO — TÔ ĐẶC, KHÔNG PHẢI VIỀN.
+   *
+   * Trước đây nút chính và nút phụ đều là viền rỗng, chỉ khác nhau ở
+   * màu viền. Đo trên nền navy: viền vàng của nút chính đạt 1,09:1,
+   * viền kem của nút phụ 1,15:1 — cả hai đều dưới ngưỡng nhìn thấy,
+   * nên thực tế hai nút giống hệt nhau. Tệ hơn, nút phụ còn RỘNG hơn
+   * (210px so với 183px), nên nếu mắt có chọn một cái thì nó chọn nhầm.
+   *
+   * Nền vàng đặc với chữ navy đạt 9,0:1 — khỏi cần ai so sánh viền.
+   * Vòng loang khi rê chuột đổi sang màu kem (navy trên kem 16,1:1) để
+   * nút vẫn giữ được cú chuyển động riêng của nó.
+   */
+  heroSolid: {
+    nut: "border-transparent text-[#00112e] hover:text-[#00112e]",
+    nen: "bg-[#dcae42]",
+    vong: "bg-[#f2ede3]",
   },
   /** Hành động phụ trên nền navy của hero. */
   heroQuiet: {
     nut: "border-[#f2ede3]/35 text-[#f2ede3] hover:border-transparent hover:text-[#00112e]",
+    nen: "bg-transparent",
     vong: "bg-[#f2ede3]",
   },
 } as const;
@@ -100,7 +121,8 @@ function noiDung(text: string, tone: FlowTone) {
 function lop(tone: FlowTone, size: FlowSize, className?: string) {
   return cn(
     "group relative inline-flex cursor-pointer items-center justify-center overflow-hidden",
-    "rounded-full border-[1.5px] bg-transparent font-bold whitespace-nowrap outline-none",
+    "rounded-full border-[1.5px] font-bold whitespace-nowrap outline-none",
+    TONES[tone].nen,
     "transition-[color,border-color,border-radius] duration-[600ms] ease-[cubic-bezier(0.23,1,0.32,1)]",
     "hover:rounded-[14px] active:scale-[0.97]",
     "focus-visible:ring-4 focus-visible:ring-gold-400/35",
