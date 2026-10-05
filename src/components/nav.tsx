@@ -114,6 +114,26 @@ export function BottomNav({ unread }: { unread: number }) {
           return (
             <li key={item.href} className="flex-1">
               <Link
+                /*
+                KHÔNG TẢI TRƯỚC TOÀN BỘ THANH ĐIỀU HƯỚNG.
+
+                Đo trên bản build: mở MỘT trang sinh ra 18 lần gọi
+                `auth.getUser()`. Chỉ 2 lần là của trang đang mở; 16 lần
+                còn lại là Next tự tải trước tám đường dẫn trên thanh
+                điều hướng — và tám cái đó bị đếm hai lần vì thanh trên
+                lẫn thanh dưới cùng dựng một bộ link, một cái chỉ ẩn bằng
+                CSS chứ vẫn nằm trong cây.
+
+                Mỗi lần tải trước là một yêu cầu đầy đủ: qua proxy, xác
+                minh phiên với Supabase (5 truy vấn nội bộ cộng một vòng
+                mạng), rồi dựng cả trang ở máy chủ. Tức mở một trang kéo
+                theo chín trang nữa mà người dùng chưa hề bấm vào.
+
+                `prefetch={false}` KHÔNG tắt hẳn: Next vẫn tải trước khi
+                con trỏ rê vào link. Nghĩa là vẫn nhanh đúng lúc cần, chỉ
+                bỏ phần đoán mò tám trang một lúc.
+              */
+                prefetch={false}
                 href={item.href}
                 aria-current={active ? "page" : undefined}
                 className="flex flex-col items-center gap-1 py-2"
@@ -163,6 +183,8 @@ function TopNavItem({ item, active }: { item: Item; active: boolean }) {
     >
       <Link
         href={item.href}
+        // Cùng lý do với thanh dưới — xem ghi chú dài ở trên.
+        prefetch={false}
         aria-current={active ? "page" : undefined}
         // Nhãn bị ẩn ở màn hình vừa nên luôn kèm tên đầy đủ cho máy đọc
         // màn hình và cho mẹo chỉ dẫn khi rê chuột.

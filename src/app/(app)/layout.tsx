@@ -26,6 +26,8 @@ export default async function AppLayout({
         <div className="mx-auto flex h-16 max-w-6xl items-center gap-3 px-4 sm:gap-5">
           <Link
             href="/bang-tin"
+            // Cùng lý do với thanh điều hướng — xem ghi chú ở components/nav.tsx.
+            prefetch={false}
             aria-label="Light Human Sport Hub — về bảng tin"
             className="group flex shrink-0 items-center gap-2.5"
           >
@@ -80,6 +82,7 @@ export default async function AppLayout({
               thanh dưới trên điện thoại đã đủ 5 mục. */}
           <Link
             href="/tin-nhan"
+            prefetch={false}
             aria-label={
               unreadMessages > 0
                 ? `Tin nhắn — ${unreadMessages} cuộc chưa đọc`
