@@ -156,30 +156,55 @@ const mapUrlField = z
   .nullable()
   .default(null);
 
-export const playSessionSchema = z
-  .object({
-    sport: z.enum(SPORT_KEYS as [string, ...string[]]),
-    title: requiredText(LIMITS.sessionTitle, "Tên buổi tập"),
-    venueName: requiredText(LIMITS.venueName, "Địa điểm"),
-    venueAddress: optionalText(LIMITS.venueAddress, "Địa chỉ"),
-    mapUrl: mapUrlField,
-    showMap: checkboxField,
-    startsAt: dateTimeField("Giờ bắt đầu"),
-    endsAt: dateTimeField("Giờ kết thúc"),
-    maxPlayers: optionalInt("Số người tối đa", 2, 100),
-    costTotal: optionalInt("Tổng tiền sân", 0, 100_000_000),
-    notes: optionalText(LIMITS.sessionNotes, "Ghi chú"),
-  })
-  .refine((v) => v.endsAt.getTime() > v.startsAt.getTime(), {
+/** Các trường của một buổi tập, dùng chung cho lúc tạo và lúc sửa. */
+const playSessionShape = {
+  sport: z.enum(SPORT_KEYS as [string, ...string[]]),
+  title: requiredText(LIMITS.sessionTitle, "Tên buổi tập"),
+  venueName: requiredText(LIMITS.venueName, "Địa điểm"),
+  venueAddress: optionalText(LIMITS.venueAddress, "Địa chỉ"),
+  mapUrl: mapUrlField,
+  showMap: checkboxField,
+  startsAt: dateTimeField("Giờ bắt đầu"),
+  endsAt: dateTimeField("Giờ kết thúc"),
+  maxPlayers: optionalInt("Số người tối đa", 2, 100),
+  costTotal: optionalInt("Tổng tiền sân", 0, 100_000_000),
+  notes: optionalText(LIMITS.sessionNotes, "Ghi chú"),
+};
+
+const endsAfterStarts = {
+  check: (v: { startsAt: Date; endsAt: Date }) =>
+    v.endsAt.getTime() > v.startsAt.getTime(),
+  opts: {
     message: "Giờ kết thúc phải sau giờ bắt đầu.",
-    path: ["endsAt"],
-  })
+    path: ["endsAt" as const],
+  },
+};
+
+export const playSessionSchema = z
+  .object(playSessionShape)
+  .refine(endsAfterStarts.check, endsAfterStarts.opts)
   .refine((v) => v.startsAt.getTime() > Date.now() - CLOCK_SKEW_MS, {
     message: "Không thể tạo buổi tập trong quá khứ.",
     path: ["startsAt"],
   });
 
 export type PlaySessionInput = z.infer<typeof playSessionSchema>;
+
+/**
+ * Sửa buổi tập.
+ *
+ * CỐ Ý KHÔNG CÓ LUẬT "KHÔNG ĐƯỢC Ở QUÁ KHỨ". Một buổi tập đã bắt đầu
+ * rồi vẫn phải sửa được — thường là để sửa đúng cái tiền sân sau khi
+ * đánh xong. Nếu chặn ở đây thì giờ bắt đầu cũ (đã thuộc về quá khứ)
+ * sẽ làm hỏng mọi lần lưu, kể cả khi người ta không đụng gì tới giờ.
+ *
+ * Luật đúng là "không được DỜI buổi tập về quá khứ", mà muốn biết có
+ * dời hay không thì phải so với giờ đang lưu trong database — nên nó
+ * nằm ở action, chỗ đọc được bản ghi cũ.
+ */
+export const playSessionEditSchema = z
+  .object({ sessionId: uuidField, ...playSessionShape })
+  .refine(endsAfterStarts.check, endsAfterStarts.opts);
 
 /* ------------------------------------------------------------------ */
 /* Keo                                                                 */
@@ -284,6 +309,74 @@ export const challengeSchema = z
   }));
 
 export type ChallengeInput = z.infer<typeof challengeSchema>;
+
+/**
+ * Sửa kèo.
+ *
+ * CHỈ GỒM NHỮNG GÌ KHÔNG ĐỘNG TỚI ĐỘI HÌNH. Vắng mặt ở đây là có ý:
+ *
+ *   `format`      — đổi 1v1 thành 2v2 thì hai người đang ngồi trong kèo
+ *                   bỗng thiếu đồng đội; đội hình phải dựng lại từ đầu.
+ *   `kind`        — kèo mở đổi thành thách đích danh (hoặc ngược lại)
+ *                   là đổi hẳn cách người khác vào kèo.
+ *   `opponentIds`,
+ *   `partnerId`   — thêm bớt người là lời mời và lời từ chối, không phải
+ *                   một ô trong biểu mẫu. Đã có "Nhận kèo", "Rời kèo",
+ *                   "Đổi đội" lo việc đó rồi.
+ *   `sport`       — đổi môn thì nó là một kèo khác, không phải kèo này.
+ *
+ * Muốn đổi mấy thứ đó thì huỷ kèo rồi tạo kèo mới — người đã nhận kèo
+ * được báo đàng hoàng, thay vì sáng ra thấy mình đang ở trong một cái
+ * kèo khác hẳn cái mình từng đồng ý.
+ *
+ * `pointsTarget` bắt buộc hay không là tuỳ thể thức, mà thể thức thì
+ * không nằm trong biểu mẫu này. Action đọc thể thức từ database rồi
+ * kiểm — vừa đúng, vừa không phải tin vào một ô hidden do trình duyệt
+ * gửi lên.
+ */
+export const challengeEditSchema = z
+  .object({
+    challengeId: uuidField,
+    title: requiredText(LIMITS.challengeTitle, "Tên kèo"),
+    description: optionalText(LIMITS.challengeDescription, "Mô tả"),
+    pointsTarget: optionalInt("Số điểm", MIN_POINTS, MAX_POINTS),
+    stakeType: z.enum(STAKE_KEYS as [string, ...string[]]),
+    stakeQty: z.coerce
+      .number()
+      .int("Số lượng phải là số nguyên.")
+      .min(1, "Số lượng tối thiểu là 1.")
+      .max(MAX_STAKE_QTY, `Số lượng tối đa là ${MAX_STAKE_QTY}.`)
+      .default(1),
+    stakeNote: optionalText(LIMITS.stakeNote, "Ghi chú phần thưởng"),
+    sessionId: uuidField.nullable().default(null),
+    playDeadline: optionalDateTimeField("Hạn đánh"),
+  })
+  .superRefine((v, ctx) => {
+    if (v.stakeType === "khac" && !v.stakeNote) {
+      ctx.addIssue({
+        code: "custom",
+        message: 'Chọn "Khác" thì phải ghi rõ phần thưởng.',
+        path: ["stakeNote"],
+      });
+    }
+
+    if (
+      v.playDeadline &&
+      v.playDeadline.getTime() < Date.now() - CLOCK_SKEW_MS
+    ) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Hạn đánh không thể ở quá khứ.",
+        path: ["playDeadline"],
+      });
+    }
+  })
+  .transform((v) => ({
+    ...v,
+    stakeQty: STAKES[v.stakeType as keyof typeof STAKES].createsDebt
+      ? v.stakeQty
+      : 1,
+  }));
 
 export const joinChallengeSchema = z.object({
   challengeId: uuidField,

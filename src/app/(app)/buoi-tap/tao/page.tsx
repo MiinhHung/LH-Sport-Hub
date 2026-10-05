@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { SessionForm } from "@/components/forms/session-form";
-import { Card, CardBody, PageIntro } from "@/components/ui";
+import { PageIntro } from "@/components/ui";
 
 export const metadata: Metadata = { title: "Tạo buổi tập" };
 
@@ -24,11 +24,10 @@ export default function CreateSessionPage() {
         lead="Chốt sân, chốt giờ. Mặc định là sáng thứ 7 tuần này, 7h–9h."
       />
 
-      <Card>
-        <CardBody className="sm:p-6">
-          <SessionForm />
-        </CardBody>
-      </Card>
+      {/* Không bọc trong Card nữa: biểu mẫu giờ tự có đường ray đánh số
+          làm khung, lồng thêm một cái hộp trắng vào thì thành hộp trong
+          hộp — mà trang tạo kèo bên cạnh cũng không có hộp. */}
+      <SessionForm />
     </div>
   );
 }

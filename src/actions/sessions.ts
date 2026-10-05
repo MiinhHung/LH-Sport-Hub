@@ -13,6 +13,7 @@ import { notify } from "@/lib/notifications";
 import {
   fieldErrors,
   formDataToObject,
+  playSessionEditSchema,
   playSessionSchema,
 } from "@/lib/validation";
 import { formatDateTime } from "@/lib/utils";
@@ -109,6 +110,154 @@ export async function createSessionAction(
   });
 
   if (createdId) redirect(`/buoi-tap/${createdId}`);
+  return result;
+}
+
+/* ------------------------------------------------------------------ */
+/* Sua buoi tap                                                        */
+/* ------------------------------------------------------------------ */
+
+/** Cho phép lệch 5 phút giữa đồng hồ máy và đồng hồ máy chủ. */
+const CLOCK_SKEW_MS = 5 * 60 * 1000;
+
+/**
+ * Sửa buổi tập đã tạo.
+ *
+ * TRƯỚC ĐÂY CHỈ CÓ HUỶ VÀ XOÁ. Sân báo đổi giờ, hay gõ nhầm tên sân,
+ * thì cách duy nhất là xoá đi tạo lại — mà xoá thì mất sạch danh sách
+ * người đã nhận đi, và ai cũng nhận một thông báo "buổi tập đã bị xoá"
+ * rồi phải vào bấm đi lại từ đầu.
+ *
+ * Người đã nhận đi được báo khi giờ hoặc sân đổi, nhưng KHÔNG báo khi
+ * chỉ sửa ghi chú hay tiền sân: một cái chuông cho mỗi lần sửa chính
+ * tả thì chẳng mấy mà không ai thèm đọc thông báo nữa.
+ */
+export async function updateSessionAction(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  let updatedId: string | null = null;
+
+  const result = await runAction(async () => {
+    const actor = await requireActor();
+
+    const parsed = playSessionEditSchema.safeParse(formDataToObject(formData));
+    if (!parsed.success) {
+      return failure("Buổi tập chưa hợp lệ.", fieldErrors(parsed.error));
+    }
+    const input = parsed.data;
+
+    const session = await db.query.playSessions.findFirst({
+      where: eq(playSessions.id, input.sessionId),
+    });
+    if (!session) return failure("Không tìm thấy buổi tập.");
+
+    // Kiểm quyền ở server, không chỉ ẩn nút ở trang.
+    if (session.creatorId !== actor.id && !isModerator(actor)) {
+      return failure("Chỉ người tạo buổi tập mới sửa được.");
+    }
+
+    if (session.status === "cancelled") {
+      return failure(
+        "Buổi tập đã huỷ thì không sửa được nữa. Muốn đánh lại thì tạo buổi mới.",
+      );
+    }
+
+    // Chỉ chặn khi THẬT SỰ dời giờ. Buổi hôm qua vẫn phải sửa được —
+    // thường là để điền đúng tiền sân sau khi đánh xong.
+    const doiGioBatDau =
+      input.startsAt.getTime() !== session.startsAt.getTime();
+
+    if (doiGioBatDau && input.startsAt.getTime() < Date.now() - CLOCK_SKEW_MS) {
+      return failure("Không thể dời buổi tập về quá khứ.", {
+        startsAt: "Không thể dời buổi tập về quá khứ.",
+      });
+    }
+
+    const going = await db
+      .select({ userId: playSessionAttendees.userId })
+      .from(playSessionAttendees)
+      .where(
+        and(
+          eq(playSessionAttendees.sessionId, input.sessionId),
+          eq(playSessionAttendees.status, "going"),
+        ),
+      );
+
+    // Hạ giới hạn xuống dưới số người đã nhận đi thì ai là người bị
+    // đẩy ra? Không có câu trả lời tử tế nào, nên chặn luôn.
+    if (input.maxPlayers !== null && input.maxPlayers < going.length) {
+      const loi = `Đã có ${going.length} người nhận đi, không hạ giới hạn xuống ${input.maxPlayers} được.`;
+      return failure(loi, { maxPlayers: loi });
+    }
+
+    const doiCho = session.venueName !== input.venueName;
+    const doiGio =
+      doiGioBatDau || input.endsAt.getTime() !== session.endsAt.getTime();
+
+    await db.transaction(async (tx) => {
+      await tx
+        .update(playSessions)
+        .set({
+          sport: input.sport as never,
+          title: input.title,
+          venueName: input.venueName,
+          venueAddress: input.venueAddress,
+          mapUrl: input.mapUrl,
+          showMap: input.showMap,
+          startsAt: input.startsAt,
+          endsAt: input.endsAt,
+          maxPlayers: input.maxPlayers,
+          costTotal: input.costTotal,
+          notes: input.notes,
+          updatedAt: new Date(),
+        })
+        .where(eq(playSessions.id, input.sessionId));
+
+      if (doiGio || doiCho) {
+        const doi = [
+          doiGio ? formatDateTime(input.startsAt) : null,
+          doiCho ? input.venueName : null,
+        ]
+          .filter(Boolean)
+          .join(" • ");
+
+        await notify(
+          tx,
+          going
+            .filter((a) => a.userId !== actor.id)
+            .map((a) => ({
+              recipientId: a.userId,
+              actorId: actor.id,
+              type: "session_updated" as const,
+              title: `Buổi "${input.title}" vừa đổi ${
+                doiGio && doiCho ? "giờ và sân" : doiGio ? "giờ" : "sân"
+              }`,
+              message: doi,
+              href: `/buoi-tap/${input.sessionId}`,
+            })),
+        );
+      }
+
+      await audit(tx, {
+        actorId: actor.id,
+        action: "session.update",
+        targetType: "play_session",
+        targetId: input.sessionId,
+        metadata: {
+          doiGio,
+          doiCho,
+          byModerator: session.creatorId !== actor.id,
+        },
+      });
+    });
+
+    updatedId = input.sessionId;
+    revalidateSessions(input.sessionId);
+    return success("Đã lưu buổi tập.");
+  });
+
+  if (updatedId) redirect(`/buoi-tap/${updatedId}`);
   return result;
 }
 

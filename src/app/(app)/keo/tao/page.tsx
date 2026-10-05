@@ -26,7 +26,9 @@ export default async function CreateChallengePage() {
     }));
 
   return (
-    <div className="mx-auto max-w-2xl space-y-5">
+    /* max-w-5xl chứ không 2xl: biểu mẫu giờ có thêm cột xem trước bên
+       phải, 2xl (672px) thì hai cột chen nhau còn 350px mỗi bên. */
+    <div className="mx-auto max-w-5xl space-y-5">
       <Link
         href="/keo"
         className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-ink-500 transition-colors hover:text-ink-100"
@@ -41,7 +43,16 @@ export default async function CreateChallengePage() {
         lead="Chốt thể thức, chốt điểm, chốt ăn gì. Xong là có kèo."
       />
 
-      <ChallengeForm members={others} sessions={sessions} />
+      <ChallengeForm
+        members={others}
+        sessions={sessions}
+        nguoiTao={{
+          id: profile.id,
+          fullName: profile.fullName,
+          avatarUrl: profile.avatarUrl,
+          department: profile.department,
+        }}
+      />
     </div>
   );
 }

@@ -311,6 +311,7 @@ export default async function SessionDetailPage({
           <SessionOwnerActions
             sessionId={session.id}
             canCancel={session.status === "open"}
+            canEdit={session.status !== "cancelled"}
             goingCount={going.length}
           />
         )}

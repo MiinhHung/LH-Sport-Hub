@@ -4,6 +4,7 @@ import {
   CheckCheck,
   FileText,
   Flag,
+  Pencil,
   ShieldCheck,
   Swords,
   Trash2,
@@ -51,6 +52,7 @@ const VIEC: Record<string, { chu: string; icon: LucideIcon; mau: Mau }> = {
   "admin.reactivate": { chu: "mở khoá một tài khoản", icon: ShieldCheck, mau: "emerald" },
 
   "challenge.create": { chu: "tạo một kèo mới", icon: Swords, mau: "gold" },
+  "challenge.update": { chu: "sửa một kèo", icon: Pencil, mau: "gold" },
   "challenge.join": { chu: "nhận một kèo", icon: Swords, mau: "gold" },
   "challenge.accept": { chu: "đồng ý một lời thách", icon: Swords, mau: "gold" },
   "challenge.decline": { chu: "từ chối một lời thách", icon: Swords, mau: "slate" },
@@ -72,6 +74,7 @@ const VIEC: Record<string, { chu: string; icon: LucideIcon; mau: Mau }> = {
   "comment.delete": { chu: "xoá một bình luận", icon: Trash2, mau: "rose" },
 
   "session.create": { chu: "tạo một buổi tập", icon: CalendarDays, mau: "sky" },
+  "session.update": { chu: "sửa một buổi tập", icon: Pencil, mau: "sky" },
   "session.attendance": { chu: "điểm danh buổi tập", icon: CalendarDays, mau: "sky" },
   "session.cancel": { chu: "huỷ một buổi tập", icon: CalendarDays, mau: "slate" },
   "session.delete": { chu: "xoá một buổi tập", icon: Trash2, mau: "rose" },

@@ -30,11 +30,13 @@ import { CHALLENGE_FORMATS, LIMITS, formatStake } from "@/lib/constants";
 import { notify } from "@/lib/notifications";
 import {
   cancelChallengeSchema,
+  challengeEditSchema,
   challengeSchema,
   fieldErrors,
   formDataToObject,
   joinChallengeSchema,
 } from "@/lib/validation";
+import { formatDateTime } from "@/lib/utils";
 import { failure, runAction, success, type ActionState } from "./types";
 
 /* ------------------------------------------------------------------ */
@@ -278,6 +280,183 @@ export async function createChallengeAction(
   });
 
   if (createdId) redirect(`/keo/${createdId}`);
+  return result;
+}
+
+/* ------------------------------------------------------------------ */
+/* Sua keo                                                             */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Sửa kèo đã tạo.
+ *
+ * BA CÁI CHẶN, MỖI CÁI VÌ MỘT LÝ DO KHÁC NHAU:
+ *
+ *  1. Đã có kết quả  -> cấm. Sửa tiền cược sau khi đã biết ai thắng thì
+ *     người thua trả một khoản mà họ chưa từng đồng ý. Đây là chỗ dễ
+ *     cãi nhau nhất trong cả app, nên đóng hẳn.
+ *  2. Đã huỷ         -> cấm. Kèo huỷ là một bản ghi để xem lại, không
+ *     phải nháp.
+ *  3. Đội hình       -> không nằm trong biểu mẫu sửa (xem
+ *     `challengeEditSchema`). Thêm bớt người là lời mời, không phải
+ *     một ô nhập liệu.
+ *
+ * Còn lại thì sửa thoải mái, nhưng người đang ở trong kèo được báo khi
+ * ĐIỀU KHOẢN đổi — tiền cược, số điểm, hạn đánh. Họ nhận kèo dựa trên
+ * mấy thứ đó.
+ */
+export async function updateChallengeAction(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  let updatedId: string | null = null;
+
+  const result = await runAction(async () => {
+    const actor = await requireActor();
+
+    const raw = formDataToObject(formData);
+    if (raw.sessionId === "") raw.sessionId = null;
+
+    const parsed = challengeEditSchema.safeParse(raw);
+    if (!parsed.success) {
+      return failure("Kèo chưa hợp lệ.", fieldErrors(parsed.error));
+    }
+    const input = parsed.data;
+
+    const challenge = await db.query.challenges.findFirst({
+      where: eq(challenges.id, input.challengeId),
+      with: { result: true },
+    });
+    if (!challenge) return failure("Không tìm thấy kèo này.");
+
+    if (challenge.creatorId !== actor.id && !isModerator(actor)) {
+      return failure("Chỉ người tạo kèo mới sửa được.");
+    }
+
+    if (challenge.result) {
+      return failure(
+        "Kèo đã nhập kết quả thì không sửa được nữa — đổi tiền cược sau khi biết ai thắng là không sòng phẳng.",
+      );
+    }
+
+    if (challenge.status === "cancelled" || challenge.status === "declined") {
+      return failure("Kèo đã đóng thì không sửa được nữa.");
+    }
+
+    // Thể thức đọc từ database chứ không nhận từ biểu mẫu: một ô hidden
+    // sửa được bằng devtools, mà luật "kèo tự do thì không cần điểm"
+    // phải dựa trên thể thức thật.
+    const format = challenge.format as keyof typeof CHALLENGE_FORMATS;
+    if (format !== "free" && input.pointsTarget === null) {
+      return failure("Vui lòng nhập số điểm của kèo.", {
+        pointsTarget: "Vui lòng nhập số điểm của kèo.",
+      });
+    }
+    const pointsTarget = format === "free" ? null : input.pointsTarget;
+
+    if (input.sessionId && input.sessionId !== challenge.sessionId) {
+      const session = await db.query.playSessions.findFirst({
+        where: eq(playSessions.id, input.sessionId),
+        columns: { id: true, status: true },
+      });
+      if (!session || session.status !== "open") {
+        return failure("Buổi tập được chọn không còn mở.");
+      }
+    }
+
+    const cuocCu = formatStake(
+      challenge.stakeType as never,
+      challenge.stakeQty,
+      challenge.stakeNote,
+    );
+    const cuocMoi = formatStake(
+      input.stakeType as never,
+      input.stakeQty,
+      input.stakeNote,
+    );
+
+    const doiCuoc = cuocCu !== cuocMoi;
+    const doiDiem = challenge.pointsTarget !== pointsTarget;
+    const doiHan =
+      (challenge.playDeadline?.getTime() ?? null) !==
+      (input.playDeadline?.getTime() ?? null);
+
+    await db.transaction(async (tx) => {
+      await tx
+        .update(challenges)
+        .set({
+          title: input.title,
+          description: input.description,
+          pointsTarget,
+          stakeType: input.stakeType as never,
+          stakeQty: input.stakeQty,
+          stakeNote: input.stakeNote,
+          sessionId: input.sessionId,
+          playDeadline: input.playDeadline,
+          updatedAt: new Date(),
+        })
+        .where(eq(challenges.id, input.challengeId));
+
+      if (doiCuoc || doiDiem || doiHan) {
+        const participants = await tx
+          .select({
+            userId: challengeParticipants.userId,
+            status: challengeParticipants.status,
+          })
+          .from(challengeParticipants)
+          .where(eq(challengeParticipants.challengeId, input.challengeId));
+
+        const doi = [
+          doiCuoc ? `cược: ${cuocMoi}` : null,
+          doiDiem && pointsTarget ? `đánh tới ${pointsTarget} điểm` : null,
+          doiHan
+            ? input.playDeadline
+              ? `hạn đánh: ${formatDateTime(input.playDeadline)}`
+              : "bỏ hạn đánh"
+            : null,
+        ]
+          .filter(Boolean)
+          .join(" • ");
+
+        await notify(
+          tx,
+          participants
+            .filter(
+              (p) =>
+                p.userId !== actor.id &&
+                (p.status === "accepted" || p.status === "invited"),
+            )
+            .map((p) => ({
+              recipientId: p.userId,
+              actorId: actor.id,
+              type: "challenge_updated" as const,
+              title: `${actor.fullName} vừa đổi điều khoản kèo "${input.title}"`,
+              message: doi,
+              href: `/keo/${input.challengeId}`,
+            })),
+        );
+      }
+
+      await audit(tx, {
+        actorId: actor.id,
+        action: "challenge.update",
+        targetType: "challenge",
+        targetId: input.challengeId,
+        metadata: {
+          doiCuoc,
+          doiDiem,
+          doiHan,
+          byModerator: challenge.creatorId !== actor.id,
+        },
+      });
+    });
+
+    updatedId = input.challengeId;
+    revalidateChallenge(input.challengeId);
+    return success("Đã lưu kèo.");
+  });
+
+  if (updatedId) redirect(`/keo/${updatedId}`);
   return result;
 }
 

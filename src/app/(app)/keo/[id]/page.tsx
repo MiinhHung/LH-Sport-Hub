@@ -3,6 +3,7 @@ import {
   CalendarClock,
   Clock,
   MapPin,
+  Pencil,
   ShieldAlert,
   Target,
   Trophy,
@@ -12,6 +13,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { Avatar, Badge, Card, CardBody, Dot } from "@/components/ui";
+import { LinkButton } from "@/components/ui/button";
 import { isModerator, requireProfile } from "@/lib/auth";
 import {
   CHALLENGE_STATUS_META,
@@ -313,6 +315,16 @@ export default async function ChallengeDetailPage({
     (challenge.creatorId === user.id || isMod) &&
     challenge.result?.status !== "confirmed";
 
+  // Sửa chặt hơn xoá một bậc: hễ ĐÃ CÓ kết quả gửi lên là khoá, kể cả
+  // khi còn đang chờ xác nhận. Đổi tiền cược lúc đã biết ai thắng thì
+  // người thua phải trả một khoản họ chưa từng đồng ý.
+  // `updateChallengeAction` kiểm y hệt.
+  const canEdit =
+    (challenge.creatorId === user.id || isMod) &&
+    !challenge.result &&
+    challenge.status !== "cancelled" &&
+    challenge.status !== "declined";
+
   const winner =
     challenge.result?.status === "confirmed"
       ? (challenge.result.winningTeam as "A" | "B")
@@ -548,6 +560,20 @@ export default async function ChallengeDetailPage({
         </div>
 
         <div className="flex flex-wrap items-center gap-1">
+          {/* Sửa đứng trước mấy việc phá: nó là việc vô hại nhất trong
+              nhóm, mà trước đây gõ nhầm tên kèo thì chỉ còn nước xoá đi
+              tạo lại, mất sạch người đã nhận. */}
+          {canEdit && (
+            <LinkButton
+              variant="ghost"
+              size="sm"
+              href={`/keo/${challenge.id}/sua`}
+              className="text-ink-500 hover:text-ink-100"
+            >
+              <Pencil className="size-4" />
+              Sửa kèo
+            </LinkButton>
+          )}
           {leaveDec.ok && <LeaveChallengeForm challengeId={challenge.id} />}
           {cancelDec.ok && <CancelChallengeForm challengeId={challenge.id} />}
           {canDelete && <DeleteChallengeForm challengeId={challenge.id} />}

@@ -114,6 +114,8 @@ export const notificationTypeEnum = pgEnum("notification_type", [
   "debt_waived",
   "session_created",
   "session_cancelled",
+  "session_updated",
+  "challenge_updated",
   "session_reminder",
   "session_joined",
   "post_comment",

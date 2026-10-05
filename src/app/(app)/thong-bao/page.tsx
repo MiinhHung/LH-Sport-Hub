@@ -33,6 +33,8 @@ const TYPE_ICON: Record<string, string> = {
   session_cancelled: "🌧️",
   session_reminder: "⏰",
   session_joined: "🙋",
+  session_updated: "✏️",
+  challenge_updated: "✏️",
 };
 
 export default async function NotificationsPage() {

@@ -1,12 +1,12 @@
 "use client";
 
-import { Trash2, X } from "lucide-react";
+import { Pencil, Trash2, X } from "lucide-react";
 import { useActionState, useRef, useState } from "react";
 
 import { cancelSessionAction, deleteSessionAction } from "@/actions/sessions";
 import { idleState } from "@/actions/types";
 import { Alert, Card, CardBody, Field, Input } from "@/components/ui";
-import { Button } from "@/components/ui/button";
+import { Button, LinkButton } from "@/components/ui/button";
 import { useHoiLai } from "@/components/ui/hoi-lai";
 import { SubmitButton } from "@/components/ui/submit-button";
 
@@ -19,10 +19,13 @@ export function SessionOwnerActions({
   sessionId,
   canCancel,
   goingCount,
+  canEdit,
 }: {
   sessionId: string;
   canCancel: boolean;
   goingCount: number;
+  /** Buổi đã huỷ thì chỉ còn xoá được, không sửa. */
+  canEdit: boolean;
 }) {
   const [cancelState, cancelAction] = useActionState(
     cancelSessionAction,
@@ -86,6 +89,21 @@ export function SessionOwnerActions({
 
   return (
     <div className="flex flex-wrap items-center gap-1">
+      {/* Sửa đứng đầu và là việc KHÔNG phá gì: gõ nhầm tên sân thì sửa,
+          chứ trước đây phải xoá buổi rồi tạo lại, mất sạch danh sách
+          người đã nhận đi. */}
+      {canEdit && (
+        <LinkButton
+          variant="ghost"
+          size="sm"
+          href={`/buoi-tap/${sessionId}/sua`}
+          className="text-ink-500 hover:text-ink-100"
+        >
+          <Pencil className="size-4" />
+          Sửa buổi
+        </LinkButton>
+      )}
+
       {canCancel && (
         <Button
           variant="ghost"
