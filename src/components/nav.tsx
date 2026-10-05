@@ -97,8 +97,11 @@ function Counter({ value }: { value: number }) {
 /** Thanh dưới cùng — dùng trên điện thoại. */
 export function BottomNav({ unread }: { unread: number }) {
   const pathname = usePathname();
-  // 7 mục là quá chật trên điện thoại. Xếp hạng và Cẩm nang đã có ở menu
-  // tài khoản và ở thanh trên, nên cắt khỏi thanh dưới.
+  // 7 mục là quá chật trên điện thoại, nên Xếp hạng và Cẩm nang cắt khỏi
+  // thanh dưới. Cả hai PHẢI có trong menu tài khoản với `chiDienThoai:
+  // true` — thanh trên chỉ hiện từ `md` nên không đỡ được chỗ này. Trước
+  // đây chú thích ở đây nói là "đã có ở menu tài khoản" trong khi Cẩm
+  // nang thì chưa, và thế là nó mất lối vào trên điện thoại.
   const items = useItems(unread).filter(
     (i) => i.href !== "/bang-phong-than" && i.href !== "/cam-nang",
   );

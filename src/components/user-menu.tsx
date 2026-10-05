@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  BookOpen,
   ChevronDown,
   LoaderCircle,
   LogOut,
@@ -594,6 +595,24 @@ export function UserMenu({
             href: "/bang-phong-than",
             nhan: "Bảng phong thần",
             icon: Trophy,
+            chiDienThoai: true,
+          },
+          /*
+            CẨM NANG BỊ BỎ QUÊN HẲN TRÊN ĐIỆN THOẠI.
+
+            Thanh dưới cắt nó đi vì bảy mục thì chật; thanh trên chỉ có
+            từ `md`; dải "Cẩm nang" ở Bảng tin nằm trong cột phải, mà cột
+            đó `hidden lg:block`. Cộng lại: mười ba bài viết không có một
+            lối vào nào trên điện thoại ngoài gõ tay địa chỉ.
+
+            Chú thích trong `nav.tsx` còn ghi là "đã có ở menu tài khoản"
+            — không đúng, và chính câu đó làm lỗi nấp được lâu. Giờ thì
+            đúng.
+          */
+          {
+            href: "/cam-nang",
+            nhan: "Cẩm nang",
+            icon: BookOpen,
             chiDienThoai: true,
           },
           ...(canSeeAdmin
