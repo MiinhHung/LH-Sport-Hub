@@ -58,6 +58,13 @@ function applyToggle(
 /* Nút cảm xúc                                                         */
 /* ------------------------------------------------------------------ */
 
+/**
+ * Ba cảm xúc bày sẵn. Chọn theo thứ tự hay dùng của một nhóm thể thao:
+ * thích, cháy (đánh hay), haha (chọc nhau). Ba cái còn lại — thương,
+ * vỗ tay, buồn — vẫn ở trong bảng chọn.
+ */
+const NHANH: ReactionKey[] = ["like", "fire", "haha"];
+
 function ReactionControl({
   targetType,
   targetId,
@@ -108,6 +115,38 @@ function ReactionControl({
 
   return (
     <div className="relative flex items-center gap-1.5" ref={ref}>
+      {/*
+        BA CẢM XÚC HAY DÙNG NHẤT HIỆN THẲNG RA, KHÔNG GIẤU SAU MỘT CÚ BẤM.
+
+        Bản trước ở trạng thái nghỉ chỉ là một icon mặt cười xám cạnh chữ
+        "Cảm xúc". Chụp bảng tin thật thì hàng đó đọc ra một thanh trống
+        huơ: hai mẩu chữ xám hai đầu, ở giữa không có gì. Và muốn thả tim
+        thì phải bấm hai lần — mở bảng chọn rồi mới chọn.
+
+        Giờ ba cái hay dùng nhất nằm sẵn, một chạm là xong. Ba cái còn
+        lại vẫn ở sau dấu cộng, vì bày cả sáu ra thì hàng này lại đi quá
+        xa về phía ồn ào.
+
+        Ở bình luận (`compact`) thì giữ nguyên một nút: dòng bình luận
+        hẹp, nhét ba nút vào sẽ chen mất chỗ của chính câu bình luận.
+      */}
+      {!compact && !mine && (
+        <div className="flex items-center gap-0.5">
+          {NHANH.map((key) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() => toggle(key)}
+              title={REACTIONS[key].label}
+              aria-label={`Thả ${REACTIONS[key].label}`}
+              className="grid size-8 place-items-center rounded-lg text-[17px] leading-none transition-transform duration-150 hover:scale-125 hover:bg-ink-850"
+            >
+              {REACTIONS[key].icon}
+            </button>
+          ))}
+        </div>
+      )}
+
       <button
         type="button"
         onClick={() => (mine ? toggle(mine) : setPicking((v) => !v))}
@@ -115,21 +154,23 @@ function ReactionControl({
           e.preventDefault();
           setPicking((v) => !v);
         }}
-        aria-label={mine ? `Bỏ ${REACTIONS[mine].label}` : "Thả cảm xúc"}
+        aria-label={mine ? `Bỏ ${REACTIONS[mine].label}` : "Thêm cảm xúc khác"}
         className={cn(
           "inline-flex items-center gap-1.5 rounded-lg font-semibold transition-colors",
-          compact ? "px-1.5 py-0.5 text-[11.5px]" : "px-2.5 py-1.5 text-[12.5px]",
+          compact ? "px-1.5 py-0.5 text-[11.5px]" : "px-2 py-1.5 text-[12.5px]",
           mine
             ? "text-gold-700 dark:text-gold-300 hover:bg-gold-50 dark:hover:bg-gold-400/10"
             : "text-ink-500 hover:bg-ink-850 hover:text-ink-300",
         )}
       >
         {mine ? (
-          <span className="text-[15px] leading-none">{REACTIONS[mine].icon}</span>
+          <span className="text-[15px] leading-none">
+            {REACTIONS[mine].icon}
+          </span>
         ) : (
           <SmilePlus className={compact ? "size-3.5" : "size-4"} />
         )}
-        {mine ? REACTIONS[mine].label : "Cảm xúc"}
+        {mine ? REACTIONS[mine].label : compact ? "Cảm xúc" : null}
       </button>
 
       {/* Tổng hợp cảm xúc đã có */}
@@ -261,6 +302,19 @@ export function PostInteractions({
   canModerate: boolean;
 }) {
   const [showAll, setShowAll] = useState(false);
+
+  /*
+   * Ô bình luận CHỈ MỞ SẴN KHI ĐÃ CÓ BÌNH LUẬN.
+   *
+   * Bản trước luôn dựng cả khối: avatar, ô nhập, nút gửi — kể cả ở bài
+   * chưa ai bình luận. Mỗi bài tốn thêm chừng 80px cho một ô trống,
+   * nên cuộn bảng tin ra cảm giác lướt qua một chồng biểu mẫu chứ không
+   * phải đọc tin của đội.
+   *
+   * Bài đã có bình luận thì vẫn mở sẵn, vì ở đó ô nhập nằm ngay dưới
+   * mấy câu đang đọc — đúng chỗ người ta muốn trả lời.
+   */
+  const [moBinhLuan, setMoBinhLuan] = useState(comments.length > 0);
   const [draft, setDraft] = useState("");
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -298,81 +352,94 @@ export function PostInteractions({
           targetId={postId}
           initial={reactions}
         />
-        <span className="ml-auto inline-flex items-center gap-1.5 text-[12.5px] font-semibold text-ink-500">
+        <button
+          type="button"
+          onClick={() => setMoBinhLuan((v) => !v)}
+          aria-expanded={moBinhLuan}
+          className="ml-auto inline-flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-[12.5px] font-semibold text-ink-500 transition-colors hover:bg-ink-850 hover:text-ink-200"
+        >
           <MessageCircle className="size-4" />
-          <span className="tabular">{comments.length}</span>
-          <span className="hidden sm:inline">bình luận</span>
-        </span>
+          {comments.length > 0 ? (
+            <>
+              <span className="tabular">{comments.length}</span>
+              <span className="hidden sm:inline">bình luận</span>
+            </>
+          ) : (
+            "Bình luận"
+          )}
+        </button>
       </div>
 
       {/* Bình luận */}
-      <div className="space-y-3 border-t border-ink-800 bg-ink-850/40 px-4 py-3 sm:px-5">
-        {hidden > 0 && (
-          <button
-            type="button"
-            onClick={() => setShowAll(true)}
-            className="text-[12.5px] font-bold text-link hover:underline"
-          >
-            Xem thêm {hidden} bình luận
-          </button>
-        )}
+      {moBinhLuan && (
+        <div className="space-y-3 border-t border-ink-800 bg-ink-850/40 px-4 py-3 sm:px-5">
+          {hidden > 0 && (
+            <button
+              type="button"
+              onClick={() => setShowAll(true)}
+              className="text-[12.5px] font-bold text-link hover:underline"
+            >
+              Xem thêm {hidden} bình luận
+            </button>
+          )}
 
-        {visible.length > 0 && (
-          <ul className="space-y-3">
-            {visible.map((c) => (
-              <CommentRow
-                key={c.id}
-                comment={c}
-                viewer={viewer}
-                canModerate={canModerate}
-              />
-            ))}
-          </ul>
-        )}
+          {visible.length > 0 && (
+            <ul className="space-y-3">
+              {visible.map((c) => (
+                <CommentRow
+                  key={c.id}
+                  comment={c}
+                  viewer={viewer}
+                  canModerate={canModerate}
+                />
+              ))}
+            </ul>
+          )}
 
-        <form onSubmit={submit} className="flex items-start gap-2.5">
-          <Avatar
-            name={viewer.fullName}
-            src={viewer.avatarUrl}
-            seed={viewer.id}
-            size="sm"
-            className="mt-0.5"
-          />
-          <div className="min-w-0 flex-1">
-            <div className="flex items-end gap-2">
-              <textarea
-                value={draft}
-                onChange={(e) => setDraft(e.target.value)}
-                onKeyDown={(e) => {
-                  // Enter gửi, Shift+Enter xuống dòng — như mọi khung chat.
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault();
-                    e.currentTarget.form?.requestSubmit();
-                  }
-                }}
-                rows={1}
-                maxLength={LIMITS.commentContent}
-                placeholder="Viết bình luận…"
-                aria-label="Viết bình luận"
-                className="max-h-32 min-h-9 w-full resize-none rounded-2xl border border-ink-700 bg-ink-900 px-3.5 py-2 text-[14px] text-ink-200 outline-none transition-all placeholder:text-ink-500 hover:border-ink-600 focus:border-gold-400 focus:ring-4 focus:ring-gold-400/15"
-              />
-              <button
-                type="submit"
-                disabled={!draft.trim() || pending}
-                aria-label="Gửi bình luận"
-                className="grid size-9 shrink-0 place-items-center rounded-xl bg-navy-900 text-white transition-all hover:bg-navy-800 active:translate-y-px disabled:opacity-35"
-              >
-                <Send className="size-4" />
-              </button>
+          <form onSubmit={submit} className="flex items-start gap-2.5">
+            <Avatar
+              name={viewer.fullName}
+              src={viewer.avatarUrl}
+              seed={viewer.id}
+              size="sm"
+              className="mt-0.5"
+            />
+            <div className="min-w-0 flex-1">
+              <div className="flex items-end gap-2">
+                <textarea
+                  value={draft}
+                  onChange={(e) => setDraft(e.target.value)}
+                  onKeyDown={(e) => {
+                    // Enter gửi, Shift+Enter xuống dòng — như mọi khung chat.
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      e.currentTarget.form?.requestSubmit();
+                    }
+                  }}
+                  rows={1}
+                  maxLength={LIMITS.commentContent}
+                  placeholder="Viết bình luận…"
+                  aria-label="Viết bình luận"
+                  className="max-h-32 min-h-9 w-full resize-none rounded-2xl border border-ink-700 bg-ink-900 px-3.5 py-2 text-[14px] text-ink-200 outline-none transition-all placeholder:text-ink-500 hover:border-ink-600 focus:border-gold-400 focus:ring-4 focus:ring-gold-400/15"
+                />
+                <button
+                  type="submit"
+                  disabled={!draft.trim() || pending}
+                  aria-label="Gửi bình luận"
+                  className="grid size-9 shrink-0 place-items-center rounded-xl bg-navy-900 text-white transition-all hover:bg-navy-800 active:translate-y-px disabled:opacity-35"
+                >
+                  <Send className="size-4" />
+                </button>
+              </div>
+              {error && (
+                <p className="mt-1 text-[12px] font-medium text-rose-600 dark:text-rose-400">
+                  {error}
+                </p>
+              )}
             </div>
-            {error && (
-              <p className="mt-1 text-[12px] font-medium text-rose-600 dark:text-rose-400">
-                {error}
-              </p>
-            )}
-          </div>
-        </form>
-      </div>
+          </form>
+        </div>
+      )}
     </div>
   );
 }
