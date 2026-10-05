@@ -280,7 +280,14 @@ function CommentRow({
             <button
               type="button"
               onClick={remove}
-              className="rounded px-1.5 py-0.5 text-[11px] font-semibold text-ink-500 opacity-0 transition-opacity group-hover:opacity-100 hover:text-rose-600 dark:text-rose-400 focus-visible:opacity-100"
+              /* Hiện sẵn trên màn cảm ứng — xem ghi chú cùng loại ở
+                 `chat-thread`. Không có nó thì nút xoá bình luận nằm đó
+                 mà không ai dùng điện thoại chạm tới được.
+
+                 Và nới vùng chạm: đo được 24×16px, thấp hơn cả mức tối
+                 thiểu 24×24 của WCAG 2.5.8. Chuột thì 16px vẫn bấm
+                 trúng, đầu ngón tay thì không. */
+              className="rounded px-1.5 py-0.5 text-[11px] font-semibold text-ink-500 opacity-0 transition-opacity group-hover:opacity-100 pointer-coarse:grid pointer-coarse:size-8 pointer-coarse:place-items-center pointer-coarse:opacity-100 hover:text-rose-600 focus-visible:opacity-100 dark:text-rose-400"
             >
               <Trash2 className="size-3" />
               <span className="sr-only">Xoá bình luận</span>

@@ -381,7 +381,18 @@ export function ChatThread({
                       type="button"
                       onClick={() => removeMessage(m.id)}
                       aria-label="Xoá tin nhắn"
-                      className="mb-5 grid size-7 shrink-0 place-items-center rounded-lg text-ink-500 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-rose-50 dark:hover:bg-rose-500/10 hover:text-rose-600 dark:text-rose-400 focus-visible:opacity-100"
+                      /*
+                        `pointer-coarse:opacity-100` — TRÊN ĐIỆN THOẠI THÌ
+                        HIỆN SẴN.
+
+                        Nút này vốn ẩn và chỉ hiện khi rê chuột qua dòng
+                        tin. Điện thoại không có "rê chuột": ngón tay chỉ
+                        có chạm hoặc không. Nghĩa là suốt từ trước tới
+                        giờ, ai mở app bằng điện thoại thì KHÔNG CÓ CÁCH
+                        NÀO xoá tin nhắn của chính mình — nút có đó mà
+                        trong suốt vĩnh viễn.
+                      */
+                      className="mb-5 grid size-7 shrink-0 place-items-center rounded-lg text-ink-500 opacity-0 transition-opacity group-hover:opacity-100 pointer-coarse:size-9 pointer-coarse:opacity-100 hover:bg-rose-50 hover:text-rose-600 focus-visible:opacity-100 dark:text-rose-400 dark:hover:bg-rose-500/10"
                     >
                       <Trash2 className="size-3.5" />
                     </button>

@@ -67,8 +67,18 @@ export function CotHoiThoai({
   return (
     <aside
       aria-label="Danh sách trò chuyện"
+      /*
+        `w-full` TRÊN ĐIỆN THOẠI.
+
+        Trước đây cột này chỉ có bề ngang từ `md` trở lên. Dưới mức đó
+        nó là một phần tử flex không khai báo bề ngang, nên nó co lại
+        bằng đúng nội dung — đo ở màn 390 thì cả danh sách hội thoại chỉ
+        rộng 188px, nằm nép bên trái, còn nửa phải là khoảng trắng của
+        khung trò chuyện rỗng. Vùng chạm vào một cuộc cũng chỉ bằng nửa
+        bề ngang màn hình.
+      */
       className={cn(
-        "flex-col border-ink-800 md:flex md:w-[300px] md:shrink-0 md:border-r lg:w-[340px]",
+        "w-full flex-col border-ink-800 md:flex md:w-[300px] md:shrink-0 md:border-r lg:w-[340px]",
         dangMoMotCuoc ? "hidden" : "flex",
       )}
     >

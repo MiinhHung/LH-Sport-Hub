@@ -1,4 +1,5 @@
 import { CotHoiThoai } from "@/components/chat/cot-hoi-thoai";
+import { KhungTroChuyen } from "@/components/chat/khung-tro-chuyen";
 import { requireProfile } from "@/lib/auth";
 import { listChatPartners, listConversations } from "@/lib/chat";
 
@@ -73,7 +74,7 @@ export default async function MessagesLayout({
         }))}
       />
 
-      <section className="min-w-0 flex-1">{children}</section>
+      <KhungTroChuyen>{children}</KhungTroChuyen>
     </div>
   );
 }
