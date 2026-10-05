@@ -53,7 +53,30 @@ const client =
   postgres(connectionString, {
     // Supabase transaction pooler không hỗ trợ prepared statements.
     prepare: false,
-    max: process.env.NODE_ENV === "production" ? 10 : 8,
+    /*
+     * SỐ KẾT NỐI PHẢI TÍNH THEO KIỂU MÁY CHỦ, KHÔNG THEO "dev hay thật".
+     *
+     * Trên nền tảng serverless, mỗi lần có người truy cập là một bản
+     * chạy riêng được dựng lên, và MỖI BẢN MỞ POOL CỦA RIÊNG NÓ. Để 10
+     * thì 20 bản chạy song song là 200 kết nối cùng xin vào, trong khi
+     * database chỉ cho 60 (đã đo: `max_connections = 60`, 3 dành cho
+     * quản trị). Đi qua transaction pooler nên không vỡ ngay, nhưng đó
+     * là đẩy việc xếp hàng sang chỗ khác chứ không phải giải quyết.
+     *
+     * Một bản chạy serverless gần như chỉ phục vụ một yêu cầu một lúc,
+     * mà yêu cầu nặng nhất ở đây là trang hồ sơ với bốn truy vấn chạy
+     * song song. Nên 4 là vừa đủ: không ép bốn truy vấn đó phải xếp
+     * hàng, cũng không giữ chỗ thừa.
+     *
+     * Máy chủ chạy dài (next start, hoặc tự dựng trên VPS) thì ngược
+     * lại: một tiến trình phục vụ mọi người cùng lúc, nên cần rộng.
+     *
+     * CHƯA ĐO ĐƯỢC TRÊN VERCEL THẬT. Đây là suy luận từ hai con số đã
+     * đo — 60 kết nối tối đa, và bốn truy vấn song song cho trang nặng
+     * nhất — chứ không phải từ một lần chạy thử. Đáng xem lại sau lần
+     * deploy đầu.
+     */
+    max: process.env.VERCEL ? 4 : 10,
     idle_timeout: 20,
     connect_timeout: 15,
     connection: {

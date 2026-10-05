@@ -4,8 +4,13 @@
  */
 
 export const APP_NAME = "LH Sport Hub";
+/**
+ * Dòng mô tả này KHÔNG chỉ nằm trong mã: nó hiện ra ở thẻ chia sẻ khi
+ * dán link vào chat, và dưới biểu tượng app khi thêm vào màn hình chính.
+ * Bản trước viết không dấu, đọc ra rất luộm thuộm ở hai chỗ đó.
+ */
 export const APP_DESCRIPTION =
-  "Cong dong the thao noi bo: buoi tap, keo thach dau va cam nang cau long.";
+  "Cộng đồng thể thao nội bộ: buổi tập, kèo thách đấu và cẩm nang cầu lông.";
 
 /* ------------------------------------------------------------------ */
 /* Video nen                                                           */
