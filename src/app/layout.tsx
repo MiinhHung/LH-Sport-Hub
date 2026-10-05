@@ -69,6 +69,23 @@ export default function RootLayout({
     <html
       lang="vi"
       className={`${sans.variable} ${display.variable}`}
+      /*
+       * BẮT BUỘC PHẢI KHAI, KHÔNG PHẢI TUỲ CHỌN.
+       *
+       * globals.css đặt `scroll-behavior: smooth` cho cả trang, để mấy
+       * liên kết neo trong trang (ví dụ "Có gì trong này" ở trang giới
+       * thiệu) trượt tới chứ không nhảy.
+       *
+       * Next bản 15 trở về trước tự tắt thuộc tính đó trong lúc chuyển
+       * trang rồi bật lại, nên chuyển trang vẫn nhảy phắt lên đầu. Bản
+       * 16 BỎ hành vi đó: không khai thuộc tính này thì mỗi lần đổi
+       * trang, trình duyệt cuộn MƯỢT lên đầu — đi cả màn hình, mất mấy
+       * trăm mili giây, và cảm giác ra là app ì chứ không phải là êm.
+       *
+       * Khai vào đây là xin Next làm lại đúng việc nó vẫn làm: tắt tạm
+       * lúc chuyển trang, giữ nguyên cho liên kết neo trong trang.
+       */
+      data-scroll-behavior="smooth"
       // Đoạn mã chặn bên dưới gắn lớp `.dark` trước khi React hydrate, nên
       // thuộc tính class của <html> sẽ khác với bản máy chủ dựng ra. Đây là
       // khác biệt CÓ CHỦ Ý, không phải lỗi; báo cho React biết để nó đừng
