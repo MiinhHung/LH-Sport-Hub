@@ -5,6 +5,7 @@ import { useEffect, useRef, useState, useTransition } from "react";
 
 import { deletePostAction, togglePinPostAction } from "@/actions/posts";
 import { idleState } from "@/actions/types";
+import { tachCau, useHoiLai } from "@/components/ui/hoi-lai";
 
 export function PostMenu({
   postId,
@@ -19,6 +20,7 @@ export function PostMenu({
 }) {
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { hoi, hopThoai } = useHoiLai();
   const [pending, startTransition] = useTransition();
   const ref = useRef<HTMLDivElement>(null);
 
@@ -35,23 +37,25 @@ export function PostMenu({
 
   if (!canDelete && !canPin) return null;
 
-  function run(
-    action: typeof deletePostAction,
-    confirmText?: string,
-  ) {
-    if (confirmText && !window.confirm(confirmText)) return;
+  async function run(action: typeof deletePostAction, confirmText?: string) {
+    if (confirmText) {
+      const ok = await hoi({ ...tachCau(confirmText), nguyHiem: true });
+      if (!ok) return;
+    }
     setOpen(false);
     setError(null);
     const fd = new FormData();
     fd.set("postId", postId);
     startTransition(async () => {
       const result = await action(idleState, fd);
-      if (result.status === "error") setError(result.message ?? "Có lỗi xảy ra.");
+      if (result.status === "error")
+        setError(result.message ?? "Có lỗi xảy ra.");
     });
   }
 
   return (
     <div className="relative shrink-0" ref={ref}>
+      {hopThoai}
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}

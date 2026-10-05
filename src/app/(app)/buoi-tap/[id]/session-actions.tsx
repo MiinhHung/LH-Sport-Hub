@@ -1,12 +1,13 @@
 "use client";
 
 import { Trash2, X } from "lucide-react";
-import { useActionState, useState } from "react";
+import { useActionState, useRef, useState } from "react";
 
 import { cancelSessionAction, deleteSessionAction } from "@/actions/sessions";
 import { idleState } from "@/actions/types";
 import { Alert, Card, CardBody, Field, Input } from "@/components/ui";
 import { Button } from "@/components/ui/button";
+import { useHoiLai } from "@/components/ui/hoi-lai";
 import { SubmitButton } from "@/components/ui/submit-button";
 
 /**
@@ -31,6 +32,10 @@ export function SessionOwnerActions({
     deleteSessionAction,
     idleState,
   );
+
+  const { hoi, hopThoai } = useHoiLai();
+  const formRef = useRef<HTMLFormElement>(null);
+  const daHoiRoi = useRef(false);
   const [cancelling, setCancelling] = useState(false);
 
   const confirmDelete =
@@ -51,7 +56,11 @@ export function SessionOwnerActions({
               label="Lý do huỷ"
               hint="Mọi người đã nhận đi sẽ nhận được thông báo kèm lý do."
             >
-              <Input name="reason" maxLength={300} placeholder="Mưa, sân ngập…" />
+              <Input
+                name="reason"
+                maxLength={300}
+                placeholder="Mưa, sân ngập…"
+              />
             </Field>
             <div className="flex justify-end gap-2">
               <Button
@@ -91,10 +100,24 @@ export function SessionOwnerActions({
 
       <form
         action={deleteAction}
-        onSubmit={(e) => {
-          if (!window.confirm(confirmDelete)) e.preventDefault();
+        ref={formRef}
+        onSubmit={async (e) => {
+          if (daHoiRoi.current) {
+            daHoiRoi.current = false;
+            return;
+          }
+          e.preventDefault();
+          const ok = await hoi({
+            tieuDe: "Xoá hẳn buổi tập này?",
+            moTa: confirmDelete,
+            nguyHiem: true,
+          });
+          if (!ok) return;
+          daHoiRoi.current = true;
+          formRef.current?.requestSubmit();
         }}
       >
+        {hopThoai}
         <input type="hidden" name="sessionId" value={sessionId} />
         <SubmitButton
           variant="ghost"

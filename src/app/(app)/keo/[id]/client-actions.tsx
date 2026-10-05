@@ -1,7 +1,7 @@
 "use client";
 
 import { Check, Flag, ShieldAlert, Trash2, X } from "lucide-react";
-import { useActionState, useState } from "react";
+import { useActionState, useRef, useState } from "react";
 
 import {
   cancelChallengeAction,
@@ -26,6 +26,7 @@ import {
   Textarea,
 } from "@/components/ui";
 import { Button } from "@/components/ui/button";
+import { useHoiLai } from "@/components/ui/hoi-lai";
 import { SubmitButton } from "@/components/ui/submit-button";
 import type { TeamSide } from "@/lib/challenge-logic";
 
@@ -185,20 +186,38 @@ export function CancelChallengeForm({ challengeId }: { challengeId: string }) {
 
 export function DeleteChallengeForm({ challengeId }: { challengeId: string }) {
   const [state, action] = useActionState(deleteChallengeAction, idleState);
+  const { hoi, hopThoai } = useHoiLai();
+  const formRef = useRef<HTMLFormElement>(null);
+
+  /*
+   * Hộp thoại của app thì phải CHỜ câu trả lời, mà `onSubmit` không chờ
+   * được: hàm phải trả về ngay, nếu không trình duyệt coi như không ai
+   * chặn và cứ thế gửi form đi. Nên chặn lần gửi đầu, hỏi, rồi tự gọi
+   * `requestSubmit()` lần hai. Cờ này để lần hai đi thẳng qua.
+   */
+  const daHoiRoi = useRef(false);
 
   return (
     <form
       action={action}
-      onSubmit={(e) => {
-        if (
-          !window.confirm(
-            "Xoá hẳn kèo này? Không khôi phục lại được.\n\nNếu chỉ muốn báo là không đánh nữa thì dùng Huỷ kèo.",
-          )
-        ) {
-          e.preventDefault();
+      ref={formRef}
+      onSubmit={async (e) => {
+        if (daHoiRoi.current) {
+          daHoiRoi.current = false;
+          return;
         }
+        e.preventDefault();
+        const ok = await hoi({
+          tieuDe: "Xoá hẳn kèo này?",
+          moTa: "Kèo biến mất khỏi mọi danh sách và không khôi phục được. Nếu chỉ muốn báo là không đánh nữa thì dùng Huỷ kèo.",
+          nguyHiem: true,
+        });
+        if (!ok) return;
+        daHoiRoi.current = true;
+        formRef.current?.requestSubmit();
       }}
     >
+      {hopThoai}
       <input type="hidden" name="challengeId" value={challengeId} />
       <SubmitButton
         variant="ghost"

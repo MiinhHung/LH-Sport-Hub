@@ -10,6 +10,7 @@ import {
   markConversationReadAction,
   sendMessageAction,
 } from "@/actions/chat";
+import { useHoiLai } from "@/components/ui/hoi-lai";
 import { idleState } from "@/actions/types";
 import type { ChatMessagePayload } from "@/lib/chat";
 import { LIMITS, UPLOAD } from "@/lib/constants";
@@ -20,12 +21,54 @@ const POLL_MS = 4000;
 
 /** Emoji hay dùng — đủ cho chat nội bộ, khỏi kéo cả thư viện emoji vào. */
 const EMOJIS = [
-  "😀", "😂", "🤣", "😊", "😍", "😎", "🤔", "😅",
-  "😭", "😱", "😤", "🥲", "🙃", "😴", "🤝", "🙏",
-  "👍", "👎", "👏", "💪", "🔥", "✨", "💯", "🎉",
-  "❤️", "💔", "😘", "🤗", "🥳", "😇", "🤡", "💀",
-  "🏸", "🏆", "🥇", "⚡", "🍜", "🧋", "☕", "💧",
-  "💸", "🤑", "😏", "🫡", "👀", "🆗", "❌", "⏰",
+  "😀",
+  "😂",
+  "🤣",
+  "😊",
+  "😍",
+  "😎",
+  "🤔",
+  "😅",
+  "😭",
+  "😱",
+  "😤",
+  "🥲",
+  "🙃",
+  "😴",
+  "🤝",
+  "🙏",
+  "👍",
+  "👎",
+  "👏",
+  "💪",
+  "🔥",
+  "✨",
+  "💯",
+  "🎉",
+  "❤️",
+  "💔",
+  "😘",
+  "🤗",
+  "🥳",
+  "😇",
+  "🤡",
+  "💀",
+  "🏸",
+  "🏆",
+  "🥇",
+  "⚡",
+  "🍜",
+  "🧋",
+  "☕",
+  "💧",
+  "💸",
+  "🤑",
+  "😏",
+  "🫡",
+  "👀",
+  "🆗",
+  "❌",
+  "⏰",
 ];
 
 type Pending = ChatMessagePayload & { pending?: true; failed?: true };
@@ -75,6 +118,7 @@ export function ChatThread({
   const [emojiOpen, setEmojiOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [, startTransition] = useTransition();
+  const { hoi, hopThoai } = useHoiLai();
 
   const bottomRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -95,7 +139,8 @@ export function ChatThread({
   }, [conversationId]);
 
   const lastRealAt = items.reduce<string | null>(
-    (acc, m) => (m.pending ? acc : !acc || m.createdAt > acc ? m.createdAt : acc),
+    (acc, m) =>
+      m.pending ? acc : !acc || m.createdAt > acc ? m.createdAt : acc,
     null,
   );
 
@@ -196,8 +241,13 @@ export function ChatThread({
     });
   }
 
-  function removeMessage(id: string) {
-    if (!window.confirm("Xoá tin nhắn này?")) return;
+  async function removeMessage(id: string) {
+    const ok = await hoi({
+      tieuDe: "Xoá tin nhắn này?",
+      moTa: "Cả hai bên sẽ không còn thấy tin này nữa.",
+      nguyHiem: true,
+    });
+    if (!ok) return;
     const snapshot = items;
     setItems((current) => current.filter((m) => m.id !== id));
 
@@ -284,6 +334,7 @@ export function ChatThread({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
+      {hopThoai}
       <div
         onScroll={(e) => {
           const el = e.currentTarget;
@@ -379,8 +430,10 @@ export function ChatThread({
                             ? "rounded-br-md bg-navy-900 text-white"
                             : "rounded-bl-md bg-ink-850 text-ink-200",
                           m.pending && "opacity-55",
-                          m.failed && "bg-rose-100 dark:bg-rose-500/20 text-rose-800 dark:text-rose-200",
-                          m.imageUrl && (mine ? "rounded-tr-md" : "rounded-tl-md"),
+                          m.failed &&
+                            "bg-rose-100 dark:bg-rose-500/20 text-rose-800 dark:text-rose-200",
+                          m.imageUrl &&
+                            (mine ? "rounded-tr-md" : "rounded-tl-md"),
                         )}
                       >
                         {m.content}
@@ -433,7 +486,9 @@ export function ChatThread({
         )}
 
         {error && (
-          <p className="mb-2 text-[12px] font-medium text-rose-600 dark:text-rose-400">{error}</p>
+          <p className="mb-2 text-[12px] font-medium text-rose-600 dark:text-rose-400">
+            {error}
+          </p>
         )}
 
         <div className="flex items-end gap-1.5">

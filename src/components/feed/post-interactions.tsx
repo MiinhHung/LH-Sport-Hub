@@ -10,6 +10,7 @@ import {
 } from "@/actions/posts";
 import { idleState } from "@/actions/types";
 import { Avatar } from "@/components/ui";
+import { useHoiLai } from "@/components/ui/hoi-lai";
 import {
   LIMITS,
   REACTIONS,
@@ -220,13 +221,19 @@ function CommentRow({
 }) {
   const [removed, setRemoved] = useState(false);
   const [, startTransition] = useTransition();
+  const { hoi, hopThoai } = useHoiLai();
 
   if (removed) return null;
 
   const canDelete = comment.author.id === viewer.id || canModerate;
 
-  function remove() {
-    if (!window.confirm("Xoá bình luận này?")) return;
+  async function remove() {
+    const ok = await hoi({
+      tieuDe: "Xoá bình luận này?",
+      moTa: "Bình luận sẽ biến mất khỏi bài viết và không lấy lại được.",
+      nguyHiem: true,
+    });
+    if (!ok) return;
     setRemoved(true);
     const fd = new FormData();
     fd.set("commentId", comment.id);
@@ -238,6 +245,7 @@ function CommentRow({
 
   return (
     <li className="group flex gap-2.5">
+      {hopThoai}
       <Avatar
         name={comment.author.fullName}
         src={comment.author.avatarUrl}
