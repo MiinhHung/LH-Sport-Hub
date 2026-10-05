@@ -34,10 +34,22 @@ type Item = {
 
 function useItems(unread: number): Item[] {
   return [
+    /*
+      TRỎ VÀO `/?xem=gioi-thieu`, KHÔNG PHẢI `/` TRƠN.
+
+      Từ lúc "/" tự chuyển sang Bảng tin cho người đã đăng nhập, một
+      nút ghi "Trang chủ" mà trỏ vào "/" sẽ lặng lẽ nhảy sang Bảng tin
+      — bấm vào thấy mình ở chỗ khác mà không hiểu vì sao, và nút cũng
+      không bao giờ sáng lên vì đường dẫn không khớp.
+
+      Đổi luôn nhãn thành "Giới thiệu" cho đúng thứ nó mở ra. Gọi là
+      "Trang chủ" thì sai từ lâu rồi: với người trong team, nhà là Bảng
+      tin chứ không phải trang bán hàng cho người lạ.
+    */
     {
-      href: "/",
-      label: "Trang chủ",
-      short: "Nhà",
+      href: "/?xem=gioi-thieu",
+      label: "Giới thiệu",
+      short: "Giới thiệu",
       icon: <Home className="size-[18px]" strokeWidth={2} />,
     },
     {
@@ -82,9 +94,13 @@ function useItems(unread: number): Item[] {
 }
 
 function isActive(pathname: string, href: string) {
+  // Cắt phần truy vấn: mục "Giới thiệu" trỏ vào "/?xem=gioi-thieu", mà
+  // `usePathname` chỉ trả về "/" nên so cả chuỗi sẽ không bao giờ khớp.
+  const duong = href.split("?")[0];
+
   // "/" phải so khớp tuyệt đối, nếu không mọi đường dẫn đều tính là đang ở trang chủ.
-  if (href === "/") return pathname === "/";
-  return pathname === href || pathname.startsWith(`${href}/`);
+  if (duong === "/") return pathname === "/";
+  return pathname === duong || pathname.startsWith(`${duong}/`);
 }
 
 /**

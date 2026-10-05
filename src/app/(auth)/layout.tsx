@@ -22,16 +22,41 @@ export default function AuthLayout({
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_50%_at_20%_15%,rgba(220,174,66,0.22),transparent_70%)]" />
 
         <div className="relative flex h-full flex-col justify-between p-12 xl:p-16">
-          {/* Logo gốc có nền trắng nên đặt trên navy sẽ thành ô trắng.
-              Ở đây dùng khoá chữ, để dành ảnh cho nền sáng. */}
-          <div className="flex items-baseline gap-2.5">
-            <span className="font-display text-xl font-bold text-white">
-              Light Human
-            </span>
-            <span className="h-5 w-px bg-white/25" aria-hidden />
-            <span className="text-[15px] font-semibold tracking-[0.18em] text-gold-300 uppercase">
-              Sport Hub
-            </span>
+          {/*
+            CÓ LOGO THẬT, KHÔNG CHỈ LÀ CHỮ.
+
+            Chỗ này trước đây chỉ có khoá chữ "Light Human | SPORT HUB",
+            kèm chú thích rằng logo nền trắng đặt lên navy sẽ thành một ô
+            trắng. Điều đó đúng với `logo.png`, nhưng `logo-light.png` —
+            bản nét sáng nền trong suốt — thì không, và chính tệp này đã
+            dùng nó trên nền navy ở khối dành cho màn nhỏ phía dưới. Tức
+            là lý do viết trong chú thích đã hết đúng từ lúc có tệp đó.
+
+            Trang đăng nhập là thứ người mới thấy đầu tiên, nên để logo
+            công ty ở đây chứ không bắt họ tin vào một dòng chữ.
+          */}
+          <div className="flex items-center gap-3">
+            <Image
+              src="/logo-light.png"
+              alt=""
+              width={656}
+              height={562}
+              /* `sizes` chứ không để Next tự đoán: thiếu nó thì nó lấy theo
+                 `width={656}` nhân với tỉ lệ điểm ảnh của màn, và đo được
+                 là trình duyệt tải về bản rộng 1920px để vẽ một logo cao
+                 44px. Khai báo đúng cỡ hiển thị thì nó chọn bản nhỏ. */
+              sizes="64px"
+              priority
+              className="h-11 w-auto object-contain"
+            />
+            <div className="flex flex-col">
+              <span className="font-display text-xl leading-tight font-bold text-white">
+                Light Human
+              </span>
+              <span className="text-[12px] font-semibold tracking-[0.18em] text-gold-300 uppercase">
+                Sport Hub
+              </span>
+            </div>
           </div>
 
           <div className="max-w-md">
@@ -53,8 +78,8 @@ export default function AuthLayout({
               trên trang giới thiệu, để hai nơi nghe ra cùng một giọng.
             */}
             <p className="mt-5 text-[15px] leading-relaxed text-white/70">
-              Chốt kèo, lên lịch ra sân, ghi tỉ số sau mỗi trận — khỏi lục
-              lại năm cái group chat.
+              Chốt kèo, lên lịch ra sân, ghi tỉ số sau mỗi trận — khỏi lục lại
+              năm cái group chat.
             </p>
           </div>
 
@@ -112,6 +137,7 @@ export default function AuthLayout({
               alt="Light Human"
               width={656}
               height={562}
+              sizes="96px"
               priority
               className="h-16 w-auto object-contain"
             />

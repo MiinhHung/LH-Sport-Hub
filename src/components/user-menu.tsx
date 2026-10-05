@@ -621,14 +621,15 @@ export function UserMenu({
             Mở "/" trơn thì nó chuyển thẳng sang Bảng tin, nên phải kèm
             `?xem=gioi-thieu` — xem ghi chú ở `(marketing)/page.tsx`.
 
-            Hiện ở mọi cỡ màn, khác hai mục trên: đây không phải chỗ vá
-            cho thanh dưới thiếu suất, mà là thứ không có lối nào khác.
+            CHỈ HIỆN TRÊN ĐIỆN THOẠI. Thanh trên ở máy tính đã có mục
+            "Giới thiệu" trỏ cùng chỗ; để cả hai thì cùng một đích có
+            hai lối vào nằm cách nhau vài chục pixel.
           */
           {
             href: "/?xem=gioi-thieu",
             nhan: "Giới thiệu",
             icon: Sparkles,
-            chiDienThoai: false,
+            chiDienThoai: true,
           },
           ...(canSeeAdmin
             ? [
