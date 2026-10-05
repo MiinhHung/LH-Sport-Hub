@@ -3,6 +3,11 @@
 import Image from "next/image";
 import * as React from "react";
 
+import {
+  DUOI_X_HEP,
+  DUOI_X_RONG,
+  MAN_HEP,
+} from "@/components/landing/duong-day";
 import { CutReveal } from "@/components/ui/cut-reveal";
 import { VietChu } from "@/components/ui/viet-chu";
 
@@ -161,7 +166,7 @@ export function JourneyLine() {
   }, []);
 
   React.useEffect(() => {
-    const narrowQ = window.matchMedia("(max-width: 767px)");
+    const narrowQ = window.matchMedia(MAN_HEP);
     const calmQ = window.matchMedia("(prefers-reduced-motion: reduce)");
     const apply = () => {
       setNarrow(narrowQ.matches);
@@ -180,9 +185,18 @@ export function JourneyLine() {
   const ready = box.w > 0 && box.h > 0 && start !== null;
   const d = ready
     ? smoothPath(
-        // Đuôi đường chạy tới ĐÁY khối và về đúng giữa, để đoạn nối ở
-        // khối video phía dưới bắt vào cùng một điểm.
-        [start, ...anchors, { x: 50, y: 100 }],
+        /*
+          Đuôi đường chạy tới ĐÁY khối, ở đúng chỗ mà đoạn nối xuống
+          khối video sẽ bắt vào.
+
+          Toạ độ ngang KHÔNG còn ghim cứng ở 50%. Trên màn rộng đường
+          lượn hai bên nên kết ở giữa là tự nhiên; trên điện thoại cả
+          đường chạy sát mép trái (9–13%), mà vẫn bắt nó về 50% thì từ
+          chặng cuối phải quét một đường chéo dài cắt ngang khoảng trắng
+          dưới thẻ. Giờ màn hẹp kết ở 11% — đi thẳng xuống theo đúng
+          hướng nó đang chạy.
+        */
+        [start, ...anchors, { x: narrow ? DUOI_X_HEP : DUOI_X_RONG, y: 100 }],
         box.w,
         box.h,
       )
@@ -364,11 +378,7 @@ export function JourneyLine() {
             ].join(" ")}
             style={{
               top: `${anchors[i].y}%`,
-              ...(narrow
-                ? {}
-                : anchors[i].x > 50
-                  ? { right: 0 }
-                  : { left: 0 }),
+              ...(narrow ? {} : anchors[i].x > 50 ? { right: 0 } : { left: 0 }),
             }}
           >
             <div className="overflow-hidden rounded-2xl ring-1 ring-ink-800">

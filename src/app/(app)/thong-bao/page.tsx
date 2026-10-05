@@ -152,18 +152,18 @@ export default async function NotificationsPage() {
                   {n.href && (
                     <Link
                       href={n.href}
-                      className="text-xs font-bold text-link underline-offset-2 hover:underline"
+                      /* inline-flex + min-h-6: đo được 72×16px, thấp hơn
+                         mức 24px tối thiểu cho vùng chạm. Dòng này lặp
+                         lại ở mỗi thông báo nên lỗi nhân lên theo số
+                         thông báo. */
+                      className="inline-flex min-h-6 items-center text-xs font-bold text-link underline-offset-2 hover:underline"
                     >
                       Xem chi tiết
                     </Link>
                   )}
                   {!n.isRead && (
                     <form action={markOne}>
-                      <input
-                        type="hidden"
-                        name="notificationId"
-                        value={n.id}
-                      />
+                      <input type="hidden" name="notificationId" value={n.id} />
                       <button
                         type="submit"
                         className="text-xs font-semibold text-ink-500 transition-colors hover:text-ink-200"

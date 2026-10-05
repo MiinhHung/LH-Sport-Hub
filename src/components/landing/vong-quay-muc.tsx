@@ -355,7 +355,7 @@ export function VongQuayMuc({
             */}
                 <Link
                   href={muc.href}
-                  className="group mt-6 inline-flex items-center gap-2 text-[13px] font-bold tracking-[0.1em] uppercase transition-opacity hover:opacity-70"
+                  className="group mt-6 inline-flex items-center gap-2 py-1 text-[13px] font-bold tracking-[0.1em] uppercase transition-opacity hover:opacity-70"
                   style={{ color: ink }}
                 >
                   Vào xem
@@ -388,9 +388,23 @@ export function VongQuayMuc({
                 <ChevronRight className="size-5" aria-hidden />
               </button>
 
-              {/* Chấm chỉ mục, bấm được để nhảy thẳng. Mẫu gốc không có, nên
-              không có cách nào tới mục thứ tư ngoài bấm mũi tên ba lần. */}
-              <div className="ml-2 flex items-center gap-2">
+              {/*
+                Chấm chỉ mục, bấm được để nhảy thẳng. Mẫu gốc không có,
+                nên không có cách nào tới mục thứ tư ngoài bấm mũi tên
+                ba lần.
+
+                CHẤM LÀ MỘT CÁI SPAN BÊN TRONG, NÚT THÌ CÓ ĐỆM.
+
+                Trước đây cái nút CHÍNH LÀ cái chấm, nên vùng chạm cũng
+                đúng bằng cỡ chấm: đo trên điện thoại ra 6×6px. WCAG
+                2.5.8 đòi tối thiểu 24×24, mà kể cả không tính chuẩn thì
+                6px vẫn là thứ không ngón tay nào bấm trúng.
+
+                Tách ra thì cái chấm giữ nguyên nét mảnh, còn vùng bấm
+                phình ra nhờ `p-2`. Nhìn không khác gì, nhưng ngón tay
+                thì thấy khác hẳn.
+              */}
+              <div className="ml-1 flex items-center gap-0.5">
                 {items.map((m, vt) => (
                   <button
                     key={m.href}
@@ -398,12 +412,17 @@ export function VongQuayMuc({
                     onClick={() => toiMuc(vt)}
                     aria-label={`Tới mục ${m.title}`}
                     aria-current={vt === i}
-                    className={cn(
-                      "h-1.5 rounded-full transition-all duration-300",
-                      vt === i ? "w-6" : "w-1.5 opacity-30",
-                    )}
-                    style={{ background: vt === i ? gold : ink }}
-                  />
+                    className="grid place-items-center p-2.5"
+                  >
+                    <span
+                      aria-hidden
+                      className={cn(
+                        "block h-1.5 rounded-full transition-all duration-300",
+                        vt === i ? "w-6" : "w-1.5 opacity-30",
+                      )}
+                      style={{ background: vt === i ? gold : ink }}
+                    />
+                  </button>
                 ))}
               </div>
             </div>

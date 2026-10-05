@@ -2,13 +2,26 @@
 
 import * as React from "react";
 
+import {
+  DOC_NGANG_KHI_TOI_HEP,
+  DOC_NGANG_KHI_TOI_RONG,
+  DUOI_X_HEP,
+  DUOI_X_RONG,
+  MAN_HEP,
+} from "@/components/landing/duong-day";
+
 /**
  * Đoạn nối từ đuôi đường dây của dải kể chuyện xuống khối video.
  *
- * Đường chính kết thúc ở ĐÁY khối đó, đúng giữa bề ngang. Đoạn này bắt
- * đầu cũng ở giữa, lượn một nhánh cong rồi kết bằng một chấm ngay mép
- * trên video. Hai nét khớp nhau vì cùng một toạ độ ngang và khối trên
- * không còn lề dưới — hở một khoảng là mắt thấy ngay thành hai nét rời.
+ * Đường chính kết thúc ở ĐÁY khối đó. Đoạn này bắt đầu đúng tại điểm ấy,
+ * lượn một nhánh cong rồi kết bằng một chấm ngay mép trên video. Hai nét
+ * khớp nhau vì cùng một toạ độ ngang và khối trên không còn lề dưới — hở
+ * một khoảng là mắt thấy ngay thành hai nét rời.
+ *
+ * TOẠ ĐỘ NGANG KHÔNG PHẢI LÚC NÀO CŨNG LÀ GIỮA TRANG. Bản trước viết cứng
+ * `w / 2`, đúng cho màn rộng nhưng sai hẳn trên điện thoại, nơi đường chính
+ * chạy sát mép trái. Hai chỗ nối nhau giờ lấy chung một con số từ
+ * "duong-day.ts".
  *
  * Tự vẽ theo cuộn bằng đúng mẹo của đường chính: nét đứt dài bằng chính nó,
  * rồi đẩy `stroke-dashoffset` từ full về 0.
@@ -18,22 +31,20 @@ import * as React from "react";
  * đủ nằm ở chú thích của `JourneyLine`.
  */
 
-const HEIGHT = 132;
-
 /**
- * Đường chính đi ngang bao nhiêu cho mỗi một pixel đi xuống, ngay tại
- * điểm nó kết thúc.
+ * Chiều cao đoạn nối.
  *
- * Đo trên trang thật: đuôi đường tới nơi ở 33,1 độ so với phương ngang,
- * tức lệch gần 57 độ khỏi phương thẳng đứng. Bản trước đoạn nối cứ thế
- * đổ thẳng đứng xuống, nên chỗ gặp nhau thành một góc gãy — đang chạy
- * chéo tự dưng bẻ dựng đứng.
+ * Màn rộng cần 132px vì đoạn này phải lượn một nhánh chữ S: nó rời đường
+ * chính theo hướng chéo rồi mới kéo về thẳng đứng, muốn mượt thì phải có
+ * quãng đường.
  *
- * Số này dùng để đặt điểm điều khiển đầu tiên của đoạn nối, cho nó rời
- * đi theo ĐÚNG hướng mà đường chính đang tới, rồi mới lượn về thẳng
- * đứng ở chỗ chấm kết.
+ * Màn hẹp thì đường chính đi thẳng xuống, đoạn nối cũng thẳng xuống —
+ * không có cú lượn nào để mà chừa chỗ. Giữ nguyên 132px chỉ tạo thêm một
+ * đoạn kẻ trống giữa chặng cuối và video; đo được cả khoảng trống đó là
+ * 268px, riêng đoạn nối chiếm một nửa.
  */
-const DOC_NGANG_KHI_TOI = 1.53;
+const CAO_RONG = 132;
+const CAO_HEP = 84;
 
 /** Điểm điều khiển nằm ở đoạn nào của chiều cao. */
 const TAY_DAU = 0.34;
@@ -44,6 +55,17 @@ export function LineToVideo() {
   const pathRef = React.useRef<SVGPathElement>(null);
   const dotRef = React.useRef<SVGCircleElement>(null);
   const [w, setW] = React.useState(0);
+  const [hep, setHep] = React.useState(false);
+
+  // Phải biết đang ở màn rộng hay hẹp, vì đuôi đường chính kết ở hai chỗ
+  // khác nhau — xem ghi chú trong "duong-day.ts".
+  React.useEffect(() => {
+    const q = window.matchMedia(MAN_HEP);
+    const xet = () => setHep(q.matches);
+    xet();
+    q.addEventListener("change", xet);
+    return () => q.removeEventListener("change", xet);
+  }, []);
 
   React.useEffect(() => {
     const el = boxRef.current;
@@ -95,9 +117,13 @@ export function LineToVideo() {
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onScroll);
     };
-  }, [w]);
+  }, [w, hep]);
 
-  const mid = w / 2;
+  const HEIGHT = hep ? CAO_HEP : CAO_RONG;
+
+  // Bắt đầu đúng chỗ đường chính kết thúc, không mặc định giữa trang.
+  const dau = (w * (hep ? DUOI_X_HEP : DUOI_X_RONG)) / 100;
+  const doc = hep ? DOC_NGANG_KHI_TOI_HEP : DOC_NGANG_KHI_TOI_RONG;
 
   /*
    * Đoạn nối là một nhánh cong, không phải nét thẳng.
@@ -109,10 +135,10 @@ export function LineToVideo() {
    */
   const ket = HEIGHT - 10;
   const d =
-    `M ${mid} 0 ` +
-    `C ${mid + DOC_NGANG_KHI_TOI * HEIGHT * TAY_DAU} ${HEIGHT * TAY_DAU}, ` +
-    `${mid} ${HEIGHT * TAY_CUOI}, ` +
-    `${mid} ${ket}`;
+    `M ${dau} 0 ` +
+    `C ${dau + doc * HEIGHT * TAY_DAU} ${HEIGHT * TAY_DAU}, ` +
+    `${dau} ${HEIGHT * TAY_CUOI}, ` +
+    `${dau} ${ket}`;
 
   return (
     <div ref={boxRef} className="relative w-full" style={{ height: HEIGHT }}>
@@ -144,7 +170,7 @@ export function LineToVideo() {
           {/* Chấm kết, ngay mép trên video */}
           <circle
             ref={dotRef}
-            cx={mid}
+            cx={dau}
             cy={HEIGHT - 8}
             r={5}
             fill="#c8951a"

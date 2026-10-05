@@ -158,6 +158,10 @@ function ReactionControl({
         aria-label={mine ? `Bỏ ${REACTIONS[mine].label}` : "Thêm cảm xúc khác"}
         className={cn(
           "inline-flex items-center gap-1.5 rounded-lg font-semibold transition-colors",
+          /* Trên cảm ứng ép cao tối thiểu 32px. Đo được 21px ở bản
+             thường và 16px ở bản gọn — cả hai đều dưới mức 24px tối
+             thiểu cho vùng chạm. */
+          "pointer-coarse:min-h-8",
           compact ? "px-1.5 py-0.5 text-[11.5px]" : "px-2 py-1.5 text-[12.5px]",
           mine
             ? "text-gold-700 dark:text-gold-300 hover:bg-gold-50 dark:hover:bg-gold-400/10"

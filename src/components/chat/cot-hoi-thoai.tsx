@@ -140,7 +140,19 @@ export function CotHoiThoai({
           )}
         </div>
       ) : (
-        <ul className="min-h-0 flex-1 overflow-y-auto md:pr-2">
+        /*
+          ĐƯỜNG KẺ NGĂN, CHỈ TRÊN ĐIỆN THOẠI.
+
+          Ở máy tính cột này là thanh bên, đã có viền phải và nền riêng
+          nên tự nó ra dáng một danh sách. Trên điện thoại nó chiếm cả
+          trang: mấy hàng trôi trên nền trắng, không thẻ, không vạch
+          ngăn — nhìn không ra là bấm được, cũng không ra là một danh
+          sách mà chỉ như mấy dòng chữ rơi vãi.
+
+          Kẻ từ hàng thứ hai trở đi (`[&>li+li]`) để hàng đầu không có
+          một vạch lửng lơ ngay dưới tiêu đề.
+        */
+        <ul className="min-h-0 flex-1 overflow-y-auto [&>li+li]:border-t [&>li+li]:border-ink-800 md:pr-2 md:[&>li+li]:border-t-0">
           {loc.map((c) => {
             const dangXem = duongDan === `/tin-nhan/${c.id}`;
             return (

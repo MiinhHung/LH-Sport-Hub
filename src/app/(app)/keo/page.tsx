@@ -215,7 +215,9 @@ export default async function ChallengesPage({
           <Link
             href={buildHref(tab, null)}
             className={cn(
-              "text-[11px] font-semibold tracking-[0.12em] whitespace-nowrap uppercase transition-colors",
+              /* py-1.5: không có nó thì mấy liên kết này chỉ cao 17px —
+                 dưới mức 24px tối thiểu cho một vùng chạm. */
+              "py-1.5 text-[11px] font-semibold tracking-[0.12em] whitespace-nowrap uppercase transition-colors",
               !sport
                 ? "text-gold-700 dark:text-gold-300"
                 : "text-ink-500 hover:text-ink-300",
@@ -228,7 +230,7 @@ export default async function ChallengesPage({
               key={key}
               href={buildHref(tab, key)}
               className={cn(
-                "text-[11px] font-semibold tracking-[0.12em] whitespace-nowrap uppercase transition-colors",
+                "py-1.5 text-[11px] font-semibold tracking-[0.12em] whitespace-nowrap uppercase transition-colors",
                 sport === key
                   ? "text-gold-700 dark:text-gold-300"
                   : "text-ink-500 hover:text-ink-300",
