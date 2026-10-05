@@ -84,8 +84,11 @@ const CHO_NAM = [
  * nên quả cầu bay giật lùi về sau. Phát cầu mà bay ngược thì hỏng hết
  * cả ý. Dời sang 6% thì cả tám ô đều nằm bên phải, cầu bay tới trước
  * như thật.
+ *
+ * TOẠ ĐỘ NGANG GIỜ NẰM Ở BIẾN CSS `--nguoi-x`, đặt trên khung sân, vì
+ * nó phải đổi theo bề ngang màn hình (xem ghi chú ở đó). Chỉ còn toạ độ
+ * dọc là hằng số vì chiều cao sân không đổi theo màn.
  */
-const NGUOI_X = 6;
 const NGUOI_Y = 90;
 
 /**
@@ -531,13 +534,14 @@ export function DoVui({
               <div className="flex gap-2 sm:gap-2.5">
                 {Array.from({ length: nhom.soChuSo }).map((_, j) => {
                   const i = nhom.batDau + j;
+                  const dangCho = i === oDangCho && !xong;
                   return (
                     <div
                       key={i}
                       ref={(el) => {
                         oRefs.current[i] = el;
                       }}
-                      className="font-display grid size-11 place-items-center rounded-xl border-2 text-[20px] font-bold transition-colors duration-200 sm:size-12 sm:text-[22px]"
+                      className="font-display relative grid size-11 place-items-center rounded-xl border-2 text-[20px] font-bold transition-colors duration-200 sm:size-12 sm:text-[22px]"
                       style={{
                         borderColor:
                           ketQua === "sai"
@@ -546,11 +550,43 @@ export function DoVui({
                               ? gold
                               : line,
                         color: ink,
-                        background:
-                          i === oDangCho && !xong ? `${gold}12` : "transparent",
+                        background: dangCho ? `${gold}12` : "transparent",
                       }}
                     >
-                      {daNhap[i] ?? ""}
+                      {/* Ô đang chờ thở một nhịp vàng rất nhạt. Trước đây
+                          nó chỉ khác mấy ô kia ở màu viền — liếc nhanh
+                          thì không thấy cầu sắp rơi vào đâu. */}
+                      {dangCho && (
+                        <motion.span
+                          aria-hidden
+                          className="pointer-events-none absolute inset-0 rounded-[10px]"
+                          style={{ background: gold }}
+                          animate={{ opacity: [0.06, 0.16, 0.06] }}
+                          transition={{
+                            duration: 1.8,
+                            repeat: Infinity,
+                            ease: "easeInOut",
+                          }}
+                        />
+                      )}
+
+                      {/* Chữ số rơi vào thì nảy một nhịp. `key` đổi theo
+                          giá trị nên hoạt ảnh chạy lại đúng lúc điền. */}
+                      {daNhap[i] != null && (
+                        <motion.span
+                          key={daNhap[i]}
+                          className="relative"
+                          initial={{ scale: 0.3, opacity: 0 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          transition={{
+                            type: "spring",
+                            stiffness: 480,
+                            damping: 20,
+                          }}
+                        >
+                          {daNhap[i]}
+                        </motion.span>
+                      )}
                     </div>
                   );
                 })}
@@ -597,27 +633,135 @@ export function DoVui({
         <QuaCau so={dangCam} size={40} ink={ink} />
       </motion.div>
 
-      {/* Sân */}
+      {/*
+        Sân.
+
+        TRƯỚC ĐÂY LÀ BA NÉT RỜI, KHÔNG PHẢI MỘT KHUNG CẢNH. Chụp ở màn
+        1440: một dải lưới ô vuông xám chạy suốt bề ngang, một gạch 1px
+        ở tận đáy gọi là "mặt sân", và ở giữa là một khoảng trắng cao
+        chừng 140px không có gì. Mười quả cầu thì lơ lửng trong khoảng
+        trắng đó vì chẳng có gì đỡ chúng.
+
+        Giờ dựng thành một cảnh thật: mặt sân hình thang có vạch kẻ chạy
+        theo luật phối cảnh, lưới treo giữa hai cột chứ không tràn hết
+        bề ngang, và mỗi quả cầu có một vệt bóng đổ dưới chân. Cùng ngôn
+        ngữ với nền sân ở đầu trang.
+      */}
       <div
         ref={sanRef}
-        className="relative mt-6 h-[300px] w-full select-none sm:h-[340px]"
+        /*
+         * `--nguoi-x` đổi theo bề ngang màn hình, vì hai ràng buộc ở đây
+         * kéo nhau về hai phía:
+         *
+         *   - hình người que chừa 88px bên trái cho cây vợt quét, nên
+         *     đứng càng sát mép trái thì vợt càng bị xén;
+         *   - mà đứng càng sang phải thì ô đáp án đầu tiên càng dễ rơi
+         *     vào BÊN TRÁI bàn tay, làm quả cầu bay giật lùi.
+         *
+         * Đo ở màn 390: sân rộng 340px, ô đầu tiên ở x=95. Đặt 14% thì
+         * tay ở x=88 — vẫn bên trái ô đầu, mà phần vợt bị xén giảm từ
+         * 48px xuống 20px. Màn từ sm trở lên rộng rãi nên giữ 6% như cũ,
+         * vợt hiện đủ.
+         */
+        className="relative mt-5 h-[320px] w-full [--nguoi-x:14%] select-none sm:h-[360px] sm:[--nguoi-x:6%]"
       >
-        {/* Lưới, nằm giữa người phát và mấy cái ô */}
-        <div
-          aria-hidden
-          className="absolute inset-x-0 top-[26%] h-[74px]"
-          style={{
-            borderTop: `2.5px solid ${ink}`,
-            backgroundImage: `repeating-linear-gradient(90deg, ${line} 0 1px, transparent 1px 11px), repeating-linear-gradient(0deg, ${line} 0 1px, transparent 1px 11px)`,
-          }}
-        />
+        {/*
+          NỀN SÂN NẰM TRONG MỘT LỚP CẮT RIÊNG, không cắt ở khung ngoài.
 
-        {/* Mặt sân */}
+          Lúc đầu tôi để `overflow-hidden` ngay trên khung — và cây vợt
+          của người que bị xén mất một nửa, vì hình vẽ người que nới rộng
+          44px sang trái cho cây vợt có chỗ quét, mà người lại đứng sát
+          mép trái. Nền bo góc thì vẫn cần cắt, nên tách ra: lớp này cắt
+          phần nền, còn người và mấy quả cầu nằm đè lên trên, không bị
+          dao nào động tới.
+        */}
         <div
           aria-hidden
-          className="absolute inset-x-0 bottom-0 h-px"
-          style={{ background: line }}
-        />
+          className="absolute inset-0 overflow-hidden rounded-3xl"
+          style={{
+            background: `linear-gradient(180deg, #fff 0%, ${ink}06 100%)`,
+          }}
+        >
+          {/* Mặt sân: hình thang, xa thì hẹp, gần thì rộng */}
+          <svg
+            className="absolute inset-0 h-full w-full"
+            viewBox="0 0 600 360"
+            preserveAspectRatio="none"
+          >
+            <polygon points="90,112 510,112 600,360 0,360" fill={`${ink}07`} />
+            {/* Vạch biên hai bên và vạch cuối sân */}
+            <path
+              d="M90,112 L0,360 M510,112 L600,360 M90,112 L510,112"
+              fill="none"
+              stroke={line}
+              strokeWidth={2}
+            />
+            {/* Mấy vạch ngang: càng gần càng thưa, đúng kiểu nhìn xa gần */}
+            {[0.2, 0.46, 0.76].map((t) => {
+              const y = 112 + (360 - 112) * t;
+              const nua = 210 + (300 - 210) * t;
+              return (
+                <line
+                  key={t}
+                  x1={300 - nua}
+                  y1={y}
+                  x2={300 + nua}
+                  y2={y}
+                  stroke={line}
+                  strokeWidth={1.5}
+                />
+              );
+            })}
+            {/* Vạch giữa sân */}
+            <line
+              x1={300}
+              y1={112}
+              x2={300}
+              y2={360}
+              stroke={line}
+              strokeWidth={1.5}
+            />
+          </svg>
+        </div>
+
+        {/*
+          Lưới: treo giữa hai cột, có dải mép trên như lưới thật.
+
+          ĐỨNG ĐÚNG TRÊN VẠCH CUỐI SÂN. Bản đầu tôi để lưới rộng 8%–92%
+          ở độ cao 22%, còn mép xa của sân thì chỉ rộng 25%–75% ở độ cao
+          33% — hai cột lưới cắm ra ngoài sân và lơ lửng phía trên vạch.
+          Giờ lưới rộng đúng bằng mép xa (15%–85%) và chân cột hạ xuống
+          đúng vạch đó (31%), nên nó đứng trên sân chứ không trôi trong
+          không khí.
+        */}
+        <div
+          aria-hidden
+          className="absolute right-[15%] left-[15%] h-[72px]"
+          style={{ top: "calc(31% - 72px)" }}
+        >
+          {/* Hai cột */}
+          <span
+            className="absolute top-0 bottom-0 left-0 w-[3px] rounded-full"
+            style={{ background: ink }}
+          />
+          <span
+            className="absolute top-0 right-0 bottom-0 w-[3px] rounded-full"
+            style={{ background: ink }}
+          />
+          {/* Dải mép trên */}
+          <span
+            className="absolute inset-x-0 top-0 h-[7px] rounded-[2px]"
+            style={{ background: ink }}
+          />
+          {/* Mắt lưới — thưa và nhạt hơn bản cũ, để nó là hậu cảnh chứ
+              không giành mắt với mấy quả cầu */}
+          <span
+            className="absolute inset-x-0 top-[7px] bottom-0"
+            style={{
+              backgroundImage: `repeating-linear-gradient(90deg, ${line} 0 1px, transparent 1px 13px), repeating-linear-gradient(0deg, ${line} 0 1px, transparent 1px 13px)`,
+            }}
+          />
+        </div>
 
         {/*
           Người que.
@@ -632,7 +776,7 @@ export function DoVui({
         <div
           className="absolute"
           style={{
-            left: `${NGUOI_X}%`,
+            left: "var(--nguoi-x)",
             top: `${NGUOI_Y}%`,
             transform: "translate(-88px, -146px)",
           }}
@@ -647,7 +791,7 @@ export function DoVui({
           style={{
             // Bàn tay không cầm vợt ở (64,44) trong hình vẽ, tức là lệch
             // (20, -54) so với điểm neo của người que ở trên.
-            left: `calc(${NGUOI_X}% + 20px)`,
+            left: "calc(var(--nguoi-x) + 20px)",
             top: `calc(${NGUOI_Y}% - 54px)`,
             transform: "translate(-50%, -50%)",
           }}
@@ -718,29 +862,63 @@ export function DoVui({
           )}
         </div>
 
-        {/* Mười quả cầu nằm rải dưới sân */}
+        {/*
+          Mười quả cầu nằm rải dưới sân.
+
+          MỖI QUẢ CÓ BÓNG ĐỔ VÀ MỘT NHỊP THỞ RIÊNG. Trước đây chúng là
+          mười cái nút phẳng lơ lửng giữa khoảng trắng — không có gì nói
+          rằng chúng đang nằm trên mặt sân, cũng không có gì nói rằng
+          chúng bấm được. Vệt bóng dưới chân đặt chúng xuống đất; nhịp
+          nhấp nhô rất nhẹ (3px, mỗi quả lệch pha một chút) làm cả sân
+          sống lên mà không thành ra nhấp nháy đòi chú ý.
+
+          `repeatType: "mirror"` chứ không phải `"loop"`: loop thì tới
+          cuối chu kỳ nó nhảy phắt về đầu, thành một cú giật mỗi vòng.
+        */}
         {CHO_NAM.map((cho, n) => {
           const dangChon = dangCam === n;
           return (
-            <button
+            <motion.button
               key={n}
               type="button"
               disabled={xong || dangBay}
               onClick={() => setDangCam(n)}
               aria-label={`Nhặt quả cầu số ${n}`}
               aria-pressed={dangChon}
-              className="absolute rounded-full transition-[transform,opacity] duration-200 hover:-translate-y-1 disabled:opacity-40"
+              className="absolute rounded-full disabled:opacity-40"
               style={{
                 left: `${cho.x}%`,
                 top: `${cho.y}%`,
-                transform: `translate(-50%, -50%) rotate(${cho.r}deg)`,
+                translateX: "-50%",
+                translateY: "-50%",
+                rotate: cho.r,
+              }}
+              animate={{
                 // Quả đang cầm trên tay thì mờ đi ở dưới sân, để thấy rõ
                 // là nó đã được nhặt lên.
                 opacity: dangChon ? 0.25 : 1,
+                y: dangChon ? 0 : [0, -3, 0],
               }}
+              transition={{
+                opacity: { duration: 0.2 },
+                y: {
+                  duration: 2.6 + (n % 4) * 0.45,
+                  repeat: Infinity,
+                  repeatType: "mirror",
+                  ease: "easeInOut",
+                  delay: (n % 5) * 0.3,
+                },
+              }}
+              whileHover={{ scale: 1.12 }}
+              whileTap={{ scale: 0.94 }}
             >
+              <span
+                aria-hidden
+                className="absolute top-full left-1/2 h-[5px] w-[26px] -translate-x-1/2 rounded-[50%] blur-[1.5px]"
+                style={{ background: `${ink}22` }}
+              />
               <QuaCau so={n} size={46} ink={ink} />
-            </button>
+            </motion.button>
           );
         })}
       </div>
