@@ -2,6 +2,7 @@ import { Flame, Ghost, Medal, Swords, Trophy } from "lucide-react";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
+import { LinkHoSo } from "@/components/thanh-vien/link-ho-so";
 import {
   Avatar,
   Badge,
@@ -212,15 +213,29 @@ export default async function LeaderboardPage() {
                       <RankBadge rank={i + 1} />
 
                       <div className="flex min-w-0 items-center gap-2.5">
-                        <Avatar
-                          name={entry.profile.fullName}
-                          src={entry.profile.avatarUrl}
-                          seed={entry.profile.id}
-                          size="sm"
-                        />
+                        <LinkHoSo
+                          id={entry.profile.id}
+                          nguoiXem={me.id}
+                          ten={entry.profile.fullName}
+                          className="shrink-0"
+                        >
+                          <Avatar
+                            name={entry.profile.fullName}
+                            src={entry.profile.avatarUrl}
+                            seed={entry.profile.id}
+                            size="sm"
+                          />
+                        </LinkHoSo>
                         <div className="min-w-0">
                           <p className="truncate text-[14px] font-semibold text-ink-200">
-                            {entry.profile.fullName}
+                            <LinkHoSo
+                              id={entry.profile.id}
+                              nguoiXem={me.id}
+                              ten={entry.profile.fullName}
+                              className="rounded hover:underline"
+                            >
+                              {entry.profile.fullName}
+                            </LinkHoSo>
                             {isMe && (
                               <span className="ml-1.5 text-[11px] font-bold text-link">
                                 bạn
@@ -258,7 +273,9 @@ export default async function LeaderboardPage() {
 
                       {/* Cột gọn cho điện thoại */}
                       <span className="flex justify-end sm:hidden">
-                        <Badge tone={entry.winRate >= 0.5 ? "emerald" : "slate"}>
+                        <Badge
+                          tone={entry.winRate >= 0.5 ? "emerald" : "slate"}
+                        >
                           {Math.round(entry.winRate * 100)}%
                         </Badge>
                       </span>

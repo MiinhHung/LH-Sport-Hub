@@ -83,12 +83,18 @@ export function ChallengeForm({
   sessions,
   nguoiTao,
   keo,
+  doiThuSan,
 }: {
   members: Member[];
   sessions: SessionOption[];
   nguoiTao: Member;
   /** Có thì là sửa, không thì là tạo. */
   keo?: KeoDangSua;
+  /**
+   * Đối thủ điền sẵn, đến từ nút "Thách luôn" ở trang cá nhân.
+   * Có thì biểu mẫu mở ra ở thế "thách đích danh" với người đó đã chọn.
+   */
+  doiThuSan?: string | null;
 }) {
   const router = useRouter();
   const sua = keo != null;
@@ -104,7 +110,11 @@ export function ChallengeForm({
   const [format, setFormat] = useState<ChallengeFormatKey>(
     (keo?.format as ChallengeFormatKey) ?? "1v1",
   );
-  const [kind, setKind] = useState<"open" | "direct">(keo?.kind ?? "open");
+  // Tới đây từ nút "Thách luôn" thì mở sẵn ở thế thách đích danh — người
+  // ta vừa bấm đích danh một người, bắt họ chọn lại kiểu kèo là thừa.
+  const [kind, setKind] = useState<"open" | "direct">(
+    keo?.kind ?? (doiThuSan ? "direct" : "open"),
+  );
   const [title, setTitle] = useState(keo?.title ?? "");
   const [description, setDescription] = useState(keo?.description ?? "");
   const [stakeType, setStakeType] = useState<StakeKey>(
@@ -115,7 +125,9 @@ export function ChallengeForm({
   );
   const [stakeNote, setStakeNote] = useState(keo?.stakeNote ?? "");
   const [points, setPoints] = useState<number | "">(keo?.pointsTarget ?? 21);
-  const [opponents, setOpponents] = useState<string[]>([]);
+  const [opponents, setOpponents] = useState<string[]>(
+    doiThuSan ? [doiThuSan] : [],
+  );
   const [partnerId, setPartnerId] = useState<string>("");
   const [sessionId, setSessionId] = useState(keo?.sessionId ?? "");
   const [hanDanh, setHanDanh] = useState(
@@ -202,8 +214,8 @@ export function ChallengeForm({
               </div>
               {format === "free" && (
                 <p className="mt-1.5 text-xs text-ink-500">
-                  Tự do: không cần tỉ số, chỉ cần chốt ai thắng. Hợp với kèo
-                  bơi hoặc kèo vui.
+                  Tự do: không cần tỉ số, chỉ cần chốt ai thắng. Hợp với kèo bơi
+                  hoặc kèo vui.
                 </p>
               )}
             </Field>
@@ -495,7 +507,11 @@ export function ChallengeForm({
           moTa="Cả hai đều không bắt buộc."
           cuoi
         >
-          <Field label="Gắn vào buổi tập" htmlFor="sessionId" error={err.sessionId}>
+          <Field
+            label="Gắn vào buổi tập"
+            htmlFor="sessionId"
+            error={err.sessionId}
+          >
             <Select
               id="sessionId"
               name="sessionId"
@@ -532,8 +548,8 @@ export function ChallengeForm({
             <Info className="mt-px size-4 shrink-0 text-ink-500" aria-hidden />
             <span>
               Thể thức, kiểu kèo và danh sách người chơi không sửa ở đây được —
-              đổi mấy thứ đó là đổi hẳn cái kèo mà người khác đã đồng ý. Cần
-              đổi thì huỷ kèo rồi tạo kèo mới.
+              đổi mấy thứ đó là đổi hẳn cái kèo mà người khác đã đồng ý. Cần đổi
+              thì huỷ kèo rồi tạo kèo mới.
             </span>
           </p>
         )}
@@ -581,9 +597,7 @@ export function ChallengeForm({
           doiThu={
             sua
               ? keo.doiB
-              : opponents
-                  .map(timNguoi)
-                  .filter((m): m is Member => m !== null)
+              : opponents.map(timNguoi).filter((m): m is Member => m !== null)
           }
           buoiTap={buoiDangChon?.title ?? null}
           hanDanh={hanDanh}

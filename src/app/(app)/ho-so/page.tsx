@@ -37,6 +37,7 @@ export default async function ProfilePage() {
           role: profile.role as RoleKey,
           skillLevel: profile.skillLevel,
           createdAt: profile.createdAt,
+          lastActiveAt: profile.lastActiveAt,
         }}
         soLieu={
           me

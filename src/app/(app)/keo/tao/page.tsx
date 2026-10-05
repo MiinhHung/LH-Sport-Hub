@@ -9,8 +9,13 @@ import { listMembers, listSelectableSessions } from "@/lib/queries";
 
 export const metadata: Metadata = { title: "Tạo kèo" };
 
-export default async function CreateChallengePage() {
+export default async function CreateChallengePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ doi?: string }>;
+}) {
   const profile = await requireProfile();
+  const { doi } = await searchParams;
   const [members, sessions] = await Promise.all([
     listMembers(),
     listSelectableSessions(),
@@ -24,6 +29,15 @@ export default async function CreateChallengePage() {
       avatarUrl: m.avatarUrl,
       department: m.department,
     }));
+
+  /*
+    `?doi=<id>` đến từ nút "Thách luôn" ở trang cá nhân. Không tin
+    thẳng con số trên thanh địa chỉ: chỉ nhận khi nó đúng là một thành
+    viên đang hoạt động và không phải chính mình. Sai thì lặng lẽ bỏ
+    qua, biểu mẫu mở ra như bình thường — người ta vào đây để tạo kèo
+    chứ không phải để đọc thông báo lỗi về một tham số họ chưa từng gõ.
+  */
+  const doiThuSan = doi && others.some((m) => m.id === doi) ? doi : null;
 
   return (
     /* max-w-5xl chứ không 2xl: biểu mẫu giờ có thêm cột xem trước bên
@@ -52,6 +66,7 @@ export default async function CreateChallengePage() {
           avatarUrl: profile.avatarUrl,
           department: profile.department,
         }}
+        doiThuSan={doiThuSan}
       />
     </div>
   );

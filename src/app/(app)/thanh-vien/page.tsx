@@ -27,6 +27,7 @@ export default async function MembersPage() {
       department: m.department,
       role: m.role as RoleKey,
       skillLevel: m.skillLevel,
+      lastActiveAt: m.lastActiveAt,
       played: s?.played ?? 0,
       wins: s?.wins ?? 0,
       losses: s?.losses ?? 0,

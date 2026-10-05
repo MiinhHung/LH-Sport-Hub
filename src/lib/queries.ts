@@ -33,16 +33,26 @@ const publicProfileColumns = {
   skillLevel: true,
   role: true,
   status: true,
+  /** Để vẽ chấm "đang hoạt động" — xem `lib/hoat-dong.ts`. */
+  lastActiveAt: true,
 } as const;
 
 const challengeWith = {
   creator: { columns: publicProfileColumns },
   session: {
-    columns: { id: true, title: true, startsAt: true, venueName: true } as const,
+    columns: {
+      id: true,
+      title: true,
+      startsAt: true,
+      venueName: true,
+    } as const,
   },
   participants: {
     with: { user: { columns: publicProfileColumns } },
-    orderBy: [asc(challengeParticipants.team), asc(challengeParticipants.joinedAt)] as any,
+    orderBy: [
+      asc(challengeParticipants.team),
+      asc(challengeParticipants.joinedAt),
+    ] as any,
   },
   result: true as const,
 } as const;
@@ -177,9 +187,7 @@ export async function getMyTodos(userId: string) {
   const invites = mine.filter(
     (c) =>
       c.status === "open" &&
-      c.participants.some(
-        (p) => p.userId === userId && p.status === "invited",
-      ),
+      c.participants.some((p) => p.userId === userId && p.status === "invited"),
   );
 
   const needResult = mine.filter((c) => c.status === "locked");
@@ -225,7 +233,7 @@ export async function getSessionDetail(id: string) {
         with: { user: { columns: publicProfileColumns } },
         orderBy: (p: any, { asc }: any) => [asc(p.createdAt)],
       },
-      challenges: { 
+      challenges: {
         with: {
           creator: { columns: publicProfileColumns },
           session: {
@@ -236,8 +244,8 @@ export async function getSessionDetail(id: string) {
             orderBy: (p: any, { asc }: any) => [asc(p.team), asc(p.joinedAt)],
           },
           result: true,
-        }
-      } 
+        },
+      },
     },
   });
 }
@@ -375,7 +383,7 @@ export type LeaderboardEntry = {
  * Với quy mô vài chục người và vài trăm kèo, gom số liệu trong TS
  * dễ đọc và dễ sửa hơn nhiều so với một câu SQL tổng hợp.
  * Nếu dữ liệu lớn lên thì chuyển sang materialized view.
- */export async function getLeaderboard(): Promise<LeaderboardEntry[]> {
+ */ export async function getLeaderboard(): Promise<LeaderboardEntry[]> {
   // Ba truy vấn gộp, mỗi cái chỉ trả về đúng con số cần dùng.
   //
   // Bản trước nạp tới 2000 kèo và 2000 khoản nợ KÈM QUAN HỆ vào bộ nhớ
@@ -402,7 +410,6 @@ export type LeaderboardEntry = {
         and cp.status = 'accepted'
       order by c.completed_at asc nulls last
     `),
-
 
     // Kèo đã chốt người rồi nhưng bị huỷ => tính là "xù kèo".
     db.execute<{ user_id: string; total: number }>(sql`
@@ -474,4 +481,133 @@ export type LeaderboardEntry = {
       b.winRate - a.winRate ||
       a.profile.fullName.localeCompare(b.profile.fullName, "vi"),
   );
+}
+
+/* ------------------------------------------------------------------ */
+/* Trang ca nhan cua mot thanh vien khac                               */
+/* ------------------------------------------------------------------ */
+
+export type DoiDau = {
+  /** Số kèo hai người đã đánh VỚI NHAU và đã chốt kết quả. */
+  tong: number;
+  /** Người xem thắng bao nhiêu trong số đó. */
+  banThang: number;
+  hoThang: number;
+  /** Kèo gần nhất giữa hai người, để bấm vào xem lại. */
+  ganNhat: { id: string; title: string; completedAt: Date | null } | null;
+};
+
+/**
+ * Đối đầu trực tiếp giữa hai người.
+ *
+ * ĐÂY LÀ THỨ CHỈ APP NÀY MỚI HIỆN ĐƯỢC. Mở trang của một người trong
+ * team, câu hỏi đầu tiên không phải "họ thắng bao nhiêu trận" — cái đó
+ * bảng phong thần có rồi — mà là "mình với họ ai hơn ai". Dữ liệu nằm
+ * sẵn trong `challenge_participants` và `challenge_results` từ lâu,
+ * chỉ là chưa ai hỏi tới.
+ *
+ * ĐIỀU KIỆN "KHÁC ĐỘI" LÀ BẮT BUỘC. Kèo 2v2 thì hai người có thể cùng
+ * một đội — lúc đó họ không đối đầu nhau, họ là đồng đội. Thiếu vế
+ * `a.team <> b.team` thì mỗi trận đánh chung sẽ bị đếm thành một trận
+ * đối đầu mà cả hai cùng thắng hoặc cùng thua.
+ */
+export async function getDoiDau(
+  nguoiXem: string,
+  nguoiKia: string,
+): Promise<DoiDau> {
+  if (nguoiXem === nguoiKia) {
+    return { tong: 0, banThang: 0, hoThang: 0, ganNhat: null };
+  }
+
+  const rows = await db.execute<{
+    challenge_id: string;
+    title: string;
+    completed_at: Date | null;
+    nguoi_xem_thang: boolean;
+  }>(sql`
+    select c.id as challenge_id,
+           c.title,
+           c.completed_at,
+           (a.team = cr.winning_team) as nguoi_xem_thang
+    from challenge_participants a
+    join challenge_participants b
+      on b.challenge_id = a.challenge_id
+     and b.user_id = ${nguoiKia}
+     and b.status = 'accepted'
+     and b.team <> a.team
+    join challenges c on c.id = a.challenge_id
+    join challenge_results cr on cr.challenge_id = c.id
+    where a.user_id = ${nguoiXem}
+      and a.status = 'accepted'
+      and c.status = 'completed'
+      and cr.status = 'confirmed'
+    order by c.completed_at desc nulls last
+  `);
+
+  let banThang = 0;
+  for (const r of rows) if (r.nguoi_xem_thang) banThang++;
+
+  const dau = rows[0];
+  return {
+    tong: rows.length,
+    banThang,
+    hoThang: rows.length - banThang,
+    ganNhat: dau
+      ? {
+          id: dau.challenge_id,
+          title: dau.title,
+          completedAt: dau.completed_at,
+        }
+      : null,
+  };
+}
+
+export type BanHayDanh = {
+  id: string;
+  fullName: string;
+  avatarUrl: string | null;
+  soTran: number;
+};
+
+/**
+ * Những người hay đánh cùng nhất — tính cả đồng đội lẫn đối thủ.
+ *
+ * Cố ý KHÔNG tách hai loại. Câu hỏi ở đây là "người này hay chơi với
+ * ai", mà trong một đội vài chục người thì đánh chung đội hay đối đầu
+ * đều là chơi với nhau cả. Tách ra chỉ làm hai danh sách ngắn tủn thay
+ * vì một danh sách nói được điều gì đó.
+ */
+export async function getBanHayDanh(
+  userId: string,
+  limit = 3,
+): Promise<BanHayDanh[]> {
+  const rows = await db.execute<{
+    id: string;
+    full_name: string;
+    avatar_url: string | null;
+    so_tran: number;
+  }>(sql`
+    select p.id, p.full_name, p.avatar_url, count(*)::int as so_tran
+    from challenge_participants a
+    join challenge_participants b
+      on b.challenge_id = a.challenge_id
+     and b.user_id <> a.user_id
+     and b.status = 'accepted'
+    join challenges c on c.id = a.challenge_id
+    join profiles p on p.id = b.user_id
+    where a.user_id = ${userId}
+      and a.status = 'accepted'
+      and c.status = 'completed'
+      and p.status = 'active'
+    group by p.id, p.full_name, p.avatar_url
+    order by so_tran desc, p.full_name asc
+    limit ${limit}
+  `);
+
+  return rows.map((r) => ({
+    id: r.id,
+    fullName: r.full_name,
+    avatarUrl: r.avatar_url,
+    soTran: r.so_tran,
+  }));
 }

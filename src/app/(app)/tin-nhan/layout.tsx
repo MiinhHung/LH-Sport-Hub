@@ -64,7 +64,12 @@ export default async function MessagesLayout({
         }))}
         hoiThoai={conversations.map((c) => ({
           id: c.id,
-          partner: c.partner,
+          // Cùng lý do với `lastMessageAt` ngay dưới: `lastActiveAt`
+          // trong `partner` cũng là một `Date`, phải đổi sang chuỗi.
+          partner: {
+            ...c.partner,
+            lastActiveAt: c.partner.lastActiveAt.toISOString(),
+          },
           lastMessagePreview: c.lastMessagePreview,
           // Ngày giờ phải chuyển sang chuỗi: cột danh sách là Client
           // Component, mà `Date` thì không đi qua ranh giới đó được.

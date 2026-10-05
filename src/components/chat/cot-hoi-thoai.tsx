@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import * as React from "react";
 
 import { StartChatTile } from "@/components/chat/start-chat";
+import { ChamHoatDong } from "@/components/ui/cham-hoat-dong";
 import { Avatar } from "@/components/ui";
 import { cn, timeAgo } from "@/lib/utils";
 
@@ -36,6 +37,8 @@ type HoiThoai = {
     fullName: string;
     avatarUrl: string | null;
     department: string | null;
+    /** Chuỗi ISO, không phải Date — xem ghi chú ở layout. */
+    lastActiveAt: string;
   };
   lastMessagePreview: string | null;
   lastMessageAt: string;
@@ -173,6 +176,10 @@ export function CotHoiThoai({
                       src={c.partner.avatarUrl}
                       seed={c.partner.id}
                       size="md"
+                    />
+                    <ChamHoatDong
+                      lastActiveAt={c.partner.lastActiveAt}
+                      co="sm"
                     />
                     {c.unread && (
                       <span

@@ -2,6 +2,7 @@ import { CalendarDays, Pin, Swords } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
+import { LinkHoSo } from "@/components/thanh-vien/link-ho-so";
 import { Avatar, Badge, Card } from "@/components/ui";
 import { POST_TYPES, type PostTypeKey } from "@/lib/constants";
 import type { FeedPost } from "@/lib/feed";
@@ -134,15 +135,29 @@ export function PostCard({
       <article className="px-4 pt-4 sm:px-5 sm:pt-5">
         {/* Tác giả */}
         <header className="flex items-start gap-3">
-          <Avatar
-            name={post.author.fullName}
-            src={post.author.avatarUrl}
-            seed={post.author.id}
-            size="md"
-          />
+          <LinkHoSo
+            id={post.author.id}
+            nguoiXem={viewer.id}
+            ten={post.author.fullName}
+            className="shrink-0"
+          >
+            <Avatar
+              name={post.author.fullName}
+              src={post.author.avatarUrl}
+              seed={post.author.id}
+              size="md"
+            />
+          </LinkHoSo>
           <div className="min-w-0 flex-1">
             <p className="truncate text-[14.5px] leading-tight font-bold text-ink-100">
-              {post.author.fullName}
+              <LinkHoSo
+                id={post.author.id}
+                nguoiXem={viewer.id}
+                ten={post.author.fullName}
+                className="rounded hover:underline"
+              >
+                {post.author.fullName}
+              </LinkHoSo>
             </p>
             <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11.5px] text-ink-500">
               <time dateTime={post.createdAt.toISOString()}>

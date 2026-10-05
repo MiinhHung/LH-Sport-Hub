@@ -1,8 +1,15 @@
 import Link from "next/link";
 
 import { StartChatButton } from "@/components/chat/start-chat";
+import { duongDanHoSo } from "@/components/thanh-vien/link-ho-so";
+import { ChamHoatDong } from "@/components/ui/cham-hoat-dong";
 import { Avatar, Badge, Card } from "@/components/ui";
-import { ROLES, SKILL_LEVELS, type RoleKey, type SkillLevelKey } from "@/lib/constants";
+import {
+  ROLES,
+  SKILL_LEVELS,
+  type RoleKey,
+  type SkillLevelKey,
+} from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
 export type ThanhVien = {
@@ -12,6 +19,7 @@ export type ThanhVien = {
   department: string | null;
   role: RoleKey;
   skillLevel: string;
+  lastActiveAt: Date | string | null;
   played: number;
   wins: number;
   losses: number;
@@ -43,9 +51,12 @@ export function TheThanhVien({
   m,
   isMe,
   hang,
+  nguoiXem,
 }: {
   m: ThanhVien;
   isMe: boolean;
+  /** Id người đang xem — để biết dẫn về /ho-so hay /thanh-vien/<id>. */
+  nguoiXem: string;
   /** Thứ hạng trong team, chỉ truyền cho ba người đầu. */
   hang?: number;
 }) {
@@ -57,12 +68,24 @@ export function TheThanhVien({
     <Card
       className={cn(
         "flex h-full flex-col p-4",
-        isMe && "border-navy-100 bg-navy-50 dark:border-navy-600/35 dark:bg-navy-600/15",
+        isMe &&
+          "border-navy-100 bg-navy-50 dark:border-navy-600/35 dark:bg-navy-600/15",
       )}
     >
       <div className="flex items-start gap-3">
-        <div className="relative shrink-0">
+        {/* Cả ảnh lẫn tên dẫn tới hồ sơ. Thẻ này KHÔNG phải một liên kết
+            nên lồng được thoải mái — khác thẻ kèo. */}
+        <Link
+          href={duongDanHoSo(m.id, nguoiXem)}
+          aria-label={`Xem hồ sơ của ${m.fullName}`}
+          className="relative shrink-0 rounded-2xl outline-none transition-opacity hover:opacity-80 focus-visible:ring-2 focus-visible:ring-gold-400/50"
+        >
           <Avatar name={m.fullName} src={m.avatarUrl} seed={m.id} size="lg" />
+          {/* Chấm nằm góc TRÊN phải vì góc dưới phải đã có số hạng. */}
+          <ChamHoatDong
+            lastActiveAt={m.lastActiveAt}
+            className="top-0 bottom-auto"
+          />
           {hang != null && (
             <span
               className="tabular font-display absolute -right-1 -bottom-1 grid size-5 place-items-center rounded-full border-2 border-ink-900 bg-gold-400 text-[10px] font-bold text-navy-950"
@@ -71,17 +94,26 @@ export function TheThanhVien({
               {hang}
             </span>
           )}
-        </div>
+        </Link>
 
         <div className="min-w-0 flex-1">
           <p className="truncate text-[15px] font-bold text-ink-100">
-            {m.fullName}
+            <Link
+              href={duongDanHoSo(m.id, nguoiXem)}
+              className="rounded outline-none hover:underline focus-visible:ring-2 focus-visible:ring-gold-400/50"
+            >
+              {m.fullName}
+            </Link>
             {isMe && (
-              <span className="ml-1.5 text-[11px] font-bold text-link">bạn</span>
+              <span className="ml-1.5 text-[11px] font-bold text-link">
+                bạn
+              </span>
             )}
           </p>
           {m.department && (
-            <p className="truncate text-[12.5px] text-ink-500">{m.department}</p>
+            <p className="truncate text-[12.5px] text-ink-500">
+              {m.department}
+            </p>
           )}
           <div className="mt-1.5 flex flex-wrap gap-1">
             <Badge tone="slate">{skill.label}</Badge>

@@ -10,6 +10,8 @@ const publicPerson = {
   fullName: true,
   avatarUrl: true,
   department: true,
+  /** Để vẽ chấm "đang hoạt động" — xem `lib/hoat-dong.ts`. */
+  lastActiveAt: true,
 } as const;
 
 /**
@@ -38,6 +40,7 @@ export type ConversationRow = {
     fullName: string;
     avatarUrl: string | null;
     department: string | null;
+    lastActiveAt: Date;
   };
   lastMessagePreview: string | null;
   lastMessageAt: Date;
@@ -129,10 +132,7 @@ export async function getConversation(id: string, viewerId: string) {
   });
 
   if (!conversation) return null;
-  if (
-    conversation.userAId !== viewerId &&
-    conversation.userBId !== viewerId
-  ) {
+  if (conversation.userAId !== viewerId && conversation.userBId !== viewerId) {
     return null;
   }
 
@@ -184,10 +184,7 @@ export async function isParticipant(
   const row = await db.query.conversations.findFirst({
     where: and(
       eq(conversations.id, conversationId),
-      or(
-        eq(conversations.userAId, userId),
-        eq(conversations.userBId, userId),
-      ),
+      or(eq(conversations.userAId, userId), eq(conversations.userBId, userId)),
     ),
     columns: { id: true },
   });

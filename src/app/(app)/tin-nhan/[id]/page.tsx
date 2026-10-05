@@ -4,9 +4,11 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { ChatThread } from "@/components/chat/chat-thread";
+import { ChamHoatDong } from "@/components/ui/cham-hoat-dong";
 import { Avatar } from "@/components/ui";
 import { requireProfile } from "@/lib/auth";
 import { getConversation, listMessages, toPayload } from "@/lib/chat";
+import { nhanHoatDong } from "@/lib/hoat-dong";
 
 export async function generateMetadata({
   params,
@@ -33,6 +35,7 @@ export default async function ConversationPage({
   if (!conversation) notFound();
 
   const history = await listMessages(id);
+  const hoatDong = nhanHoatDong(conversation.partner.lastActiveAt);
 
   return (
     /*
@@ -59,12 +62,23 @@ export default async function ConversationPage({
           <ArrowLeft className="size-5" aria-hidden />
         </Link>
 
-        <Avatar
-          name={conversation.partner.fullName}
-          src={conversation.partner.avatarUrl}
-          seed={conversation.partner.id}
-          size="md"
-        />
+        <Link
+          href={`/thanh-vien/${conversation.partner.id}`}
+          aria-label={`Xem hồ sơ của ${conversation.partner.fullName}`}
+          className="relative shrink-0 rounded-full outline-none transition-opacity hover:opacity-80 focus-visible:ring-2 focus-visible:ring-gold-400/50"
+        >
+          <Avatar
+            name={conversation.partner.fullName}
+            src={conversation.partner.avatarUrl}
+            seed={conversation.partner.id}
+            size="md"
+          />
+          <ChamHoatDong
+            lastActiveAt={conversation.partner.lastActiveAt}
+            co="sm"
+            ringClass="ring-ink-950"
+          />
+        </Link>
         <div className="min-w-0">
           {/*
             Tên người đối thoại cỡ 18px, không phải 26px như trước. Khi
@@ -76,11 +90,20 @@ export default async function ConversationPage({
           <h1 className="truncate text-[18px] leading-tight font-bold text-ink-100">
             {conversation.partner.fullName}
           </h1>
-          {conversation.partner.department && (
-            <p className="mt-0.5 truncate text-[12.5px] text-ink-500">
-              {conversation.partner.department}
-            </p>
-          )}
+          {/* Câu chữ thay vì bắt đoán qua cái chấm: ở khung chat, biết
+              người kia vừa rời đi 2 phút hay 2 ngày trước quyết định
+              mình có ngồi đợi trả lời hay không. */}
+          <p className="mt-0.5 truncate text-[12.5px] text-ink-500">
+            {hoatDong === "Đang hoạt động" ? (
+              <span className="font-semibold text-emerald-600 dark:text-emerald-400">
+                {hoatDong}
+              </span>
+            ) : (
+              hoatDong
+            )}
+            {conversation.partner.department &&
+              ` · ${conversation.partner.department}`}
+          </p>
         </div>
       </header>
 

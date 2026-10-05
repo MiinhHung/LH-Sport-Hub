@@ -3,8 +3,15 @@
 import { Search } from "lucide-react";
 import { useMemo, useState } from "react";
 
-import { TheThanhVien, type ThanhVien } from "@/components/thanh-vien/the-thanh-vien";
-import { SKILL_LEVELS, SKILL_LEVEL_KEYS, type SkillLevelKey } from "@/lib/constants";
+import {
+  TheThanhVien,
+  type ThanhVien,
+} from "@/components/thanh-vien/the-thanh-vien";
+import {
+  SKILL_LEVELS,
+  SKILL_LEVEL_KEYS,
+  type SkillLevelKey,
+} from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
 /**
@@ -144,6 +151,7 @@ export function DanhSachThanhVien({
                     key={m.id}
                     m={m}
                     isMe={m.id === meId}
+                    nguoiXem={meId}
                     /* Số hạng chỉ gắn khi KHÔNG lọc gì: lọc xong mà vẫn
                        đeo huy chương thì "hạng 1" chỉ còn nghĩa là hạng
                        nhất trong số người vừa lọc ra, dễ hiểu nhầm.
@@ -171,7 +179,12 @@ export function DanhSachThanhVien({
               </h2>
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {chuaRaSan.map((m) => (
-                  <TheThanhVien key={m.id} m={m} isMe={m.id === meId} />
+                  <TheThanhVien
+                    key={m.id}
+                    m={m}
+                    isMe={m.id === meId}
+                    nguoiXem={meId}
+                  />
                 ))}
               </div>
             </section>
