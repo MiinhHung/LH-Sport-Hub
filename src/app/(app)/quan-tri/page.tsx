@@ -5,11 +5,11 @@ import { redirect } from "next/navigation";
 
 import { db } from "@/db";
 import { auditLogs, challenges, profiles } from "@/db/schema";
+import { NhatKy } from "@/components/quan-tri/nhat-ky";
 import {
   Avatar,
   Badge,
   Card,
-  CardBody,
   PageIntro,
   SectionTitle,
   Stat,
@@ -17,7 +17,7 @@ import {
 } from "@/components/ui";
 import { isModerator, requireProfile } from "@/lib/auth";
 import { ROLES, type RoleKey } from "@/lib/constants";
-import { cn, formatDateTime } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 
 import { MemberControls } from "./member-controls";
 
@@ -41,6 +41,28 @@ export default async function AdminPage() {
     ]);
 
   const nameById = new Map(allProfiles.map((p) => [p.id, p.fullName]));
+
+  /*
+    THỨ TỰ CÓ NGHĨA, THAY CHO "MỚI ĐĂNG KÝ TRƯỚC".
+    Danh sách trước đây xếp theo ngày tạo tài khoản giảm dần — một thứ
+    tự không giúp gì cho việc người ta mở trang này ra để làm. Giờ:
+
+      1. tài khoản đang khoá  — thứ duy nhất đang cần ai đó xử lý
+      2. người có quyền       — admin, kiểm duyệt, tổ chức
+      3. còn lại theo tên     — để tìm một cái tên bằng mắt
+
+    Sắp ở đây chứ không ở SQL: danh sách này là toàn bộ tài khoản của
+    một team vài chục người, sắp bằng JavaScript không đáng kể, mà quy
+    tắc viết ra đọc dễ hơn nhiều so với một mệnh đề ORDER BY lồng CASE.
+  */
+  const dsThanhVien = [...allProfiles].sort((a, b) => {
+    const khoa = (p: typeof a) => (p.status === "suspended" ? 0 : 1);
+    return (
+      khoa(a) - khoa(b) ||
+      ROLES[b.role as RoleKey].rank - ROLES[a.role as RoleKey].rank ||
+      a.fullName.localeCompare(b.fullName, "vi")
+    );
+  });
 
   return (
     <div className="space-y-8">
@@ -79,7 +101,7 @@ export default async function AdminPage() {
         </SectionTitle>
 
         <Card className="divide-y divide-ink-800 overflow-hidden">
-          {allProfiles.map((p) => (
+          {dsThanhVien.map((p) => (
             <div
               key={p.id}
               className={cn(
@@ -134,28 +156,7 @@ export default async function AdminPage() {
             <p className="text-[13.5px] text-ink-500">Chưa có hoạt động nào.</p>
           </Well>
         ) : (
-          <Card>
-            <CardBody className="space-y-2">
-              {logs.map((log) => (
-                <div
-                  key={log.id}
-                  className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 border-b border-ink-800 pb-2 last:border-0 last:pb-0"
-                >
-                  <code className="rounded bg-ink-850 px-1.5 py-0.5 text-[11.5px] font-semibold text-ink-100">
-                    {log.action}
-                  </code>
-                  <span className="text-[13px] text-ink-400">
-                    {log.actorId
-                      ? (nameById.get(log.actorId) ?? "Người dùng đã xoá")
-                      : "Hệ thống"}
-                  </span>
-                  <span className="ml-auto text-[11.5px] text-ink-500">
-                    {formatDateTime(log.createdAt)}
-                  </span>
-                </div>
-              ))}
-            </CardBody>
-          </Card>
+          <NhatKy logs={logs} nameById={nameById} />
         )}
       </section>
     </div>
