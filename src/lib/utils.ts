@@ -73,6 +73,70 @@ function dayIndexInZone(date: Date): number {
   return ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].indexOf(weekday);
 }
 
+/**
+ * Ngày thứ mấy trong tuần, dạng chữ: "Thứ 7", "Chủ nhật".
+ */
+export function weekdayLabel(date: Date | string): string {
+  const d = typeof date === "string" ? new Date(date) : date;
+  return WEEKDAYS[dayIndexInZone(d)] ?? "";
+}
+
+/** Chỉ số ngày trong năm theo múi giờ app, dùng để so hai mốc cùng ngày. */
+function ymdInZone(date: Date): string {
+  const p = parts(date);
+  return `${p.year}-${p.month}-${p.day}`;
+}
+
+/** Hôm nay? Ngày mai? */
+export function dayLabel(date: Date | string): string | null {
+  const d = typeof date === "string" ? new Date(date) : date;
+  const homNay = new Date();
+  const mai = new Date(homNay.getTime() + 24 * 60 * 60 * 1000);
+  if (ymdInZone(d) === ymdInZone(homNay)) return "Hôm nay";
+  if (ymdInZone(d) === ymdInZone(mai)) return "Ngày mai";
+  return null;
+}
+
+/**
+ * Buổi này rơi vào tuần nào: 0 = tuần này, 1 = tuần sau, 2 = xa hơn.
+ *
+ * TUẦN BẮT ĐẦU TỪ THỨ HAI, không phải Chủ nhật. `getDay()` của
+ * JavaScript coi Chủ nhật là 0 theo lối Mỹ; ở Việt Nam thì Chủ nhật là
+ * ngày CUỐI tuần. Không đổi lại thì mỗi Chủ nhật, buổi tập hôm đó bị xếp
+ * sang "tuần sau" trong khi ai cũng hiểu nó là cuối tuần này.
+ *
+ * Mốc so sánh lấy theo múi giờ của app chứ không theo máy người dùng, để
+ * ai mở từ nước ngoài vẫn thấy đúng tuần như người ở nhà.
+ */
+export function weekBucket(date: Date | string): 0 | 1 | 2 {
+  const d = typeof date === "string" ? new Date(date) : date;
+
+  const thuHaiCuaTuan = (moc: Date) => {
+    const thu = dayIndexInZone(moc); // 0 = Chủ nhật
+    const luiLai = thu === 0 ? 6 : thu - 1;
+    const p = parts(moc);
+    // Dựng lại ngày theo múi giờ app rồi lùi về thứ Hai, giữ mốc giữa
+    // trưa để đổi ngày do lệch giờ không đẩy sang hôm trước.
+    const nen = new Date(`${p.year}-${p.month}-${p.day}T12:00:00`);
+    nen.setDate(nen.getDate() - luiLai);
+    return nen;
+  };
+
+  const dauTuanNay = thuHaiCuaTuan(new Date());
+  const p = parts(d);
+  const ngay = new Date(`${p.year}-${p.month}-${p.day}T12:00:00`);
+
+  const soTuan = Math.floor(
+    (ngay.getTime() - dauTuanNay.getTime()) / (7 * 24 * 60 * 60 * 1000),
+  );
+
+  if (soTuan <= 0) return 0;
+  if (soTuan === 1) return 1;
+  return 2;
+}
+
+export const WEEK_BUCKET_LABELS = ["Tuần này", "Tuần sau", "Sau đó"] as const;
+
 /** "3 phút trước", "2 ngày trước", "vừa xong" */
 export function timeAgo(date: Date | string): string {
   const d = typeof date === "string" ? new Date(date) : date;
