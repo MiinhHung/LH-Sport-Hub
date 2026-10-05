@@ -41,6 +41,41 @@ export async function updateSession(request: NextRequest) {
     return response;
   }
 
+  const { pathname, search } = request.nextUrl;
+
+  /*
+   * KHÔNG CÓ COOKIE PHIÊN THÌ KHỎI HỎI SUPABASE.
+   *
+   * `auth.getUser()` là một vòng mạng ra máy chủ Supabase để xác minh
+   * chữ ký của token, và nó chạy trên MỌI yêu cầu đi qua proxy. Đo trong
+   * log máy chủ dev: 137ms đến 1089ms mỗi lần, cộng thẳng vào thời gian
+   * chờ của từng lần bấm.
+   *
+   * Nhưng không có cookie `sb-*` thì chắc chắn không có phiên nào để
+   * xác minh — gọi lên cũng chỉ nhận lại `user: null`. Nên với khách
+   * chưa đăng nhập, bỏ hẳn vòng mạng đó: trang giới thiệu, trang đăng
+   * nhập, đăng ký đều hưởng, mà kết quả không đổi một chút nào.
+   *
+   * CHỈ BỎ ĐƯỢC KHI VẮNG COOKIE. Có cookie thì vẫn phải gọi `getUser()`
+   * thật, không được tin `getSession()` ở phía máy chủ: cái đó chỉ đọc
+   * cookie chứ không xác minh chữ ký, nên ai tự chế một cookie là qua mặt
+   * được. Đây là lớp chặn, không phải chỗ để tiết kiệm.
+   */
+  const coCookiePhien = request.cookies
+    .getAll()
+    .some((c) => c.name.startsWith("sb-"));
+
+  if (!coCookiePhien) {
+    if (isPublicPath(pathname)) return response;
+    const url = request.nextUrl.clone();
+    url.pathname = "/dang-nhap";
+    url.search = "";
+    if (pathname !== "/") {
+      url.searchParams.set("next", `${pathname}${search}`);
+    }
+    return NextResponse.redirect(url);
+  }
+
   const supabase = createServerClient(
     publicEnv.supabaseUrl,
     publicEnv.supabaseAnonKey,
@@ -65,8 +100,6 @@ export async function updateSession(request: NextRequest) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-
-  const { pathname, search } = request.nextUrl;
 
   if (!user && !isPublicPath(pathname)) {
     const url = request.nextUrl.clone();
