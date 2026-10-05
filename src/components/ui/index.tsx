@@ -150,7 +150,9 @@ export function SectionTitle({
   className?: string;
 }) {
   return (
-    <div className={cn("mb-3 flex items-center justify-between gap-3", className)}>
+    <div
+      className={cn("mb-3 flex items-center justify-between gap-3", className)}
+    >
       <h2 className="flex items-center gap-2 text-[13px] font-semibold tracking-[0.02em] text-ink-400">
         {children}
       </h2>
@@ -169,11 +171,14 @@ export function SectionTitle({
  */
 const TONES = {
   lime: "bg-gold-50 dark:bg-gold-400/10 text-gold-700 dark:text-gold-300 border-gold-200 dark:border-gold-400/30",
-  emerald: "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-400/30",
-  amber: "bg-amber-50 dark:bg-amber-500/10 text-amber-800 dark:text-amber-300 border-amber-200 dark:border-amber-400/30",
+  emerald:
+    "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-400/30",
+  amber:
+    "bg-amber-50 dark:bg-amber-500/10 text-amber-800 dark:text-amber-300 border-amber-200 dark:border-amber-400/30",
   rose: "bg-rose-50 dark:bg-rose-500/10 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-400/30",
   sky: "bg-sky-50 dark:bg-sky-500/10 text-sky-700 dark:text-sky-300 border-sky-200 dark:border-sky-400/30",
-  violet: "bg-violet-50 dark:bg-violet-500/10 text-violet-700 dark:text-violet-300 border-violet-200 dark:border-violet-400/30",
+  violet:
+    "bg-violet-50 dark:bg-violet-500/10 text-violet-700 dark:text-violet-300 border-violet-200 dark:border-violet-400/30",
   slate: "bg-ink-850 text-ink-400 border-ink-800",
   navy: "bg-navy-50 dark:bg-navy-600/15 text-ink-100 border-navy-100 dark:border-navy-600/35",
 } as const;
@@ -373,6 +378,59 @@ export function CardSkeleton() {
           <Skeleton className="h-16 flex-1 rounded-xl" />
         </div>
       </div>
+    </Card>
+  );
+}
+
+/**
+ * Khung chờ cho đầu trang: nhãn nhỏ, tiêu đề, dòng dẫn.
+ *
+ * Gần như mọi trang trong app mở đầu bằng `PageIntro`, nên khung chờ
+ * cũng phải mở đầu bằng đúng hình đó. Khung chờ mà khác dáng với nội
+ * dung thật thì lúc dữ liệu về, cả trang nhảy một cái — đúng thứ mà
+ * khung chờ sinh ra để tránh.
+ */
+export function PageIntroSkeleton({ lead = true }: { lead?: boolean }) {
+  return (
+    <div className="space-y-2.5">
+      <Skeleton className="h-3 w-24" />
+      <Skeleton className="h-9 w-56 max-w-full" />
+      {lead && <Skeleton className="h-4 w-80 max-w-full" />}
+    </div>
+  );
+}
+
+/**
+ * Khung chờ cho danh sách chia dòng (thông báo, tin nhắn, thành viên).
+ *
+ * Bề rộng dòng chữ đổi theo chỉ số thay vì bằng nhau cả loạt: một cột
+ * toàn những thanh xám dài y hệt nhau đọc ra là một cái bảng, không ra
+ * một danh sách tên người.
+ */
+export function ListSkeleton({
+  rows = 5,
+  avatar = true,
+}: {
+  rows?: number;
+  avatar?: boolean;
+}) {
+  const rong = [72, 58, 84, 64, 76, 52, 80];
+  return (
+    <Card>
+      <ul className="divide-y divide-ink-800">
+        {Array.from({ length: rows }).map((_, i) => (
+          <li key={i} className="flex items-center gap-3 p-4">
+            {avatar && <Skeleton className="size-10 shrink-0 rounded-full" />}
+            <div className="min-w-0 flex-1 space-y-2">
+              <Skeleton
+                className="h-4"
+                style={{ width: `${rong[i % rong.length]}%` }}
+              />
+              <Skeleton className="h-3 w-1/3" />
+            </div>
+          </li>
+        ))}
+      </ul>
     </Card>
   );
 }

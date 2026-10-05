@@ -1,0 +1,139 @@
+"use client";
+
+import * as React from "react";
+
+/**
+ * Màn hình lỗi cho những trang NGOÀI khung app: trang giới thiệu, đăng
+ * nhập, đăng ký.
+ *
+ * VIẾT BẰNG STYLE THUẦN, KHÔNG DÙNG LẠI BỘ UI. Hai lý do thật:
+ *
+ * 1. Nó phải chạy được cả khi chính bộ ui là thứ vừa ném lỗi. Một màn
+ *    hình lỗi đi nhập lại đúng mô-đun đang hỏng thì hỏng theo.
+ * 2. Nhánh này gồm cả trang giới thiệu nền trắng viết cứng lẫn hai trang
+ *    đăng nhập nền navy. Lớp `.dark` thì đi theo lựa chọn của người dùng
+ *    trong app. Dùng lớp tiện ích ở đây sẽ ra một màn hình lúc đọc được
+ *    lúc không, tuỳ người dùng vừa ở đâu sang.
+ *
+ * Nền navy đặc là mẫu số chung an toàn: cả hai nhánh đều có navy trong
+ * bảng màu, và chữ trắng trên navy thì luôn đọc được.
+ */
+export default function RootError({
+  error,
+  reset,
+}: {
+  error: Error & { digest?: string };
+  reset: () => void;
+}) {
+  React.useEffect(() => {
+    console.error("[trang công khai] lỗi:", error);
+  }, [error]);
+
+  return (
+    <div
+      style={{
+        minHeight: "100dvh",
+        display: "grid",
+        placeItems: "center",
+        padding: "2rem 1.25rem",
+        background: "#00112e",
+        color: "#ffffff",
+        textAlign: "center",
+      }}
+    >
+      <div style={{ maxWidth: "26rem" }}>
+        <p
+          style={{
+            fontSize: "11px",
+            fontWeight: 600,
+            letterSpacing: "0.22em",
+            textTransform: "uppercase",
+            color: "#dcae42",
+          }}
+        >
+          LH Sport Hub
+        </p>
+
+        <h1
+          style={{
+            marginTop: "1rem",
+            fontSize: "26px",
+            lineHeight: 1.2,
+            fontWeight: 700,
+          }}
+        >
+          Trang này đang trục trặc
+        </h1>
+
+        <p
+          style={{
+            marginTop: "0.75rem",
+            fontSize: "14.5px",
+            lineHeight: 1.7,
+            color: "rgba(255,255,255,0.7)",
+          }}
+        >
+          Thử tải lại xem sao. Nếu vẫn vậy thì đợi khoảng một phút rồi vào lại,
+          có khi máy chủ vừa ngủ dậy.
+        </p>
+
+        <div
+          style={{
+            marginTop: "1.75rem",
+            display: "flex",
+            flexWrap: "wrap",
+            gap: "0.5rem",
+            justifyContent: "center",
+          }}
+        >
+          <button
+            type="button"
+            onClick={reset}
+            style={{
+              height: "2.75rem",
+              padding: "0 1.5rem",
+              borderRadius: "999px",
+              border: "none",
+              background: "#dcae42",
+              color: "#00112e",
+              fontSize: "13px",
+              fontWeight: 700,
+              cursor: "pointer",
+            }}
+          >
+            Thử lại
+          </button>
+          <a
+            href="/"
+            style={{
+              height: "2.75rem",
+              padding: "0 1.5rem",
+              display: "inline-flex",
+              alignItems: "center",
+              borderRadius: "999px",
+              border: "1px solid rgba(255,255,255,0.25)",
+              color: "#ffffff",
+              fontSize: "13px",
+              fontWeight: 600,
+              textDecoration: "none",
+            }}
+          >
+            Về trang chủ
+          </a>
+        </div>
+
+        {error.digest && (
+          <p
+            style={{
+              marginTop: "2rem",
+              fontSize: "11.5px",
+              color: "rgba(255,255,255,0.4)",
+            }}
+          >
+            Mã lỗi <code>{error.digest}</code>
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
