@@ -349,7 +349,21 @@ export function TopNav({ unread }: { unread: number }) {
 
   return (
     <nav aria-label="Điều hướng chính" className="hidden md:block">
-      <MagneticRow className="flex items-center gap-0.5">
+      {/*
+        KHUNG VIÊN THUỐC KIỂU DOCK.
+
+        Nền chìm và viền mảnh gom bảy biểu tượng thành MỘT vật thể, thay
+        vì bảy ô rời trôi trên thanh header. Đó là thứ làm dock của macOS
+        ra dáng dock chứ không phải phép phóng to.
+
+        PHÓNG TO THÌ BỊ CHẶN BỞI CHIỀU CAO 64px CỦA HEADER. Dock thật nở
+        icon từ 40 lên 80px vì nó nằm ở mép dưới màn hình, phía trên là
+        khoảng trống vô hạn. Ở đây: khung 64px, viền đệm 4px trên dưới,
+        ô 40px — còn đúng 8px mỗi bên để nở. Nên mức phóng giữ nhỏ (xem
+        `useMagnetic`), đủ để tay thấy phản hồi mà không đội ra ngoài
+        header hay đè xuống nội dung.
+      */}
+      <MagneticRow className="flex items-center gap-0.5 rounded-2xl border border-ink-800 bg-ink-900/60 px-1.5 py-1">
         {items.map((item) => (
           <TopNavItem
             key={item.href}

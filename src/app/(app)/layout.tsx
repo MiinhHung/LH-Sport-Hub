@@ -23,13 +23,25 @@ export default async function AppLayout({
   return (
     <div className="relative isolate flex min-h-dvh flex-col">
       <header className="sticky top-0 z-30 border-b border-ink-800 bg-ink-950/90 backdrop-blur-md">
-        <div className="mx-auto flex h-16 max-w-6xl items-center gap-3 px-4 sm:gap-5">
+        {/*
+          LƯỚI BA CỘT, KHÔNG PHẢI MỘT HÀNG FLEX.
+
+          Trước đây thanh điều hướng nằm trong một ô `flex-1` ngay sau
+          logo, nên nó bắt đầu từ mép phải logo chứ không nằm giữa — logo
+          rộng bao nhiêu thì nó lệch phải bấy nhiêu, và bên trái bên phải
+          không bao giờ cân.
+
+          `1fr auto 1fr` thì cột giữa luôn nằm đúng tâm khung, không phụ
+          thuộc hai bên rộng hẹp thế nào. Hai cột ngoài tự chia đều phần
+          còn lại.
+        */}
+        <div className="mx-auto grid h-16 max-w-6xl grid-cols-[1fr_auto_1fr] items-center gap-3 px-4 sm:gap-5">
           <Link
             href="/bang-tin"
             // Cùng lý do với thanh điều hướng — xem ghi chú ở components/nav.tsx.
             prefetch={false}
             aria-label="Light Human Sport Hub — về bảng tin"
-            className="group flex shrink-0 items-center gap-2.5"
+            className="group col-start-1 flex shrink-0 items-center gap-2.5"
           >
             {/*
               HAI BẢN LOGO, ĐỔI THEO NỀN.
@@ -74,38 +86,48 @@ export default async function AppLayout({
             </span>
           </Link>
 
-          <div className="flex-1">
-            <TopNav unread={unread} />
-          </div>
+          <TopNav unread={unread} />
 
-          {/* Tin nhắn riêng nằm ở thanh trên thay vì thanh điều hướng —
+          {/*
+            `col-start-3` LÀ BẮT BUỘC, KHÔNG PHẢI CHO CHẮC.
+
+            Dưới md, `TopNav` mang `display: none` nên lưới KHÔNG đặt nó
+            vào ô nào cả. Phần tử sau đó tự rơi vào ô trống kế tiếp —
+            tức cột GIỮA — nên trên điện thoại cả nhóm chuông và ảnh đại
+            diện sẽ nằm lệch vào giữa thay vì sát phải, còn cột ba bỏ
+            trống. Ghim cột cho cả hai bên thì lưới đúng dù giữa có hay
+            không.
+          */}
+          <div className="col-start-3 flex items-center justify-end gap-3 sm:gap-5">
+            {/* Tin nhắn riêng nằm ở thanh trên thay vì thanh điều hướng —
               thanh dưới trên điện thoại đã đủ 5 mục. */}
-          <Link
-            href="/tin-nhan"
-            prefetch={false}
-            aria-label={
-              unreadMessages > 0
-                ? `Tin nhắn — ${unreadMessages} cuộc chưa đọc`
-                : "Tin nhắn"
-            }
-            className="relative hidden size-9 shrink-0 place-items-center rounded-xl text-ink-500 transition-colors hover:bg-ink-850 hover:text-ink-100 md:grid"
-          >
-            <MessagesSquare className="size-[18px]" strokeWidth={2} />
-            {unreadMessages > 0 && (
-              <span className="absolute top-1 right-1 size-2.5 rounded-full bg-gold-500 ring-2 ring-ink-950" />
-            )}
-          </Link>
+            <Link
+              href="/tin-nhan"
+              prefetch={false}
+              aria-label={
+                unreadMessages > 0
+                  ? `Tin nhắn — ${unreadMessages} cuộc chưa đọc`
+                  : "Tin nhắn"
+              }
+              className="relative hidden size-9 shrink-0 place-items-center rounded-xl text-ink-500 transition-colors hover:bg-ink-850 hover:text-ink-100 md:grid"
+            >
+              <MessagesSquare className="size-[18px]" strokeWidth={2} />
+              {unreadMessages > 0 && (
+                <span className="absolute top-1 right-1 size-2.5 rounded-full bg-gold-500 ring-2 ring-ink-950" />
+              )}
+            </Link>
 
-          {/* Công tắc sáng/tối. Ẩn trên điện thoại — thanh trên ở đó đã
+            {/* Công tắc sáng/tối. Ẩn trên điện thoại — thanh trên ở đó đã
               chật, nên bản nhỏ nằm trong menu tài khoản. */}
-          <ThemeToggle className="hidden sm:block" />
+            <ThemeToggle className="hidden sm:block" />
 
-          <UserMenu
-            id={profile.id}
-            fullName={profile.fullName}
-            avatarUrl={profile.avatarUrl}
-            role={profile.role}
-          />
+            <UserMenu
+              id={profile.id}
+              fullName={profile.fullName}
+              avatarUrl={profile.avatarUrl}
+              role={profile.role}
+            />
+          </div>
         </div>
       </header>
 
