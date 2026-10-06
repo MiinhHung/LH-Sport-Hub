@@ -257,12 +257,25 @@ function TopNavItem({ item, active }: { item: Item; active: boolean }) {
         // Cùng lý do với thanh dưới — xem ghi chú dài ở trên.
         prefetch={false}
         aria-current={active ? "page" : undefined}
-        // Nhãn bị ẩn ở màn hình vừa nên luôn kèm tên đầy đủ cho máy đọc
-        // màn hình và cho mẹo chỉ dẫn khi rê chuột.
+        /*
+          `aria-label` LÀ THỨ DUY NHẤT CÒN NÓI TÊN MỤC NÀY.
+
+          Từ lúc thanh trên chỉ còn biểu tượng, không còn dòng chữ nào
+          trong cây tài liệu để máy đọc màn hình đọc lên. Bỏ dòng này đi
+          thì cả thanh điều hướng thành bảy liên kết không tên.
+
+          Không dùng `title` nữa: mẹo chỉ dẫn gốc của trình duyệt đợi
+          gần một giây mới hiện, mang kiểu dáng của hệ điều hành chứ
+          không phải của app, và không bao giờ hiện khi đi bằng bàn
+          phím. Có mẹo riêng ở dưới rồi, để cả hai thì rê chuột một lúc
+          sẽ thấy hai cái chồng nhau.
+        */
         aria-label={item.label}
-        title={item.label}
         className={cn(
-          "relative flex items-center gap-2 rounded-lg px-2.5 py-2 text-[13.5px] font-semibold whitespace-nowrap transition-colors duration-200 min-[1180px]:px-3",
+          /* `min-w-10` + `px-2` chứ không `size-10`: khi chỉ có biểu
+             tượng thì ô vuông đúng 40px, còn lúc nhãn chữ hiện ra (máy
+             cảm ứng màn rộng) thì ô tự nở theo chữ thay vì cắt mất. */
+          "group relative flex h-10 min-w-10 items-center justify-center rounded-lg px-2 transition-colors duration-200",
           active
             ? "bg-ink-850 text-ink-100"
             : "text-ink-500 hover:bg-ink-850/70 hover:text-ink-200",
@@ -275,30 +288,53 @@ function TopNavItem({ item, active }: { item: Item; active: boolean }) {
           ) : null}
         </MagneticIcon>
         {/*
-          CHỮ KHÔNG ĐƯỢC XUỐNG DÒNG, và chỉ hiện khi đủ chỗ.
+          Nhãn chữ giờ chỉ còn hiện trên máy KHÔNG RÊ CHUỘT ĐƯỢC.
 
-          Đo được: bảy mục kèm nhãn chiếm 668px, phần còn lại của thanh
-          (logo, chuông tin nhắn, công tắc nền, ảnh đại diện) chiếm 293px,
-          cộng lề và khoảng cách thì cần khoảng 1113px. Khung chứa chúng co lại
-          theo cửa sổ. Trước đây không chặn xuống dòng nên mỗi nhãn tự bẻ
-          làm hai — "Trang / chủ" — trông như chữ dựng đứng.
+          Mẹo chỉ dẫn sống nhờ `:hover`. Máy tính bảng màn rộng (iPad
+          ngang là 1366px) không có trạng thái rê chuột, nên nếu cứ ẩn
+          nhãn thì ở đó bảy biểu tượng thành bảy câu đố — trước khi sửa
+          họ vẫn đọc được chữ. Giữ lại cho họ.
 
-          Chỉ thêm `whitespace-nowrap` thôi thì hết bẻ dòng nhưng cả hàng
-          tràn ra đè lên chuông tin nhắn và ảnh đại diện. Nên dưới ngưỡng
-          1180px chỉ để lại biểu tượng; tên vẫn còn ở `aria-label` và
-          `title`.
+          NGƯỠNG 1180px LÀ SỐ ĐO CŨ, VẪN CÒN ĐÚNG. Bảy mục kèm nhãn
+          chiếm 668px, phần còn lại của thanh (logo, chuông tin nhắn,
+          công tắc nền, ảnh đại diện) chiếm 293px, cộng lề thì cần
+          khoảng 1113px. Chọn 1180 vì header bị chặn ở max-w-6xl =
+          1152px: từ đó trở lên cửa sổ rộng thêm cũng không cho thêm
+          chỗ, nên mọi màn lớn là MỘT trường hợp duy nhất — đo trường
+          hợp đó thì vừa đủ, còn hở 20px. Thêm mục mới hoặc đặt nhãn
+          dài hơn thì phải đo lại.
 
-          Ngưỡng 1180 chọn vì thanh header bị chặn ở max-w-6xl = 1152px:
-          từ 1184px trở lên, cửa sổ rộng thêm cũng không cho thêm chỗ nào,
-          nên bố cục ở mọi màn hình lớn là MỘT trường hợp duy nhất. Đo
-          trường hợp đó: vừa đủ, còn hở 20px tới chuông tin nhắn. Nghĩa là
-          thêm mục mới hoặc đặt nhãn dài hơn thì phải đo lại chỗ này.
+          `whitespace-nowrap` để nhãn không tự bẻ làm hai dòng kiểu
+          "Trang / chủ", trông như chữ dựng đứng.
         */}
-        <span className="hidden min-[1180px]:inline">{item.label}</span>
+        <span className="ml-2 hidden text-[13.5px] font-semibold whitespace-nowrap min-[1180px]:pointer-coarse:inline">
+          {item.label}
+        </span>
+
+        {/*
+          Mẹo chỉ dẫn: tên mục, thả xuống dưới biểu tượng.
+
+          `aria-hidden` vì `aria-label` ở trên đã mang đúng chuỗi này —
+          để cả hai thì máy đọc màn hình đọc tên mục hai lần.
+
+          Hiện cả khi đi bằng bàn phím (`group-focus-visible`), không chỉ
+          khi rê chuột: người dùng phím Tab cũng cần biết mình đang đứng
+          ở mục nào.
+
+          Thả XUỐNG chứ không bật lên: thanh header cao 64px và dính ở
+          đỉnh màn hình, không có chỗ phía trên. Header không cắt tràn
+          nên mẹo rơi ra ngoài được.
+        */}
+        <span
+          aria-hidden
+          className="pointer-events-none absolute top-full left-1/2 z-50 mt-2 -translate-x-1/2 scale-95 rounded-lg bg-navy-900 px-2.5 py-1 text-[11.5px] font-semibold whitespace-nowrap text-white opacity-0 shadow-[var(--shadow-card)] transition-[opacity,transform] duration-150 group-hover:scale-100 group-hover:opacity-100 group-focus-visible:scale-100 group-focus-visible:opacity-100 motion-reduce:transition-none"
+        >
+          {item.label}
+        </span>
         {active && (
           <span
             aria-hidden
-            className="bg-gradient-gold absolute inset-x-2.5 -bottom-px h-[2.5px] rounded-full min-[1180px]:inset-x-3"
+            className="bg-gradient-gold absolute inset-x-2 -bottom-px h-[2.5px] rounded-full"
           />
         )}
       </Link>
