@@ -16,6 +16,7 @@ import {
   Well,
 } from "@/components/ui";
 import { isModerator, requireProfile } from "@/lib/auth";
+import { nhanHoatDong } from "@/lib/hoat-dong";
 import { ROLES, type RoleKey } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
@@ -29,18 +30,30 @@ export default async function AdminPage() {
   // Chặn ở tầng trang; các server action vẫn tự kiểm tra quyền riêng.
   if (!isModerator(me)) redirect("/keo");
 
-  const [allProfiles, memberCount, openChallenges, logs] =
-    await Promise.all([
-      db.query.profiles.findMany({ orderBy: [desc(profiles.createdAt)] }),
-      db.select({ v: count() }).from(profiles).where(eq(profiles.status, "active")),
-      db.select({ v: count() }).from(challenges).where(eq(challenges.status, "open")),
-      db.query.auditLogs.findMany({
-        orderBy: [desc(auditLogs.createdAt)],
-        limit: 30,
-      }),
-    ]);
+  const [allProfiles, memberCount, openChallenges, logs] = await Promise.all([
+    db.query.profiles.findMany({ orderBy: [desc(profiles.createdAt)] }),
+    db
+      .select({ v: count() })
+      .from(profiles)
+      .where(eq(profiles.status, "active")),
+    db
+      .select({ v: count() })
+      .from(challenges)
+      .where(eq(challenges.status, "open")),
+    db.query.auditLogs.findMany({
+      orderBy: [desc(auditLogs.createdAt)],
+      limit: 30,
+    }),
+  ]);
 
-  const nameById = new Map(allProfiles.map((p) => [p.id, p.fullName]));
+  // Nhật ký cần cả ảnh đại diện, không chỉ tên: người quản trị quét
+  // trang này theo NGƯỜI trước, theo việc sau.
+  const nguoiTheoId = new Map(
+    allProfiles.map((p) => [
+      p.id,
+      { id: p.id, fullName: p.fullName, avatarUrl: p.avatarUrl },
+    ]),
+  );
 
   /*
     THỨ TỰ CÓ NGHĨA, THAY CHO "MỚI ĐĂNG KÝ TRƯỚC".
@@ -73,26 +86,41 @@ export default async function AdminPage() {
         action={<Badge tone="navy">{ROLES[me.role].label}</Badge>}
       />
 
-      <div className="grid grid-cols-3 gap-2.5">
-        <Stat
-          label="Thành viên"
-          value={memberCount[0]?.v ?? 0}
-          icon={<Users className="size-3.5" />}
-          tone="navy"
-        />
-        <Stat
-          label="Kèo đang mở"
-          value={openChallenges[0]?.v ?? 0}
-          icon={<Swords className="size-3.5" />}
-          tone="lime"
-        />
-        <Stat
-          label="Tài khoản khoá"
-          value={allProfiles.filter((p) => p.status === "suspended").length}
-          icon={<ShieldCheck className="size-3.5" />}
-          tone="slate"
-        />
-      </div>
+      {/*
+        BA CON SỐ TRONG MỘT THẺ, KHÔNG PHẢI BA THẺ RỜI.
+
+        Chụp ở màn 1440: ba hộp mỗi hộp rộng 370px để đựng đúng một con
+        số một chữ số. Chúng là ba mẩu của cùng một câu "team đang như
+        thế nào", nên gom lại thì đọc một lượt là xong, và lấy lại được
+        chỗ cho danh sách thành viên — thứ người ta vào đây để làm.
+      */}
+      <Card>
+        <div className="grid grid-cols-3 divide-x divide-ink-800">
+          {[
+            { nhan: "Thành viên", so: memberCount[0]?.v ?? 0, Icon: Users },
+            {
+              nhan: "Kèo đang mở",
+              so: openChallenges[0]?.v ?? 0,
+              Icon: Swords,
+            },
+            {
+              nhan: "Tài khoản khoá",
+              so: allProfiles.filter((x) => x.status === "suspended").length,
+              Icon: ShieldCheck,
+            },
+          ].map(({ nhan, so, Icon }) => (
+            <div key={nhan} className="px-4 py-3.5">
+              <p className="flex items-center gap-1.5 text-[10.5px] font-bold tracking-[0.12em] text-ink-500 uppercase">
+                <Icon className="size-3.5" aria-hidden />
+                {nhan}
+              </p>
+              <p className="tabular font-display mt-1 text-[24px] leading-none font-bold text-ink-100">
+                {so}
+              </p>
+            </div>
+          ))}
+        </div>
+      </Card>
 
       {/* Thành viên */}
       <section aria-labelledby="ql-thanh-vien">
@@ -121,6 +149,12 @@ export default async function AdminPage() {
                   {p.fullName}
                 </p>
                 <p className="truncate text-[12.5px] text-ink-500">{p.email}</p>
+                {/* Hoạt động lần cuối — ở trang quản trị thì đây là thứ
+                    đáng giá hơn mọi chỗ khác: nó trả lời "ai đăng ký rồi
+                    bỏ đó" mà không phải đi hỏi từng người. */}
+                <p className="truncate text-[12px] text-ink-600">
+                  {nhanHoatDong(p.lastActiveAt)}
+                </p>
                 <div className="mt-1.5 flex flex-wrap gap-1">
                   <Badge tone={p.role === "member" ? "slate" : "navy"}>
                     {ROLES[p.role].label}
@@ -134,6 +168,7 @@ export default async function AdminPage() {
               <div className="w-full sm:w-auto">
                 <MemberControls
                   userId={p.id}
+                  fullName={p.fullName}
                   role={p.role as RoleKey}
                   status={p.status}
                   canAssignRoles={me.role === "admin"}
@@ -156,7 +191,7 @@ export default async function AdminPage() {
             <p className="text-[13.5px] text-ink-500">Chưa có hoạt động nào.</p>
           </Well>
         ) : (
-          <NhatKy logs={logs} nameById={nameById} />
+          <NhatKy logs={logs} nguoiTheoId={nguoiTheoId} />
         )}
       </section>
     </div>
