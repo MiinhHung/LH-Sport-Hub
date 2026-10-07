@@ -60,23 +60,49 @@ export default async function ArticlePage({
         </p>
       </header>
 
+      {/*
+        CHẶN TỈ LỆ 16:9, KHÔNG ĐỂ ẢNH TỰ QUYẾT CHIỀU CAO.
+
+        Bản trước dùng `h-auto w-full`, nghĩa là chiều cao lấy theo tỉ lệ
+        THẬT của tệp ảnh — hai con số `width={1200} height={700}` chỉ là
+        gợi ý cho trình duyệt, không ràng buộc gì. Phần lớn ảnh cẩm nang
+        là 640×400 nằm ngang nên không ai thấy vấn đề; riêng bài "Khởi
+        động" lấy `/images/feed-2.jpg` — một ảnh DỌC chụp bằng điện thoại,
+        768×1024 — và nó dựng thành 704×939, chiếm 41% chiều cao cả trang
+        trước khi tới dòng chữ đầu tiên.
+
+        Nhánh `article.art` ngay dưới vốn đã chặn `aspect-[16/9]`; chỉ
+        nhánh ảnh bìa bị sót. Giờ hai nhánh cùng một luật.
+      */}
       {article.cover ? (
-        <Image
-          src={article.cover}
-          alt=""
-          width={1200}
-          height={700}
-          priority
-          sizes="(max-width: 768px) 100vw, 704px"
-          className="mt-4 h-auto w-full rounded-2xl object-cover ring-1 ring-ink-800"
-        />
+        <div className="relative mt-4 aspect-[16/9] overflow-hidden rounded-2xl ring-1 ring-ink-800">
+          <Image
+            src={article.cover}
+            alt=""
+            fill
+            priority
+            sizes="(max-width: 768px) 100vw, 704px"
+            className="object-cover"
+          />
+        </div>
       ) : article.art ? (
         <div className="mt-4 aspect-[16/9] overflow-hidden rounded-2xl ring-1 ring-ink-800">
           <CoverArt motif={article.art} />
         </div>
       ) : null}
 
-      <div className="pb-4">
+      {/*
+        THÂN BÀI HẸP HƠN KHUNG, CỐ Ý.
+
+        Khung chung rộng 44rem (704px) cho tiêu đề và ảnh bìa — ở đó rộng
+        là đúng. Nhưng chữ thường ở bề ngang đó ra 83 ký tự một dòng, mà
+        ngưỡng đọc không mỏi là 45–75: dài quá thì mắt nhảy dòng hay bị
+        lạc, đọc hết một đoạn thấy mệt mà không hiểu vì sao.
+
+        38rem (608px) cho ra khoảng 70 ký tự. Giữ ảnh và tiêu đề ở khổ
+        rộng, bóp riêng phần chữ — đúng cách báo giấy vẫn làm.
+      */}
+      <div className="mx-auto max-w-[38rem] pb-4">
         {article.blocks.map((block, i) => (
           <ContentBlock key={i} block={block} />
         ))}
