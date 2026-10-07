@@ -75,9 +75,7 @@ export async function createSessionAction(
       const members = await tx
         .select({ id: profiles.id })
         .from(profiles)
-        .where(
-          and(eq(profiles.status, "active"), ne(profiles.id, actor.id)),
-        );
+        .where(and(eq(profiles.status, "active"), ne(profiles.id, actor.id)));
 
       const sportLabel = SPORTS[input.sport as SportKey].label;
 
@@ -312,18 +310,38 @@ export async function setAttendanceAction(
 
       const now = new Date();
 
+      /*
+        ĐỌC TRẠNG THÁI CŨ TRƯỚC KHI GHI ĐÈ.
+
+        Thiếu bước này thì mỗi lần bấm "Có đi" lại bắn một thông báo,
+        kể cả khi người đó VỐN ĐÃ "có đi" từ trước. Ai lỡ tay bấm qua
+        lại đi → bận → đi là người tạo buổi nhận ba dòng giống hệt
+        nhau. Đã thấy đúng ba dòng như vậy trên trang Thông báo thật.
+
+        Với một buổi tập mà cả đội vào bấm, con số đó nhân lên theo số
+        người đổi ý — và thông báo nào cũng giống thông báo nào thì cả
+        trang thành thứ không ai buồn đọc.
+      */
+      const [truocDo] = await tx
+        .select({ status: playSessionAttendees.status })
+        .from(playSessionAttendees)
+        .where(
+          and(
+            eq(playSessionAttendees.sessionId, sessionId),
+            eq(playSessionAttendees.userId, actor.id),
+          ),
+        );
+      const doiSangCoDi = answer === "going" && truocDo?.status !== "going";
+
       await tx
         .insert(playSessionAttendees)
         .values({ sessionId, userId: actor.id, status: answer })
         .onConflictDoUpdate({
-          target: [
-            playSessionAttendees.sessionId,
-            playSessionAttendees.userId,
-          ],
+          target: [playSessionAttendees.sessionId, playSessionAttendees.userId],
           set: { status: answer, updatedAt: now },
         });
 
-      if (answer === "going") {
+      if (doiSangCoDi) {
         await notify(tx, {
           recipientId: session.creatorId,
           actorId: actor.id,
@@ -347,7 +365,11 @@ export async function setAttendanceAction(
     if ("error" in outcome && outcome.error) return failure(outcome.error);
 
     revalidateSessions(sessionId);
-    return success(answer === "going" ? "Đã ghi nhận: bạn đi." : "Đã ghi nhận: bạn không đi.");
+    return success(
+      answer === "going"
+        ? "Đã ghi nhận: bạn đi."
+        : "Đã ghi nhận: bạn không đi.",
+    );
   });
 }
 
