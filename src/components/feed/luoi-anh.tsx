@@ -3,7 +3,7 @@
 import Image from "next/image";
 import * as React from "react";
 
-import { XemAnh, type AnhBaiViet } from "@/components/feed/xem-anh";
+import { XemAnh, type AnhXemDuoc } from "@/components/xem-anh";
 import { cn } from "@/lib/utils";
 
 /**
@@ -52,7 +52,7 @@ function tiLeAnh(w?: number | null, h?: number | null) {
  * bảng tin: hai bài mở cùng lúc là chuyện không thể xảy ra, và một kho
  * chung sẽ kéo theo context bao quanh cả danh sách.
  */
-export function LuoiAnh({ media }: { media: AnhBaiViet[] }) {
+export function LuoiAnh({ media }: { media: AnhXemDuoc[] }) {
   const [moTai, setMoTai] = React.useState<number | null>(null);
 
   if (media.length === 0) return null;

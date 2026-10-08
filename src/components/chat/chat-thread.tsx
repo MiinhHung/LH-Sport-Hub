@@ -18,6 +18,7 @@ import {
   sendMessageAction,
 } from "@/actions/chat";
 import { useHoiLai } from "@/components/ui/hoi-lai";
+import { XemAnh } from "@/components/xem-anh";
 import { idleState } from "@/actions/types";
 import type { ChatMessagePayload } from "@/lib/chat";
 import { LIMITS, UPLOAD } from "@/lib/constants";
@@ -361,6 +362,31 @@ export function ChatThread({
     return ra;
   }, [items]);
 
+  /*
+    MỌI ẢNH TRONG CUỘC TRÒ CHUYỆN, để lật qua lại trong khung xem.
+
+    Bấm vào một ảnh thì mở đúng tấm đó, nhưng vuốt tiếp là sang ảnh
+    khác của cùng cuộc trò chuyện — giống Messenger. Mở từng tấm rời
+    thì mỗi lần muốn xem ảnh trước lại phải đóng, cuộn, bấm lại.
+
+    Bỏ ảnh đang gửi: lúc đó `imageUrl` còn là `blob:` trỏ vào bộ nhớ
+    trình duyệt, chưa phải ảnh thật trên máy chủ.
+  */
+  const anhTrongCuoc = useMemo(
+    () =>
+      items
+        .filter((m) => m.imageUrl && !m.imageUrl.startsWith("blob:"))
+        .map((m) => ({
+          id: m.id,
+          url: m.imageUrl as string,
+          alt: null,
+          width: m.imageWidth ?? null,
+          height: m.imageHeight ?? null,
+        })),
+    [items],
+  );
+  const [moAnhTai, setMoAnhTai] = useState<number | null>(null);
+
   const canSend = Boolean(draft.trim() || attachment);
 
   return (
@@ -428,28 +454,46 @@ export function ChatThread({
                   )}
 
                   <div className="max-w-[78%] sm:max-w-[65%]">
-                    {m.imageUrl && (
-                      <a
-                        href={m.imageUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className={cn(
-                          "block overflow-hidden rounded-2xl ring-1 ring-ink-800 transition-opacity",
-                          mine ? "rounded-br-md" : "rounded-bl-md",
-                          m.pending && "opacity-55",
-                          m.content && "mb-1",
-                        )}
-                      >
-                        {/* Ảnh tạm là blob: URL nên dùng thẻ img thường;
-                            ảnh thật đi qua next/image để được tối ưu. */}
-                        {m.imageUrl.startsWith("blob:") ? (
-                          // eslint-disable-next-line @next/next/no-img-element
+                    {m.imageUrl &&
+                      /*
+                        Ảnh ĐANG GỬI thì không bấm xem được: lúc này
+                        `imageUrl` mới là `blob:` trong bộ nhớ trình
+                        duyệt, chưa có trên máy chủ. Để nó là `div` thường
+                        thay vì nút — nút bấm vào không làm gì là lời hứa
+                        suông, mà đây chỉ kéo dài một hai giây.
+                      */
+                      (m.imageUrl.startsWith("blob:") ? (
+                        <div
+                          className={cn(
+                            "block overflow-hidden rounded-2xl ring-1 ring-ink-800 opacity-55",
+                            mine ? "rounded-br-md" : "rounded-bl-md",
+                            m.content && "mb-1",
+                          )}
+                        >
+                          {/* blob: URL nên dùng thẻ img thường, next/image
+                              không tối ưu được thứ chưa có trên máy chủ. */}
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
                             src={m.imageUrl}
                             alt="Ảnh đang gửi"
                             className="max-h-72 w-auto object-cover"
                           />
-                        ) : (
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setMoAnhTai(
+                              anhTrongCuoc.findIndex((a) => a.id === m.id),
+                            )
+                          }
+                          aria-label="Xem ảnh"
+                          className={cn(
+                            "block cursor-zoom-in overflow-hidden rounded-2xl ring-1 ring-ink-800 transition-opacity",
+                            mine ? "rounded-br-md" : "rounded-bl-md",
+                            m.content && "mb-1",
+                          )}
+                        >
                           <Image
                             src={m.imageUrl}
                             alt="Ảnh trong tin nhắn"
@@ -458,9 +502,8 @@ export function ChatThread({
                             sizes="(max-width: 640px) 78vw, 400px"
                             className="h-auto max-h-72 w-auto object-cover"
                           />
-                        )}
-                      </a>
-                    )}
+                        </button>
+                      ))}
 
                     {m.content && (
                       <div
@@ -610,6 +653,14 @@ export function ChatThread({
           onChange={(e) => pickImage(e.target.files)}
         />
       </form>
+
+      {/* Một khung xem cho cả cuộc trò chuyện, không phải mỗi tin một
+          khung — xem ghi chú `anhTrongCuoc` ở trên. */}
+      <XemAnh
+        danhSach={anhTrongCuoc}
+        moTai={moAnhTai}
+        dong={() => setMoAnhTai(null)}
+      />
     </div>
   );
 }
