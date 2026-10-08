@@ -2,6 +2,7 @@
 
 import {
   ImagePlus,
+  Link2,
   Megaphone,
   MessageSquare,
   UserSearch,
@@ -12,6 +13,7 @@ import { useActionState, useEffect, useRef, useState } from "react";
 import { createPostAction } from "@/actions/posts";
 import { idleState } from "@/actions/types";
 import { Alert, Avatar, Card } from "@/components/ui";
+import { ODanLink } from "@/components/feed/o-dan-link";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { LIMITS, MAX_POST_IMAGES, type PostTypeKey } from "@/lib/constants";
 import { cn } from "@/lib/utils";
@@ -26,6 +28,7 @@ const TYPE_OPTIONS: {
 }[] = [
   { key: "text", label: "Chém gió", icon: MessageSquare },
   { key: "looking_for_player", label: "Tìm người", icon: UserSearch },
+  { key: "link", label: "Link", icon: Link2 },
   { key: "announcement", label: "Thông báo", icon: Megaphone, modOnly: true },
 ];
 
@@ -45,12 +48,14 @@ export function PostComposer({
   const [type, setType] = useState<PostTypeKey>("text");
   const [drafts, setDrafts] = useState<Draft[]>([]);
   const [dangKeo, setDangKeo] = useState(false);
+  const [linkUrl, setLinkUrl] = useState("");
 
   // Dọn sạch sau khi đăng thành công.
   useEffect(() => {
     if (state.status !== "success") return;
     setContent("");
     setType("text");
+    setLinkUrl("");
     setDrafts((current) => {
       current.forEach((d) => URL.revokeObjectURL(d.url));
       return [];
@@ -129,7 +134,15 @@ export function PostComposer({
 
   const options = TYPE_OPTIONS.filter((o) => !o.modOnly || canAnnounce);
   const overLimit = content.length > LIMITS.postContent;
-  const canSubmit = content.trim().length > 0 && !overLimit;
+  const laLink = type === "link";
+  /*
+    Bài dạng link KHÔNG đòi lời dẫn: chia sẻ một video kỹ thuật mà bắt
+    phải viết thêm một câu thì người ta gõ bừa "hay nè" cho xong. Thẻ
+    link tự nó đã là nội dung — luật này khớp với `postSchema` ở server.
+  */
+  const canSubmit = laLink
+    ? linkUrl.trim().length > 0 && !overLimit
+    : content.trim().length > 0 && !overLimit;
 
   return (
     <Card className="overflow-hidden">
@@ -179,7 +192,11 @@ export function PostComposer({
               onPaste={khiDan}
               rows={open ? 4 : 1}
               maxLength={LIMITS.postContent + 200}
-              placeholder={`${author.fullName.split(" ").slice(-1)[0]} ơi, có gì mới không?`}
+              placeholder={
+                laLink
+                  ? "Thêm một câu dẫn (không bắt buộc)…"
+                  : `${author.fullName.split(" ").slice(-1)[0]} ơi, có gì mới không?`
+              }
               aria-label="Nội dung bài viết"
               className={cn(
                 "w-full resize-none rounded-xl border border-ink-700 bg-ink-850 px-3.5 py-2.5 text-[15px] leading-relaxed text-ink-200 outline-none transition-all duration-200",
@@ -274,6 +291,8 @@ export function PostComposer({
                     );
                   })}
                 </div>
+
+                {laLink && <ODanLink url={linkUrl} datUrl={setLinkUrl} />}
 
                 {state.status === "error" && state.message && (
                   <Alert tone="rose">{state.message}</Alert>

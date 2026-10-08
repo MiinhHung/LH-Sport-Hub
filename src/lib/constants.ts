@@ -177,6 +177,7 @@ export const POST_TYPES = {
   image: { label: "Ảnh", icon: "📸", tone: "sky" },
   announcement: { label: "Thông báo", icon: "📢", tone: "amber" },
   looking_for_player: { label: "Tìm người", icon: "🙋", tone: "lime" },
+  link: { label: "Link", icon: "🔗", tone: "sky" },
 } as const;
 
 export type PostTypeKey = keyof typeof POST_TYPES;

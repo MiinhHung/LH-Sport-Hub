@@ -433,12 +433,54 @@ export const cancelChallengeSchema = z.object({
 /* Bang tin                                                            */
 /* ------------------------------------------------------------------ */
 
+/**
+ * Đường dẫn người dùng dán vào.
+ *
+ * Chỉ http/https, và đây là lớp kiểm ở CẢ HAI phía. Phía server còn một
+ * lớp nữa nặng hơn nhiều — phân giải tên miền rồi chặn dải địa chỉ nội
+ * bộ — nằm trong `lib/link-preview.ts`. Lớp ở đây chỉ để báo lỗi sớm cho
+ * người gõ nhầm, không phải để bảo vệ.
+ */
+export const linkUrlField = z
+  .string()
+  .trim()
+  .min(1, "Dán đường dẫn vào đây.")
+  .max(2048, "Đường dẫn dài quá.")
+  .refine((v) => {
+    try {
+      const u = new URL(v);
+      return u.protocol === "http:" || u.protocol === "https:";
+    } catch {
+      return false;
+    }
+  }, "Đường dẫn phải bắt đầu bằng http:// hoặc https://");
+
 export const postSchema = z.object({
-  content: requiredText(LIMITS.postContent, "Nội dung bài viết"),
+  /*
+    Bài dạng link KHÔNG bắt buộc có lời dẫn: chia sẻ một video kỹ thuật
+    mà bắt phải viết thêm một câu thì người ta gõ bừa "hay nè" cho xong.
+    Thẻ link tự nó đã là nội dung.
+  */
+  content: z
+    .string()
+    .trim()
+    .max(LIMITS.postContent, `Nội dung bài viết tối đa ${LIMITS.postContent} ký tự.`)
+    .default(""),
   type: z.enum(POST_TYPE_KEYS as [string, ...string[]]).default("text"),
   challengeId: uuidField.nullable().default(null),
   sessionId: uuidField.nullable().default(null),
-});
+  linkUrl: linkUrlField.nullable().default(null),
+})
+  .refine((v) => v.type === "link" || v.content.length > 0, {
+    message: "Viết gì đó đã nhé.",
+    path: ["content"],
+  })
+  .refine((v) => v.type !== "link" || Boolean(v.linkUrl), {
+    message: "Dán đường dẫn vào đây.",
+    path: ["linkUrl"],
+  });
+
+export const xemTruocLinkSchema = z.object({ url: linkUrlField });
 
 export const commentSchema = z.object({
   postId: uuidField,

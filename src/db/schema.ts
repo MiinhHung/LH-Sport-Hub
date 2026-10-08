@@ -133,6 +133,7 @@ export const postTypeEnum = pgEnum("post_type", [
   "image",
   "announcement",
   "looking_for_player",
+  "link",
 ]);
 
 export const contentStatusEnum = pgEnum("content_status", [
@@ -385,6 +386,22 @@ export const posts = pgTable(
     sessionId: uuid("session_id").references(() => playSessions.id, {
       onDelete: "set null",
     }),
+    /*
+      Bài dạng link: năm cột chụp lại nội dung trang Ở THỜI ĐIỂM ĐĂNG.
+
+      Không đi lấy lại mỗi lần hiển thị, vì như thế là mỗi người mở bảng
+      tin lại bắn một yêu cầu sang trang của người ta — vừa chậm, vừa
+      hỏng hẳn khi trang kia chết. Chụp lại một lần thì thẻ vẫn còn đọc
+      được cả khi bài gốc đã bị gỡ.
+
+      `link_image` trỏ vào kho của MÌNH, không phải ảnh gốc bên kia —
+      xem ghi chú trong `supabase/06-bai-dang-link.sql`.
+    */
+    linkUrl: text("link_url"),
+    linkTitle: text("link_title"),
+    linkDesc: text("link_desc"),
+    linkImage: text("link_image"),
+    linkSite: text("link_site"),
     /** Đếm sẵn để bảng tin không phải join đếm mỗi lần đọc. */
     commentCount: integer("comment_count").notNull().default(0),
     reactionCount: integer("reaction_count").notNull().default(0),

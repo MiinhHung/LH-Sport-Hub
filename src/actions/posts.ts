@@ -13,6 +13,7 @@ import {
   type PostTypeKey,
   type ReactionKey,
 } from "@/lib/constants";
+import { docXemTruoc, taiAnhXemTruoc } from "@/lib/link-preview";
 import { notify } from "@/lib/notifications";
 import { deleteImage, uploadImage, type UploadedImage } from "@/lib/storage";
 import {
@@ -21,6 +22,7 @@ import {
   formDataToObject,
   postSchema,
   reactionSchema,
+  xemTruocLinkSchema,
 } from "@/lib/validation";
 import { failure, runAction, success, type ActionState } from "./types";
 
@@ -32,6 +34,42 @@ function revalidateFeed() {
 function excerpt(text: string, max = 70) {
   const clean = text.replace(/\s+/g, " ").trim();
   return clean.length > max ? `${clean.slice(0, max)}…` : clean;
+}
+
+/* ------------------------------------------------------------------ */
+/* Xem truoc link                                                      */
+/* ------------------------------------------------------------------ */
+
+export type KetQuaXemTruoc =
+  | { ok: true; url: string; tieuDe: string; moTa: string | null; anhNguon: string | null; ten: string }
+  | { ok: false; loi: string };
+
+/**
+ * Đọc thông tin một đường dẫn để dựng thẻ xem trước lúc soạn bài.
+ *
+ * ĐÒI ĐĂNG NHẬP, dù chỉ là đọc. Thiếu `requireActor` thì đây thành một
+ * điểm cho người lạ sai máy chủ mình đi tải bất kỳ địa chỉ nào — chính
+ * là thứ mà phần chặn SSRF trong `link-preview.ts` đang cố ngăn. Chặn
+ * địa chỉ nội bộ là lớp hai; lớp một là chỉ người trong team gọi được.
+ */
+export async function xemTruocLinkAction(
+  url: string,
+): Promise<KetQuaXemTruoc> {
+  try {
+    await requireActor();
+
+    const parsed = xemTruocLinkSchema.safeParse({ url });
+    if (!parsed.success) {
+      return { ok: false, loi: "Đường dẫn không đúng định dạng." };
+    }
+
+    const d = await docXemTruoc(parsed.data.url);
+    return { ok: true, ...d };
+  } catch (error) {
+    if (error instanceof AppError) return { ok: false, loi: error.message };
+    console.error("[link] xem trước thất bại:", error);
+    return { ok: false, loi: "Không đọc được trang này." };
+  }
 }
 
 /* ------------------------------------------------------------------ */
@@ -48,6 +86,7 @@ export async function createPostAction(
     const raw = formDataToObject(formData);
     if (raw.challengeId === "") raw.challengeId = null;
     if (raw.sessionId === "") raw.sessionId = null;
+    if (raw.linkUrl === "") raw.linkUrl = null;
 
     const parsed = postSchema.safeParse(raw);
     if (!parsed.success) {
@@ -80,6 +119,45 @@ export async function createPostAction(
       throw error;
     }
 
+    /*
+      BÀI DẠNG LINK: ĐỌC LẠI Ở SERVER, KHÔNG TIN THỨ TRÌNH DUYỆT GỬI LÊN.
+
+      Ô soạn bài có gọi `xemTruocLinkAction` để hiện thẻ xem trước, nhưng
+      kết quả đó CHỈ để người đăng nhìn. Nếu nhận thẳng tiêu đề và ảnh từ
+      form thì ai cũng gửi được một bài mang tiêu đề "Thông báo của ban
+      quản trị" kèm ảnh bất kỳ, trỏ về một trang khác hẳn.
+
+      Chỉ `linkUrl` là dữ liệu từ người dùng. Mọi thứ còn lại server tự
+      đi đọc lại.
+    */
+    let link: {
+      url: string;
+      tieuDe: string;
+      moTa: string | null;
+      anh: string | null;
+      ten: string;
+    } | null = null;
+
+    if (input.type === "link" && input.linkUrl) {
+      const d = await docXemTruoc(input.linkUrl);
+      let anh: string | null = null;
+
+      if (d.anhNguon) {
+        // Ảnh xem trước là thứ "có thì tốt": trang kia chậm hay chặn thì
+        // bài vẫn đăng được, chỉ là thẻ không có ảnh.
+        const tep = await taiAnhXemTruoc(d.anhNguon);
+        if (tep) {
+          try {
+            anh = (await uploadImage(tep, "links", "post")).url;
+          } catch (error) {
+            console.error("[link] không lưu được ảnh xem trước:", error);
+          }
+        }
+      }
+
+      link = { url: d.url, tieuDe: d.tieuDe, moTa: d.moTa, anh, ten: d.ten };
+    }
+
     const postId = await db.transaction(async (tx) => {
       const [created] = await tx
         .insert(posts)
@@ -91,6 +169,11 @@ export async function createPostAction(
             : input.type) as PostTypeKey,
           challengeId: input.challengeId,
           sessionId: input.sessionId,
+          linkUrl: link?.url ?? null,
+          linkTitle: link?.tieuDe ?? null,
+          linkDesc: link?.moTa ?? null,
+          linkImage: link?.anh ?? null,
+          linkSite: link?.ten ?? null,
         })
         .returning({ id: posts.id });
 

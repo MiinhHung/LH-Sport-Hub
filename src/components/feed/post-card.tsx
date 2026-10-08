@@ -1,4 +1,5 @@
-import { CalendarDays, Pin, Swords } from "lucide-react";
+import { CalendarDays, Link as LinkIcon, Pin, Swords } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 
 import { LinkHoSo } from "@/components/thanh-vien/link-ho-so";
@@ -10,6 +11,80 @@ import { cn, formatDateTime, timeAgo } from "@/lib/utils";
 import { LuoiAnh } from "./luoi-anh";
 import { PostInteractions } from "./post-interactions";
 import { PostMenu } from "./post-menu";
+
+/**
+ * Thẻ xem trước của một bài dạng link.
+ *
+ * NỘI DUNG LÀ BẢN CHỤP LÚC ĐĂNG, không đi lấy lại mỗi lần hiển thị. Lấy
+ * lại nghĩa là mỗi người mở bảng tin lại bắn một yêu cầu sang trang của
+ * người ta — vừa chậm, vừa hỏng hẳn khi trang kia chết. Bản chụp thì
+ * vẫn đọc được cả khi bài gốc đã bị gỡ.
+ *
+ * Ảnh trỏ vào kho của mình nên `next/image` dùng được bình thường, và
+ * `remotePatterns` vẫn khoá đúng một host. Xem
+ * `supabase/06-bai-dang-link.sql`.
+ *
+ * `rel="noopener"` là bắt buộc với `target="_blank"`: thiếu nó thì trang
+ * mở ra đọc được `window.opener` và đổi được địa chỉ tab gốc.
+ */
+function TheLink({
+  url,
+  tieuDe,
+  moTa,
+  anh,
+  ten,
+}: {
+  url: string;
+  tieuDe: string | null;
+  moTa: string | null;
+  anh: string | null;
+  ten: string | null;
+}) {
+  let mien = ten;
+  if (!mien) {
+    try {
+      mien = new URL(url).hostname.replace(/^www\./, "");
+    } catch {
+      mien = url;
+    }
+  }
+
+  return (
+    <a
+      href={url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="group mt-3 flex overflow-hidden rounded-xl border border-ink-800 bg-ink-850 transition-colors hover:border-ink-700 hover:bg-ink-900"
+    >
+      {anh && (
+        <span className="relative hidden w-40 shrink-0 self-stretch sm:block">
+          <Image
+            src={anh}
+            alt=""
+            fill
+            sizes="160px"
+            className="object-cover"
+          />
+        </span>
+      )}
+
+      <span className="min-w-0 flex-1 p-3.5">
+        <span className="flex items-center gap-1.5 text-[10.5px] font-bold tracking-[0.1em] text-ink-500 uppercase">
+          <LinkIcon className="size-3" aria-hidden />
+          {mien}
+        </span>
+        <span className="mt-1.5 line-clamp-2 block text-[15px] leading-snug font-bold text-ink-100 transition-colors group-hover:text-link">
+          {tieuDe ?? url}
+        </span>
+        {moTa && (
+          <span className="mt-1 line-clamp-2 block text-[13px] leading-relaxed text-ink-500">
+            {moTa}
+          </span>
+        )}
+      </span>
+    </a>
+  );
+}
 
 export function PostCard({
   post,
@@ -92,9 +167,23 @@ export function PostCard({
         </header>
 
         {/* Nội dung — render dạng văn bản thuần, không cho HTML của người dùng */}
-        <p className="mt-3 text-[15px] leading-relaxed break-words whitespace-pre-wrap text-ink-300">
-          {post.content}
-        </p>
+        {/* Bài dạng link được phép không có lời dẫn — đừng chừa một thẻ
+            `p` rỗng mang `mt-3`, nó đẩy thẻ link xuống một quãng vô cớ. */}
+        {post.content.trim().length > 0 && (
+          <p className="mt-3 text-[15px] leading-relaxed break-words whitespace-pre-wrap text-ink-300">
+            {post.content}
+          </p>
+        )}
+
+        {post.linkUrl && (
+          <TheLink
+            url={post.linkUrl}
+            tieuDe={post.linkTitle}
+            moTa={post.linkDesc}
+            anh={post.linkImage}
+            ten={post.linkSite}
+          />
+        )}
 
         <LuoiAnh media={post.media} />
 
