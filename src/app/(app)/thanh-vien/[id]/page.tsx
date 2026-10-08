@@ -158,10 +158,25 @@ export default async function MemberProfilePage({
         </SectionTitle>
 
         {keoCuaHo.length === 0 ? (
+          /*
+            Trang này ĐÃ có nút "Thách luôn" ở dải đầu. Vẫn đặt thêm một
+            nút ở đây vì khoảng cách: trên màn 390px, chỗ này nằm dưới ảnh
+            đại diện, khối đối đầu và tiêu đề mục — người đọc tới được đây
+            là đã cuộn qua gần một màn hình.
+
+            Đọc "Thách một kèo để mở hàng" rồi phải cuộn ngược lên tìm nút
+            là chỗ dễ bỏ cuộc. Đặt nút ngay tại điểm nảy ra ý định.
+          */
           <EmptyState
             icon={<Swords className="size-5" />}
             title={`${ten} chưa tham gia kèo nào`}
-            description="Thách một kèo để mở hàng."
+            description="Thách một kèo để mở hàng cho người ta."
+            action={
+              <LinkButton href={`/keo/tao?doi=${profile.id}`} variant="accent">
+                <Swords className="size-4" strokeWidth={2.5} />
+                Thách {ten}
+              </LinkButton>
+            }
           />
         ) : (
           <div className="grid gap-3">

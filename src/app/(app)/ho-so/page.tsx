@@ -5,6 +5,7 @@ import { ChallengeCard } from "@/components/challenge-card";
 import { ProfileForm } from "@/components/forms/profile-form";
 import { DaiDauHoSo } from "@/components/ho-so/dai-dau";
 import { Card, CardBody, EmptyState, SectionTitle } from "@/components/ui";
+import { LinkButton } from "@/components/ui/button";
 import { requireProfile } from "@/lib/auth";
 import type { RoleKey } from "@/lib/constants";
 import { getLeaderboard, listChallenges } from "@/lib/queries";
@@ -63,10 +64,30 @@ export default async function ProfilePage() {
         </SectionTitle>
 
         {myChallenges.length === 0 ? (
+          /*
+            Câu mô tả cũ đã chỉ đúng đường — "vào mục Kèo" — nhưng bắt
+            người ta tự đi tìm. Chỉ đường bằng chữ rồi để đó thì vẫn là
+            ngõ cụt, chỉ là ngõ cụt lịch sự hơn.
+
+            Hai nút vì có hai cách mở hàng khác hẳn nhau: nhận kèo người
+            khác đã treo (nhanh, không phải nghĩ gì), hoặc tự dựng kèo.
+            Cách thứ nhất để trước vì nó dễ hơn cho người mới.
+          */
           <EmptyState
             icon={<Swords className="size-5" />}
             title="Bạn chưa tham gia kèo nào"
-            description="Vào mục Kèo, nhận một kèo đang tìm đối là có tên trên bảng ngay."
+            description="Nhận một kèo đang tìm đối là có tên trên bảng ngay."
+            action={
+              <div className="flex flex-wrap items-center justify-center gap-2">
+                <LinkButton href="/keo" variant="accent">
+                  <Swords className="size-4" strokeWidth={2.5} />
+                  Xem kèo đang mở
+                </LinkButton>
+                <LinkButton href="/keo/tao" variant="secondary">
+                  Tự tạo kèo
+                </LinkButton>
+              </div>
+            }
           />
         ) : (
           <div className="grid gap-3">

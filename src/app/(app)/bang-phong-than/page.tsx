@@ -12,6 +12,7 @@ import {
   PageIntro,
   SectionTitle,
 } from "@/components/ui";
+import { LinkButton } from "@/components/ui/button";
 import { requireProfile } from "@/lib/auth";
 import { getLeaderboard, type LeaderboardEntry } from "@/lib/queries";
 import { cn } from "@/lib/utils";
@@ -134,10 +135,25 @@ export default async function LeaderboardPage() {
       />
 
       {played.length === 0 ? (
+        /*
+          BẢNG NÀY RỖNG SUỐT TUẦN ĐẦU, VÀ ĐÓ LÀ CHUYỆN BÌNH THƯỜNG.
+          Nó chỉ có dữ liệu sau khi một kèo được chốt kết quả và cả hai
+          bên xác nhận — sớm nhất cũng phải qua một buổi ra sân.
+
+          Nên màn hình rỗng ở đây không được là ngõ cụt. Cả trang không
+          có một lối hành động nào khác: người mới mở ra chỉ thấy cái cúp
+          với một câu thông báo, rồi thoát.
+        */
         <EmptyState
           icon={<Trophy className="size-5" />}
           title="Chưa có kèo nào chốt kết quả"
-          description="Đánh xong nhớ vào nhập kết quả, xác nhận đủ hai bên thì mới lên bảng."
+          description="Đánh xong nhớ vào nhập kết quả, xác nhận đủ hai bên thì mới lên bảng. Chưa ai mở hàng — ai thắng trận đầu là đứng đầu luôn."
+          action={
+            <LinkButton href="/keo/tao" variant="accent">
+              <Swords className="size-4" strokeWidth={2.5} />
+              Thách một kèo
+            </LinkButton>
+          }
         />
       ) : (
         <>
