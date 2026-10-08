@@ -15,7 +15,6 @@ import { ShuttleHero } from "@/components/landing/shuttle-hero";
 import { DoVui } from "@/components/landing/do-vui";
 import { type Feature } from "@/components/landing/feature-index";
 import { VongQuayMuc } from "@/components/landing/vong-quay-muc";
-import { XemCoGi } from "@/components/landing/xem-co-gi";
 import { FlowLink } from "@/components/ui/flow-button";
 import { NamCham } from "@/components/ui/nam-cham";
 import { NghiengCuon } from "@/components/ui/nghieng-cuon";
@@ -138,7 +137,6 @@ export default async function LandingPage({
             />
           </NamCham>
         }
-        secondaryAction={<XemCoGi />}
       />
 
       {/*

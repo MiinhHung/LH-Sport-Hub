@@ -330,7 +330,6 @@ export function ShuttleHero({
   headline = "LH Sport Hub",
   description,
   action,
-  secondaryAction,
   topRight,
   meta = [],
 }: {
@@ -338,7 +337,6 @@ export function ShuttleHero({
   headline?: string;
   description?: string;
   action?: React.ReactNode;
-  secondaryAction?: React.ReactNode;
   /** Góc phải trên, ngang hàng với logo. */
   topRight?: React.ReactNode;
   meta?: string[];
@@ -656,21 +654,24 @@ export function ShuttleHero({
                   </motion.p>
                 ) : null}
 
-                {(action || secondaryAction) && (
+                {action && (
                   <motion.div
                     variants={ENTER}
                     /*
-                  XẾP DỌC Ở MỌI CỠ MÀN, không còn `sm:flex-row`.
-                  Hai hành động giờ khác hẳn nhau về sức nặng — một nút
-                  tô đặc và một dòng chữ. Đặt cạnh nhau thì chúng lại
-                  trông như một cặp ngang hàng, đúng cái vừa sửa xong.
-                  Xếp dọc thì mắt đọc từ trên xuống: bấm cái này, hoặc
-                  cuộn xuống xem thêm.
-                */
-                    className="pointer-events-auto mt-6 flex flex-col items-center justify-center gap-4 sm:mt-8"
+                      MỘT HÀNH ĐỘNG DUY NHẤT.
+
+                      Trước đây chỗ này có hai: một nút tô đặc, kèm một
+                      dòng chữ "Có gì trong này" với mũi tên chỉ xuống.
+                      Dòng chữ ấy đã bỏ, nên khung chỉ còn một thứ cần
+                      xếp — giữ `flex` và `justify-center` để nút nằm
+                      giữa, không cần gì hơn.
+
+                      Việc mời cuộn xuống vẫn còn, do `ScrollCue` phía
+                      dưới gánh — con cầu vàng kèm vạch sáng.
+                    */
+                    className="pointer-events-auto mt-6 flex justify-center sm:mt-8"
                   >
                     {action}
-                    {secondaryAction}
                   </motion.div>
                 )}
               </div>

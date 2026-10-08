@@ -73,8 +73,7 @@ export default function RootLayout({
        * BẮT BUỘC PHẢI KHAI, KHÔNG PHẢI TUỲ CHỌN.
        *
        * globals.css đặt `scroll-behavior: smooth` cho cả trang, để mấy
-       * liên kết neo trong trang (ví dụ "Có gì trong này" ở trang giới
-       * thiệu) trượt tới chứ không nhảy.
+       * liên kết neo trong trang trượt tới chứ không nhảy.
        *
        * Next bản 15 trở về trước tự tắt thuộc tính đó trong lúc chuyển
        * trang rồi bật lại, nên chuyển trang vẫn nhảy phắt lên đầu. Bản

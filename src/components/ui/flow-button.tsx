@@ -162,9 +162,9 @@ export function FlowLink({
   tone?: FlowTone;
   size?: FlowSize;
 }) {
-  // Neo trong cùng trang ("#co-gi") thì dùng thẻ a thường: cho `Link` một
-  // đường dẫn chỉ có mảnh neo là bắt bộ định tuyến làm việc thừa, trong
-  // khi trình duyệt tự cuộn được.
+  // Neo trong cùng trang (href bắt đầu bằng "#") thì dùng thẻ a thường:
+  // cho `Link` một đường dẫn chỉ có mảnh neo là bắt bộ định tuyến làm
+  // việc thừa, trong khi trình duyệt tự cuộn được.
   const laNeo = typeof href === "string" && href.startsWith("#");
 
   if (laNeo) {
