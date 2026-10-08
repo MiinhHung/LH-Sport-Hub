@@ -132,7 +132,7 @@ export function CotHoiThoai({
       {/* Danh sách cuộc trò chuyện */}
       {loc.length === 0 ? (
         <div className="px-4 py-14 text-center md:px-0">
-          <MessagesSquare className="mx-auto size-6 text-ink-600" aria-hidden />
+          <MessagesSquare className="mx-auto size-6 text-ink-500" aria-hidden />
           <p className="mt-3 text-[14px] font-semibold text-ink-300">
             {tim ? "Không tìm thấy ai" : "Chưa có cuộc nào"}
           </p>

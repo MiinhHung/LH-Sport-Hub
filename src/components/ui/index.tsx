@@ -227,7 +227,7 @@ export function Dot({ tone = "slate" }: { tone?: Tone }) {
 /* ------------------------------------------------------------------ */
 
 const fieldBase =
-  "w-full rounded-xl border border-ink-700 bg-ink-900 px-3.5 py-2.5 text-[15px] text-ink-200 shadow-[var(--shadow-soft)] outline-none transition-all duration-200 placeholder:text-ink-600 hover:border-ink-600 focus:border-gold-400 focus:ring-4 focus:ring-gold-400/15 disabled:cursor-not-allowed disabled:bg-ink-850 disabled:opacity-60";
+  "w-full rounded-xl border border-ink-700 bg-ink-900 px-3.5 py-2.5 text-[15px] text-ink-200 shadow-[var(--shadow-soft)] outline-none transition-all duration-200 placeholder:text-ink-500 hover:border-ink-600 focus:border-gold-400 focus:ring-4 focus:ring-gold-400/15 disabled:cursor-not-allowed disabled:bg-ink-850 disabled:opacity-60";
 
 export function Field({
   label,

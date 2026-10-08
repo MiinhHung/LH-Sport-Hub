@@ -187,7 +187,7 @@ export function ThemeToggle({ className }: { className?: string }) {
       <span
         aria-hidden
         className={cn(
-          "absolute top-1/2 grid size-6 -translate-y-1/2 place-items-center text-ink-600 transition-opacity duration-300",
+          "absolute top-1/2 grid size-6 -translate-y-1/2 place-items-center text-ink-500 transition-opacity duration-300",
           toi ? "left-1 opacity-70" : "left-[calc(100%-1.75rem)] opacity-70",
         )}
       >

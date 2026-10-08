@@ -71,10 +71,10 @@
   --color-ink-850: #f1f4fa; /* nền ô nhập, vùng chìm */
   --color-ink-800: #e4e9f2; /* viền */
   --color-ink-700: #ccd5e4; /* viền đậm / hover */
-  --color-ink-600: #9aa6bb; /* icon mờ, chữ vô hiệu */
-  --color-ink-500: #69768d; /* chữ phụ      – 4.7:1 trên trắng */
-  --color-ink-400: #4c5a72; /* chữ thứ cấp  – 7.4:1 */
-  --color-ink-300: #33415a; /* chữ nội dung – 10.8:1 */
+  --color-ink-600: #7c8ca7; /* CHỈ phi-chữ: viền, chấm, nét sơ đồ – 3,2:1 */
+  --color-ink-500: #5f6a7f; /* chữ phụ      – 5,1:1 nền trang · 5,5:1 mặt thẻ */
+  --color-ink-400: #4c5a72; /* chữ thứ cấp  – 6,6:1 nền trang · 7,0:1 mặt thẻ */
+  --color-ink-300: #33415a; /* chữ nội dung – 9,7:1 nền trang · 10,3:1 mặt thẻ */
   --color-ink-200: #1b2942; /* chữ đậm */
   --color-ink-100: #001a4a; /* tiêu đề = navy thương hiệu */
 
@@ -207,8 +207,8 @@
   --color-ink-850: #f1f4fa;
   --color-ink-800: #e4e9f2;
   --color-ink-700: #ccd5e4;
-  --color-ink-600: #9aa6bb;
-  --color-ink-500: #69768d;
+  --color-ink-600: #7c8ca7;
+  --color-ink-500: #5f6a7f;
   --color-ink-400: #4c5a72;
   --color-ink-300: #33415a;
   --color-ink-200: #1b2942;

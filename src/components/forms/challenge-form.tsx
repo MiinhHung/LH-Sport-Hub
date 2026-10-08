@@ -483,7 +483,7 @@ export function ChallengeForm({
                         <span className="min-w-0 flex-1 truncate text-sm">
                           {m.fullName}
                           {m.department && (
-                            <span className="ml-1.5 text-xs text-ink-600">
+                            <span className="ml-1.5 text-xs text-ink-500">
                               {m.department}
                             </span>
                           )}

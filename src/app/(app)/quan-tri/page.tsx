@@ -152,7 +152,7 @@ export default async function AdminPage() {
                 {/* Hoạt động lần cuối — ở trang quản trị thì đây là thứ
                     đáng giá hơn mọi chỗ khác: nó trả lời "ai đăng ký rồi
                     bỏ đó" mà không phải đi hỏi từng người. */}
-                <p className="truncate text-[12px] text-ink-600">
+                <p className="truncate text-[12px] text-ink-500">
                   {nhanHoatDong(p.lastActiveAt)}
                 </p>
                 <div className="mt-1.5 flex flex-wrap gap-1">

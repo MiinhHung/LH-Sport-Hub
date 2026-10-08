@@ -65,7 +65,7 @@ export default function AppError({
       </div>
 
       {error.digest && (
-        <p className="mt-8 text-[11.5px] text-ink-600">
+        <p className="mt-8 text-[11.5px] text-ink-500">
           Mã lỗi <code className="font-mono">{error.digest}</code>
         </p>
       )}

@@ -91,7 +91,7 @@ export function XemTruocKeo({
 
       <p className="font-display mt-2 text-[20px] leading-tight font-bold text-ink-100">
         {title.trim() || (
-          <span className="text-ink-600 italic">Kèo chưa có tên</span>
+          <span className="text-ink-500 italic">Kèo chưa có tên</span>
         )}
       </p>
 
@@ -100,7 +100,7 @@ export function XemTruocKeo({
         <Ben nguoi={doiA} suc={spec.playersPerTeam} canhPhai={false} />
         <span
           aria-hidden
-          className="font-display shrink-0 text-[12px] font-bold text-ink-600 italic"
+          className="font-display shrink-0 text-[12px] font-bold text-ink-500 italic"
         >
           VS
         </span>
@@ -114,7 +114,7 @@ export function XemTruocKeo({
         <div className="min-w-0 flex-1">
           <p className="truncate text-[15.5px] leading-tight font-bold text-gold-700 dark:text-gold-300">
             {stakeType === "khac" && !stakeNote.trim() ? (
-              <span className="text-ink-600 italic">Chưa ghi phần thưởng</span>
+              <span className="text-ink-500 italic">Chưa ghi phần thưởng</span>
             ) : (
               formatStake(stakeType, stakeQty, stakeNote)
             )}

@@ -267,7 +267,7 @@ export default async function LeaderboardPage() {
                         {entry.currentStreak >= 2 ? (
                           <Badge tone="lime">🔥 {entry.currentStreak}</Badge>
                         ) : (
-                          <span className="text-[13px] text-ink-600">—</span>
+                          <span className="text-[13px] text-ink-500">—</span>
                         )}
                       </span>
 

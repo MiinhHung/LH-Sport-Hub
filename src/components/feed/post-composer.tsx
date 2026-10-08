@@ -242,7 +242,7 @@ export function PostComposer({
                   bên cạnh. Để dòng này lại chỉ là bày ra một lối đi
                   không tồn tại rồi để người ta tự đoán.
                 */}
-                <span className="text-[12px] text-ink-600 pointer-coarse:hidden">
+                <span className="text-[12px] text-ink-500 pointer-coarse:hidden">
                   hoặc dán ảnh thẳng vào đây
                 </span>
               </div>
@@ -289,7 +289,7 @@ export function PostComposer({
                     >
                       <ImagePlus className="size-4" />
                       Ảnh
-                      <span className="tabular text-ink-600">
+                      <span className="tabular text-ink-500">
                         {drafts.length}/{MAX_POST_IMAGES}
                       </span>
                     </button>

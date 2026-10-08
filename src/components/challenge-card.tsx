@@ -71,7 +71,7 @@ function TeamSide({
           <span
             key={i}
             aria-label="Còn trống"
-            className="grid size-8 place-items-center rounded-[9px] border border-dashed border-ink-700 text-ink-600"
+            className="grid size-8 place-items-center rounded-[9px] border border-dashed border-ink-700 text-ink-500"
           >
             +
           </span>
@@ -172,7 +172,7 @@ export function ChallengeCard({
             ) : null,
           ]}
         />
-        <span className="shrink-0 text-[10.5px] tracking-wide text-ink-600">
+        <span className="shrink-0 text-[10.5px] tracking-wide text-ink-500">
           {timeAgo(challenge.createdAt)}
         </span>
       </div>
@@ -207,7 +207,7 @@ export function ChallengeCard({
               {challenge.result.scoreA}–{challenge.result.scoreB}
             </span>
           ) : (
-            <span className="font-display text-[13px] leading-none font-bold text-ink-600 italic">
+            <span className="font-display text-[13px] leading-none font-bold text-ink-500 italic">
               vs
             </span>
           )}

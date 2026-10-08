@@ -148,7 +148,7 @@ function CotDoi({
         {Array.from({ length: Math.max(0, capacity - members.length) }).map(
           (_, i) => (
             <li key={i} className="flex items-center gap-2.5">
-              <span className="grid size-8 place-items-center rounded-[9px] border border-dashed border-ink-700 text-sm text-ink-600">
+              <span className="grid size-8 place-items-center rounded-[9px] border border-dashed border-ink-700 text-sm text-ink-500">
                 ?
               </span>
               <span className="text-[13.5px] text-ink-500">Còn trống</span>
@@ -215,7 +215,7 @@ function GiuaSan({
           thắng
         </p>
       ) : (
-        <p className="font-display text-3xl leading-none font-bold text-ink-600">
+        <p className="font-display text-3xl leading-none font-bold text-ink-500">
           VS
         </p>
       )}
