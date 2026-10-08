@@ -1,3 +1,6 @@
+import Image from "next/image";
+
+import { VideoNen } from "@/components/video-nen";
 import { HERO_VIDEO } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
@@ -14,12 +17,18 @@ const TINT = "grayscale contrast-[1.08] brightness-[0.92]";
 /**
  * Video chạy nền, phủ kín khung cha.
  *
- * Không phải client component: chỉ là thẻ <video> / <iframe> thuần nên
- * không tốn một byte JavaScript nào của app.
- *
  * Ảnh poster nằm dưới cùng và luôn hiện. Video đè lên nó, nên lúc video
  * chưa kịp chạy — hoặc trình duyệt chặn tự phát — người xem thấy ảnh chứ
  * không thấy ô đen.
+ *
+ * BẢN THÂN NÓ VẪN LÀ SERVER COMPONENT; chỉ riêng thẻ video tách ra thành
+ * `VideoNen` phía client. Lý do nằm trong ghi chú của tệp đó: `autoPlay`
+ * khiến trình duyệt tải cả 2,7MB kể cả khi khung cha mang `hidden`, mà
+ * CSS thì không ngăn được việc tải — chỉ JavaScript ngăn được.
+ *
+ * Ảnh poster đi qua `next/image` chứ không còn là `<img>` thô. Tệp gốc
+ * là `/images/feed-1.jpg` nặng 403KB, trước đây tải nguyên cỡ ở mọi nơi
+ * dùng dải này.
  */
 export function HeroVideo({
   className,
@@ -40,32 +49,26 @@ export function HeroVideo({
       style={{ containerType: "size" }}
     >
       {/* Lớp nền luôn có, kể cả khi video hỏng hoặc bị chặn. */}
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
+      <Image
         src={poster}
         alt={label}
-        className={cn("absolute inset-0 size-full object-cover", TINT)}
+        fill
+        /* Dải này hoặc chiếm trọn bề ngang (bìa cẩm nang), hoặc hơn nửa
+           màn trên máy tính (bảng thương hiệu lúc đăng nhập). */
+        sizes="(max-width: 1023px) 100vw, 55vw"
+        className={cn("object-cover", TINT)}
       />
 
       {file ? (
-        <video
-          autoPlay
-          muted
-          loop
-          playsInline
-          preload="metadata"
-          poster={poster}
-          aria-hidden
-          tabIndex={-1}
+        <VideoNen
+          src={file}
           /* Ai bật "giảm chuyển động" trong hệ điều hành thì ẩn video đi,
              ảnh poster nằm sẵn bên dưới sẽ lộ ra. Không cần JS. */
           className={cn(
             "absolute inset-0 size-full object-cover motion-reduce:hidden",
             TINT,
           )}
-        >
-          <source src={file} type="video/mp4" />
-        </video>
+        />
       ) : youtubeId ? (
         /* Trình phát YouTube luôn giữ khung 16:9 và kẻ viền đen cho phần
            thừa. Muốn phủ kín một khung không phải 16:9 thì phải phóng iframe
