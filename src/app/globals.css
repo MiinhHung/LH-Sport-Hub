@@ -65,13 +65,28 @@
     Chế độ tối không đụng tới: ở đó chữ vàng là gold-300.
   */
 
+  /*
+    ink-600 DÙNG VÀO ĐÂU.
+
+    Được: viền, chấm trạng thái, nét sơ đồ sân, và dấu ngăn cách có
+    `aria-hidden` (dấu · giữa hai mẩu thông tin, dấu – giữa hai bàn
+    thắng). Những thứ này chỉ cần 3:1, và ink-600 đạt 3,2:1.
+
+    Không được: chữ người ta phải đọc. Trước đây 17 chỗ dùng nó làm
+    chữ thật ở mức 2,31:1 — kể cả đoạn báo lỗi — vì ghi chú cũ đề là
+    "chữ vô hiệu", nghe như được miễn trừ. Chữ phụ là ink-500.
+
+    Dấu ngăn cách trước kia lấy ink-700, tức màu VIỀN, nên ra 1,48:1 —
+    nhạt tới mức mất luôn tác dụng ngăn cách.
+  */
+
   /* --- Thang trung tính (ĐẢO: số lớn = sáng) --- */
   --color-ink-950: #f6f8fc; /* nền trang */
   --color-ink-900: #ffffff; /* mặt thẻ */
   --color-ink-850: #f1f4fa; /* nền ô nhập, vùng chìm */
   --color-ink-800: #e4e9f2; /* viền */
   --color-ink-700: #ccd5e4; /* viền đậm / hover */
-  --color-ink-600: #7c8ca7; /* CHỈ phi-chữ: viền, chấm, nét sơ đồ – 3,2:1 */
+  --color-ink-600: #7c8ca7; /* phi-chữ + dấu trang trí – 3,2:1, xem dưới */
   --color-ink-500: #5f6a7f; /* chữ phụ      – 5,1:1 nền trang · 5,5:1 mặt thẻ */
   --color-ink-400: #4c5a72; /* chữ thứ cấp  – 6,6:1 nền trang · 7,0:1 mặt thẻ */
   --color-ink-300: #33415a; /* chữ nội dung – 9,7:1 nền trang · 10,3:1 mặt thẻ */

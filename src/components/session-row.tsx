@@ -72,7 +72,10 @@ function ONgay({ ngay, toi }: { ngay: Date; toi: boolean }) {
       <span
         className={cn(
           "text-[9.5px] font-bold tracking-[0.08em] uppercase",
-          toi ? "text-navy-900/70" : "text-ink-500",
+          // /75 chứ không phải /70: chữ 9,5px vẫn tính là chữ thường nên
+          // cần 4,5:1. Trên nền gold-400 thì /70 ra 4,60 — sát quá, chỉ
+          // cần đổi sắc vàng một chút là trượt. /75 ra 5,17.
+          toi ? "text-navy-900/75" : "text-ink-500",
         )}
       >
         {weekdayLabel(ngay).replace("Thứ ", "T")}
@@ -83,7 +86,10 @@ function ONgay({ ngay, toi }: { ngay: Date; toi: boolean }) {
       <span
         className={cn(
           "text-[9.5px]",
-          toi ? "text-navy-900/60" : "text-ink-500",
+          // Trước là /60 — đo được 3,62:1, không đọc nổi trên nền vàng.
+          // Thứ bậc so với dòng thứ ở trên giữ bằng độ đậm nét, không
+          // bằng độ mờ, nên hai dòng cùng /75 mà vẫn phân biệt được.
+          toi ? "text-navy-900/75" : "text-ink-500",
         )}
       >
         th{thang}

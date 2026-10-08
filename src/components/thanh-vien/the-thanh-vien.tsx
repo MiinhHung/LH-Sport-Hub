@@ -131,7 +131,7 @@ export function TheThanhVien({
               <span className="text-[12.5px] text-ink-400">
                 <span className="tabular font-bold text-ink-200">{m.wins}</span>{" "}
                 thắng
-                <span aria-hidden className="mx-1.5 text-ink-700">
+                <span aria-hidden className="mx-1.5 text-ink-600">
                   ·
                 </span>
                 <span className="tabular font-bold text-ink-200">

@@ -29,6 +29,14 @@ import { formatDate } from "@/lib/utils";
  * định thì ai cũng giống ai, và thêm một thứ nữa phải nghĩ cách cho họ
  * đổi. Nền navy là màu thương hiệu, và nó làm nền cho ảnh đại diện nổi
  * lên, vốn là mục đích duy nhất của dải này.
+ *
+ * CHỮ TRẮNG MỜ TRÊN DẢI NÀY THẤP NHẤT LÀ /50, ĐỪNG XUỐNG NỮA. Đo trên
+ * nền navy-900 #001a4a: /45 ra 4,29:1 — trượt AA, mà cỡ chữ ở đây là
+ * 11,5–12,5px nên không được tính là chữ lớn. /50 ra 5,00:1. Chỗ tối
+ * hơn của dải (#00143b) thì /45 ra 4,40 và /50 ra 5,16.
+ *
+ * Phân bậc bằng /50 và /55 chứ không bằng /45 — hai bậc này mắt vẫn
+ * phân biệt được, mà cả hai đều đọc được.
  */
 
 function O({
@@ -52,7 +60,7 @@ function O({
         {so}
       </p>
       {phu && (
-        <p className="mt-1 truncate text-[11.5px] text-white/45">{phu}</p>
+        <p className="mt-1 truncate text-[11.5px] text-white/50">{phu}</p>
       )}
     </div>
   );
@@ -161,7 +169,7 @@ export function DaiDauHoSo({
               )}
             </div>
 
-            <p className="mt-2 flex flex-wrap items-center gap-x-2 text-[12.5px] text-white/45">
+            <p className="mt-2 flex flex-wrap items-center gap-x-2 text-[12.5px] text-white/50">
               <span>Thành viên từ {formatDate(profile.createdAt)}</span>
               {hoatDong && (
                 <>

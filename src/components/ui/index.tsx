@@ -61,7 +61,7 @@ export function MetaLine({
       {shown.map((item, i) => (
         <span key={i} className="flex items-center gap-2">
           {i > 0 && (
-            <span aria-hidden className="text-ink-700">
+            <span aria-hidden className="text-ink-600">
               ·
             </span>
           )}

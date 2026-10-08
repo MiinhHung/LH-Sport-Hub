@@ -67,7 +67,7 @@ export function KhoiDoiDau({
           >
             {banThang}
           </span>
-          <span aria-hidden className="text-[26px] font-normal text-ink-700">
+          <span aria-hidden className="text-[26px] font-normal text-ink-600">
             –
           </span>
           <span
