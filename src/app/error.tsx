@@ -119,6 +119,16 @@ export default function RootError({
           >
             Thử lại
           </button>
+          {/*
+            Thẻ <a> thuần, KHÔNG dùng next/link — cố ý, xem ghi chú đầu tệp.
+            next/link kéo theo router của Next, mà router hoàn toàn có thể
+            chính là thứ vừa ném lỗi đưa người dùng tới đây. Màn hình lỗi mà
+            phụ thuộc vào thứ đang hỏng thì hỏng theo.
+
+            Đổi lại là mất điều hướng phía client ở đúng một nút, trên đúng
+            một màn hình mà ai cũng muốn rời đi càng nhanh càng tốt.
+          */}
+          {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
           <a
             href="/"
             style={{

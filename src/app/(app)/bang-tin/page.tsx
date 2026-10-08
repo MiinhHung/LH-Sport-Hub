@@ -40,6 +40,14 @@ export const metadata: Metadata = { title: "Bảng tin" };
 
 async function SideRail({ viewerId }: { viewerId: string }) {
   // Đổi bài gợi ý theo ngày, khỏi lúc nào cũng thấy đúng một bài.
+  //
+  // `react-hooks/purity` kêu vì `Date.now()` gọi trong lúc render. Luật
+  // đó đúng với component phía client, nơi render có thể chạy lại nhiều
+  // lượt và phải cho cùng kết quả. Đây là SERVER component (`async`), mỗi
+  // yêu cầu chạy đúng một lượt rồi trả HTML — đọc đồng hồ ở đây là cố ý
+  // và là cách duy nhất để "mỗi ngày một bài" hoạt động. Plugin không
+  // phân biệt được hai loại component.
+  // eslint-disable-next-line react-hooks/purity
   const tip = ARTICLES[Math.floor(Date.now() / 86_400_000) % ARTICLES.length];
 
   const [sessions, openChallenges] = await Promise.all([

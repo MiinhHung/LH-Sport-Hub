@@ -93,12 +93,6 @@
   --color-ink-200: #1b2942; /* chữ đậm */
   --color-ink-100: #001a4a; /* tiêu đề = navy thương hiệu */
 
-  /* --- Điểm nhấn.
-         `lime-glow` là tên cũ từ theme tối, nay ánh xạ sang gold.
-         Dùng mức 600 để chữ vàng trên nền trắng vẫn đạt 4.8:1. --- */
-  --color-lime-glow: #a87813;
-  --color-lime-deep: #855c12;
-
   /* --- Màu chữ dẫn liên kết / nhấn mạnh.
          Tách riêng khỏi thang navy vì navy vừa làm chữ vừa làm NỀN: đổi
          thẳng --color-navy-700 cho nền tối sẽ kéo theo mấy cái nút nền
@@ -172,11 +166,6 @@
   --color-ink-200: #e6ecf7; /* chữ đậm */
   --color-ink-100: #f4f7fd; /* tiêu đề      – 16,2:1 */
 
-  /* Vàng mức 600/700 chọn cho nền trắng, đặt lên nền tối thì chìm.
-     Lên mức 300/400: 10,4:1 và 8,4:1 trên mặt thẻ. */
-  --color-lime-glow: #e8c56a;
-  --color-lime-deep: #dcae42;
-
   --color-link: #8ab4f8; /* 8,2:1 trên mặt thẻ */
 
   /* Trên mặt thẻ tối thì ngược lại: vàng đậm chìm, phải lên mức sáng. */
@@ -229,8 +218,6 @@
   --color-ink-200: #1b2942;
   --color-ink-100: #001a4a;
 
-  --color-lime-glow: #a87813;
-  --color-lime-deep: #855c12;
   --color-link: #0d3f8a;
   --color-beam: #c8951a;
 

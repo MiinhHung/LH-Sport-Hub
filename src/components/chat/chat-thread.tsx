@@ -2,7 +2,14 @@
 
 import { ImagePlus, SendHorizontal, Smile, Trash2, X } from "lucide-react";
 import Image from "next/image";
-import { useCallback, useEffect, useRef, useState, useTransition } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useTransition,
+} from "react";
 
 import {
   deleteMessageAction,
@@ -329,7 +336,31 @@ export function ChatThread({
     });
   }
 
-  let lastDay = "";
+  /*
+    Tin nào là tin ĐẦU TIÊN của một ngày — tức tin cần vẽ vạch ngăn ngày
+    phía trên.
+
+    Trước đây chỗ này là một biến `let lastDay` bị gán lại ngay trong
+    `items.map(...)`, tức thay đổi trạng thái giữa lúc render. Chạy một
+    lượt thì đúng, nhưng React có quyền render lại một phần cây mà không
+    chạy lại từ đầu — khi đó `lastDay` mang giá trị sót của lượt trước và
+    vạch ngăn ngày rơi sai chỗ. `react-hooks/immutability` bắt đúng chỗ
+    này.
+
+    Tính trước thành một Map thì mỗi tin tra ra kết quả của riêng nó,
+    không phụ thuộc thứ tự render.
+  */
+  const mocNgay = useMemo(() => {
+    const ra = new Map<string, string>();
+    let truoc: string | null = null;
+    for (const m of items) {
+      const ngay = dayLabel(m.createdAt);
+      if (ngay !== truoc) ra.set(m.id, ngay);
+      truoc = ngay;
+    }
+    return ra;
+  }, [items]);
+
   const canSend = Boolean(draft.trim() || attachment);
 
   return (
@@ -354,13 +385,11 @@ export function ChatThread({
         <ol className="space-y-1.5">
           {items.map((m) => {
             const mine = m.senderId === viewerId;
-            const day = dayLabel(m.createdAt);
-            const showDay = day !== lastDay;
-            lastDay = day;
+            const day = mocNgay.get(m.id);
 
             return (
               <li key={m.id}>
-                {showDay && (
+                {day && (
                   <div className="flex items-center gap-4 py-6">
                     <span className="h-px flex-1 bg-ink-800" />
                     <span className="text-[10.5px] font-semibold tracking-[0.14em] text-ink-500 uppercase">
