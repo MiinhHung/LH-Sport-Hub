@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 
 import { ConTroCau } from "@/components/landing/con-tro-cau";
@@ -155,60 +156,45 @@ export default async function LandingPage({
         dần, bài viết hiện ra ngay sau lưng nó.
       */}
       <section
-        className="relative z-0 -mt-[100svh] px-5 pt-[26vh] pb-16 sm:px-10 sm:pb-24"
+        className="relative z-0 -mt-[100svh] px-5 pt-[26vh] pb-24 sm:px-10 sm:pb-32"
         style={{ background: PAPER }}
       >
-        {/*
-          KHỐI NÀY KHÔNG CÓ ẢNH, VÀ ĐÓ LÀ CHỦ Ý.
-
-          Trước đây bên phải là `khong-gian-thu-gian.webp` — một tấm ảnh
-          mẫu: hai người nước ngoài trong công viên, nắng bokeh, tông
-          hồng và xanh lá đá hẳn với navy + vàng của thương hiệu. Mà cả
-          giá trị của app là "đây là team MÌNH"; minh hoạ nó bằng ảnh
-          người lạ là nói ngược lại chính mình ngay ở khối giới thiệu.
-
-          Thay bằng ảnh thật thì vướng chỗ khác: bốn tấm ảnh thật
-          (feed-1..4) và hình bóng `danh-cau` đều ĐANG được `JourneyLine`
-          dùng — mà khối đó nằm ngay bên dưới. Đặt lại ở đây là lặp đúng
-          chừng ấy tấm, cách nhau một màn hình.
-
-          Nên bỏ hẳn ảnh. Ngay sau khối này là JourneyLine đầy ảnh, rồi
-          đoạn phim, rồi băng chuyền ảnh — một khối thuần chữ ở đây thành
-          nhịp nghỉ giữa hero 3D và chuỗi ảnh đó.
-
-          Bố cục kiểu tạp chí: tiêu đề lớn bên trái, đoạn văn bên phải,
-          ngăn bằng một vạch mảnh. Khác hẳn khối "Kết" ở cuối trang —
-          khối đó căn giữa, nên hai khối thuần chữ không bị trông giống
-          nhau.
-        */}
         <div className="mx-auto max-w-5xl">
-          <div className="grid gap-x-14 gap-y-8 lg:grid-cols-[1.08fr_1fr] lg:items-start">
+          <div className="grid items-center gap-x-14 gap-y-10 lg:grid-cols-2">
+            {/* Chỉ cột chữ nghiêng, không nghiêng cả lưới: tấm ảnh bên
+                cạnh mà xiên theo thì thành méo ảnh, không thành quán
+                tính. */}
             <NghiengCuon>
               <Eyebrow color={GOLD} viet="Light Human" />
 
               <CutReveal
                 as="h2"
-                text="Sân sau giờ làm của Light Human"
-                className="font-display mt-5 block text-[32px] leading-[1.1] font-bold sm:text-[46px]"
+                text="🌿 Không gian thư giãn của Light Human"
+                className="font-display mt-5 block text-[30px] leading-[1.14] font-bold sm:text-[40px]"
                 delay={120}
                 gachChan="Light Human"
                 mauGach={GOLD}
               />
+
+              <WordFade
+                text="LH Sport Hub không chỉ đơn thuần là một ứng dụng, mà là một điểm hẹn tinh thần cho tập thể Light Human. Đây là nơi lưu giữ những kèo hẹn thể thao, những buổi tập cuối tuần và cả những tấm ảnh đầy tiếng cười, để mọi khoảnh khắc đều được sắp xếp gọn gàng và dễ dàng tìm lại."
+                className="mt-7 text-[16px] leading-[1.8]"
+                style={{ color: MUTED }}
+                delay={420}
+              />
             </NghiengCuon>
 
-            {/* Vạch ngăn chỉ hiện khi đã thành hai cột; xếp dọc trên màn
-                hẹp thì một đường kẻ dọc chẳng ngăn cách gì cả. */}
-            <Reveal delay={200}>
-              <div
-                className="lg:border-l lg:pl-14"
-                style={{ borderColor: LINE }}
-              >
-                <WordFade
-                  text="Sáng thứ 7, Waystation. Ai rảnh thì đặt sân, ai thua thì bao nước. Chỗ này giữ lại hết: kèo đã chốt, tỉ số từng trận, và ảnh của những buổi không ai muốn về sớm."
-                  className="text-[16.5px] leading-[1.85]"
-                  style={{ color: MUTED }}
-                  delay={420}
-                />
+            <Reveal delay={120}>
+              <div className="overflow-hidden rounded-3xl ring-1 ring-ink-800">
+                <div className="relative aspect-[1024/666]">
+                  <Image
+                    src="/images/landing/khong-gian-thu-gian.webp"
+                    alt="Không gian thư giãn của team Light Human"
+                    fill
+                    sizes="(max-width: 1024px) 100vw, 480px"
+                    className="object-cover"
+                  />
+                </div>
               </div>
             </Reveal>
           </div>
