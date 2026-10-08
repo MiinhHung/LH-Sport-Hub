@@ -545,7 +545,7 @@ export function UserMenu({
         <Avatar name={fullName} src={avatarUrl} seed={id} size="md" />
         <div className="min-w-0">
           <p className="truncate text-sm font-bold text-ink-100">{fullName}</p>
-          <p className="mt-0.5 text-[11.5px] font-semibold text-gold-600 dark:text-gold-300">
+          <p className="mt-0.5 text-[11.5px] font-semibold text-gold-700 dark:text-gold-300">
             {ROLES[role].label}
           </p>
         </div>

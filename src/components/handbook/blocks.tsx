@@ -56,7 +56,7 @@ export function ContentBlock({ block }: { block: Block }) {
                     {item.title}
                   </span>
                   {item.meta && (
-                    <span className="text-[12px] font-semibold text-gold-600 dark:text-gold-300">
+                    <span className="text-[12px] font-semibold text-gold-700 dark:text-gold-300">
                       {item.meta}
                     </span>
                   )}

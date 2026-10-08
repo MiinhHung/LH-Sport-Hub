@@ -457,7 +457,7 @@ export default async function ChallengeDetailPage({
             {STAKES[stakeKey].icon}
           </span>
           <div className="min-w-0 flex-1">
-            <p className="text-[10.5px] font-bold tracking-[0.1em] text-gold-600 uppercase dark:text-gold-300">
+            <p className="text-[10.5px] font-bold tracking-[0.1em] text-gold-700 uppercase dark:text-gold-300">
               Cả đội thua bao cả đội thắng
             </p>
             <p className="mt-0.5 text-[17px] leading-tight font-bold text-gold-700 dark:text-gold-300">

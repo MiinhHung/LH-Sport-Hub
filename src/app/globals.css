@@ -46,8 +46,24 @@
   --color-gold-300: #e8c56a;
   --color-gold-400: #dcae42;
   --color-gold-500: #c8951a;
-  --color-gold-600: #a87813;
-  --color-gold-700: #855c12;
+  --color-gold-600: #a87813; /* nền; KHÔNG dùng làm màu chữ */
+  --color-gold-700: #855c12; /* màu chữ vàng trên nền sáng */
+
+  /*
+    CHỮ VÀNG TRÊN NỀN SÁNG DÙNG gold-700, KHÔNG DÙNG gold-600.
+
+    Đo bằng canvas, nền trang #f6f8fc và mặt thẻ #ffffff:
+
+      gold-600   3,68:1 trên nền trang · 3,92:1 trên thẻ  → TRƯỢT AA
+      gold-700   5,58:1 trên nền trang · 5,94:1 trên thẻ  → đạt AA
+
+    Trang giới thiệu đã tự chọn gold-700 từ trước, kèm ghi chú đo được
+    5,9:1. Phần app thì còn sót gold-600 ở 11 chỗ — cùng một thương
+    hiệu mà hai giọng, và giọng nhạt hơn thì đọc không ra. Nay thống
+    nhất một màu.
+
+    Chế độ tối không đụng tới: ở đó chữ vàng là gold-300.
+  */
 
   /* --- Thang trung tính (ĐẢO: số lớn = sáng) --- */
   --color-ink-950: #f6f8fc; /* nền trang */

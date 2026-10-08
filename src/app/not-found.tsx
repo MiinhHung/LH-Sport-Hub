@@ -25,7 +25,7 @@ export default function NotFound() {
         aria-hidden
         className="hidden h-16 w-auto object-contain opacity-70 dark:block"
       />
-      <p className="mt-6 text-[11px] font-bold tracking-[0.2em] text-gold-600 dark:text-gold-300 uppercase">
+      <p className="mt-6 text-[11px] font-bold tracking-[0.2em] text-gold-700 dark:text-gold-300 uppercase">
         Lỗi 404
       </p>
       <h1 className="font-display mt-2 text-3xl font-bold text-ink-100">

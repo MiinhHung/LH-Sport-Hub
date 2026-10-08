@@ -34,8 +34,12 @@ export const metadata: Metadata = {
 /*
  * Bảng màu của trang giới thiệu, lấy thẳng từ hệ màu của app.
  *
- * Vàng dùng gold-600 chứ không phải gold-400: #dcae42 đẹp trên nền navy
+ * Vàng dùng gold-700 chứ không phải gold-400: #dcae42 đẹp trên nền navy
  * nhưng đặt lên trắng thì chỉ còn khoảng 2:1, chữ nhỏ đọc không ra.
+ *
+ * (Ghi chú cũ viết nhầm là gold-600; hằng số GOLD bên dưới xưa nay vẫn
+ *  là gold-700. Chính chỗ ghi nhầm này là lý do phần app đi lạc sang
+ *  gold-600 — xem ghi chú ở globals.css.)
  */
 const PAPER = "#ffffff";
 const INK = "#001a4a"; // ink-100, cũng là navy thương hiệu

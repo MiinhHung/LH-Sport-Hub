@@ -201,7 +201,7 @@ export function PostCard({
                 className="inline-flex items-center gap-1.5 rounded-lg border border-ink-800 bg-ink-850 px-2.5 py-1.5 text-[12.5px] font-semibold text-ink-100 transition-colors hover:border-ink-700 hover:bg-ink-900"
               >
                 <Swords
-                  className="size-3.5 text-gold-600 dark:text-gold-300"
+                  className="size-3.5 text-gold-700 dark:text-gold-300"
                   aria-hidden
                 />
                 {post.challenge.title}
@@ -213,7 +213,7 @@ export function PostCard({
                 className="inline-flex items-center gap-1.5 rounded-lg border border-ink-800 bg-ink-850 px-2.5 py-1.5 text-[12.5px] font-semibold text-ink-100 transition-colors hover:border-ink-700 hover:bg-ink-900"
               >
                 <CalendarDays
-                  className="size-3.5 text-gold-600 dark:text-gold-300"
+                  className="size-3.5 text-gold-700 dark:text-gold-300"
                   aria-hidden
                 />
                 {post.session.title}

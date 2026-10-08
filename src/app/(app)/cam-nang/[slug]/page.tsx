@@ -45,7 +45,7 @@ export default async function ArticlePage({
       </Link>
 
       <header className="pt-6 pb-2">
-        <p className="text-[11px] font-semibold tracking-[0.2em] text-gold-600 dark:text-gold-300 uppercase">
+        <p className="text-[11px] font-semibold tracking-[0.2em] text-gold-700 dark:text-gold-300 uppercase">
           {article.category}
         </p>
         <h1 className="font-display mt-3 text-[34px] leading-[1.08] font-bold text-ink-100 sm:text-[44px]">

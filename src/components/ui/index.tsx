@@ -110,7 +110,7 @@ export function PageIntro({
       <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-4">
         <div className="min-w-0">
           {eyebrow && (
-            <p className="text-[11px] font-semibold tracking-[0.2em] text-gold-600 dark:text-gold-300 uppercase">
+            <p className="text-[11px] font-semibold tracking-[0.2em] text-gold-700 dark:text-gold-300 uppercase">
               {eyebrow}
             </p>
           )}
@@ -316,7 +316,7 @@ export function EmptyState({
   return (
     <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-ink-700 bg-ink-900/60 px-6 py-14 text-center">
       {icon && (
-        <div className="mb-4 grid size-12 place-items-center rounded-2xl bg-gold-50 dark:bg-gold-400/10 text-gold-600 dark:text-gold-300 ring-1 ring-gold-200">
+        <div className="mb-4 grid size-12 place-items-center rounded-2xl bg-gold-50 dark:bg-gold-400/10 text-gold-700 dark:text-gold-300 ring-1 ring-gold-200">
           {icon}
         </div>
       )}

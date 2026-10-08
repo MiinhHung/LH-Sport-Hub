@@ -80,7 +80,7 @@ export default async function AppLayout({
               <span className="font-display block text-[15px] font-bold text-ink-100">
                 Light Human
               </span>
-              <span className="mt-0.5 block text-[13px] font-semibold tracking-[0.14em] text-gold-600 dark:text-gold-300 uppercase">
+              <span className="mt-0.5 block text-[13px] font-semibold tracking-[0.14em] text-gold-700 dark:text-gold-300 uppercase">
                 Sport Hub
               </span>
             </span>

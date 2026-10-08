@@ -205,7 +205,7 @@ export function SessionForm({ buoi }: { buoi?: BuoiDangSua }) {
             <span>
               <span className="flex items-center gap-1.5 text-[13px] font-semibold text-ink-300">
                 <MapPin
-                  className="size-4 text-gold-600 dark:text-gold-300"
+                  className="size-4 text-gold-700 dark:text-gold-300"
                   aria-hidden
                 />
                 Hiện Google Maps
