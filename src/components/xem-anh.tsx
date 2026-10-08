@@ -1,6 +1,13 @@
 "use client";
 
-import { ChevronLeft, ChevronRight, Download, X } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Download,
+  Minus,
+  Plus,
+  X,
+} from "lucide-react";
 import Image from "next/image";
 import * as React from "react";
 
@@ -126,11 +133,87 @@ function Ruot({
   const soAnh = danhSach.length;
   const anh = danhSach[i];
 
-  const lui = React.useCallback(
-    () => setI((c) => (c - 1 + soAnh) % soAnh),
-    [soAnh],
+  const khungRef = React.useRef<HTMLDivElement>(null);
+  const anhRef = React.useRef<HTMLImageElement>(null);
+
+  /*
+    THU PHÓNG.
+
+    Ba con số gộp trong MỘT ô trạng thái chứ không tách làm ba, vì chúng
+    luôn phải đổi cùng nhau: phóng to quanh một điểm thì tỉ lệ đổi kéo
+    theo độ lệch đổi. Tách ra thì mỗi lần cuộn chuột là hai lần đặt
+    trạng thái, và lần sau đọc phải giá trị cũ của lần trước.
+  */
+  const [zoom, setZoom] = React.useState({ s: 1, x: 0, y: 0 });
+  const dangPhong = zoom.s > 1;
+
+  const TOI_DA = 4;
+
+  /**
+   * Giữ ảnh không trôi ra khỏi khung.
+   *
+   * Dùng `offsetWidth` chứ không phải `getBoundingClientRect`: sau khi
+   * đã gắn `transform` thì rect trả về kích thước ĐÃ phóng, lấy nó đi
+   * tính tiếp là cộng dồn sai số mỗi lần cuộn.
+   */
+  const kep = React.useCallback((z: { s: number; x: number; y: number }) => {
+    const el = anhRef.current;
+    const kh = khungRef.current;
+    if (!el || !kh) return z;
+    const duX = Math.max(0, (el.offsetWidth * z.s - kh.clientWidth) / 2);
+    const duY = Math.max(0, (el.offsetHeight * z.s - kh.clientHeight) / 2);
+    return {
+      s: z.s,
+      x: Math.min(duX, Math.max(-duX, z.x)),
+      y: Math.min(duY, Math.max(-duY, z.y)),
+    };
+  }, []);
+
+  /**
+   * Đổi tỉ lệ mà GIỮ NGUYÊN điểm đang trỏ.
+   *
+   * Không có phần này thì cuộn chuột luôn phóng vào giữa ảnh, nên muốn
+   * xem kỹ một góc là phải phóng rồi kéo ngược lại — thừa một thao tác
+   * ở đúng việc người ta làm nhiều nhất.
+   *
+   * `px`, `py` tính từ TÂM khung, vì `transform-origin` là tâm.
+   */
+  const datTiLe = React.useCallback(
+    (tinh: (s: number) => number, px = 0, py = 0) => {
+      setZoom((z) => {
+        const s = Math.min(TOI_DA, Math.max(1, tinh(z.s)));
+        if (s === z.s) return z;
+        // Về đúng 1 thì đưa ảnh lại giữa luôn, khỏi để lệch một chút
+        // trông như ảnh bị đặt sai chỗ.
+        if (s === 1) return { s: 1, x: 0, y: 0 };
+        const k = s / z.s;
+        return kep({ s, x: px - k * (px - z.x), y: py - k * (py - z.y) });
+      });
+    },
+    [kep],
   );
-  const toi = React.useCallback(() => setI((c) => (c + 1) % soAnh), [soAnh]);
+
+  const ganLai = React.useCallback(() => setZoom({ s: 1, x: 0, y: 0 }), []);
+
+  // Đổi ảnh thì bỏ thu phóng. Gọi thẳng trong hàm lật chứ không qua
+  // `useEffect` theo dõi `i`: làm vậy là đặt trạng thái trong effect,
+  // thêm một vòng render và `react-hooks` cũng kêu.
+  const lui = React.useCallback(() => {
+    ganLai();
+    setI((c) => (c - 1 + soAnh) % soAnh);
+  }, [soAnh, ganLai]);
+  const toi = React.useCallback(() => {
+    ganLai();
+    setI((c) => (c + 1) % soAnh);
+  }, [soAnh, ganLai]);
+
+  /** Toạ độ con trỏ tính từ tâm khung. */
+  const tuTam = (clientX: number, clientY: number) => {
+    const kh = khungRef.current;
+    if (!kh) return { x: 0, y: 0 };
+    const r = kh.getBoundingClientRect();
+    return { x: clientX - (r.left + r.width / 2), y: clientY - (r.top + r.height / 2) };
+  };
 
   /*
     Mũi tên trái/phải.
@@ -155,31 +238,154 @@ function Ruot({
     return () => window.removeEventListener("keydown", xuLy);
   }, [soAnh, lui, toi]);
 
-  /*
-    VUỐT ĐỂ LẬT ẢNH TRÊN ĐIỆN THOẠI.
+  /* ================================================================
+     CỬ CHỈ
 
-    Hai nút mũi tên vẫn có và vẫn đủ 44px, nhưng trên điện thoại thì vuốt
-    mới là cử chỉ người ta làm theo phản xạ ở một khung xem ảnh.
+     Chia theo loại thiết bị chứ không gộp vào Pointer Events: chụm hai
+     ngón cần biết khoảng cách giữa hai điểm chạm, mà Pointer Events chỉ
+     đưa từng con trỏ một nên phải tự gom lại thành cặp. Dùng thẳng sự
+     kiện chạm thì `e.touches` đã sẵn cả hai.
 
-    Ngưỡng 50px và điều kiện "ngang hơn dọc" để phân biệt với cú cuộn:
-    thiếu nó thì mỗi lần kéo trang là ảnh lại nhảy một tấm.
-  */
-  const cham = React.useRef<{ x: number; y: number } | null>(null);
+     Điện thoại: vuốt ngang lật ảnh (chỉ khi chưa phóng), chụm hai ngón
+     để phóng, một ngón kéo khi đang phóng, chạm đúp bật/tắt phóng.
+     Máy tính: cuộn chuột phóng tại con trỏ, kéo chuột di chuyển, bấm
+     đúp bật/tắt, kèm hai nút +/− cho ai không nghĩ tới chuyện cuộn.
+     ================================================================ */
+
+  const cham = React.useRef<{
+    x: number;
+    y: number;
+    kc: number; // khoảng cách hai ngón lúc bắt đầu
+    sDau: number; // tỉ lệ lúc bắt đầu chụm
+    hai: boolean;
+    daDiChuyen: boolean;
+    lanTruoc: number; // mốc thời gian chạm trước, để bắt chạm đúp
+  }>({ x: 0, y: 0, kc: 0, sDau: 1, hai: false, daDiChuyen: false, lanTruoc: 0 });
+
+  const khoangCach = (t: React.TouchList) =>
+    Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
+
   const batDauCham = (e: React.TouchEvent) => {
-    const t = e.touches[0];
-    cham.current = { x: t.clientX, y: t.clientY };
+    const c = cham.current;
+    c.daDiChuyen = false;
+    if (e.touches.length === 2) {
+      c.hai = true;
+      c.kc = khoangCach(e.touches);
+      c.sDau = zoom.s;
+    } else if (e.touches.length === 1) {
+      c.hai = false;
+      c.x = e.touches[0].clientX;
+      c.y = e.touches[0].clientY;
+    }
   };
+
+  const dangCham = (e: React.TouchEvent) => {
+    const c = cham.current;
+    if (e.touches.length === 2 && c.hai) {
+      c.daDiChuyen = true;
+      const kc = khoangCach(e.touches);
+      if (c.kc > 0) {
+        const giua = tuTam(
+          (e.touches[0].clientX + e.touches[1].clientX) / 2,
+          (e.touches[0].clientY + e.touches[1].clientY) / 2,
+        );
+        datTiLe(() => (c.sDau * kc) / c.kc, giua.x, giua.y);
+      }
+      return;
+    }
+    if (e.touches.length === 1 && !c.hai && dangPhong) {
+      // Một ngón khi đang phóng = kéo ảnh, không phải vuốt lật.
+      const t = e.touches[0];
+      const dx = t.clientX - c.x;
+      const dy = t.clientY - c.y;
+      c.x = t.clientX;
+      c.y = t.clientY;
+      if (Math.abs(dx) > 1 || Math.abs(dy) > 1) c.daDiChuyen = true;
+      setZoom((z) => kep({ ...z, x: z.x + dx, y: z.y + dy }));
+    }
+  };
+
   const ketThucCham = (e: React.TouchEvent) => {
-    const d = cham.current;
-    cham.current = null;
-    if (!d || soAnh < 2) return;
+    const c = cham.current;
+    if (c.hai) {
+      // Nhả bớt còn một ngón thì coi như xong cú chụm, không để nó
+      // biến tiếp thành một cú vuốt lật ảnh ngoài ý muốn.
+      if (e.touches.length === 0) c.hai = false;
+      return;
+    }
+
     const t = e.changedTouches[0];
-    const dx = t.clientX - d.x;
-    const dy = t.clientY - d.y;
+    const dx = t.clientX - c.x;
+    const dy = t.clientY - c.y;
+
+    // Chạm đúp: hai lần chạm gọn trong 300ms và gần như không xê dịch.
+    const bayGio = Date.now();
+    const gonGhe = Math.abs(dx) < 10 && Math.abs(dy) < 10 && !c.daDiChuyen;
+    if (gonGhe && bayGio - c.lanTruoc < 300) {
+      c.lanTruoc = 0;
+      const p = tuTam(t.clientX, t.clientY);
+      if (dangPhong) ganLai();
+      else datTiLe(() => 2.5, p.x, p.y);
+      return;
+    }
+    if (gonGhe) c.lanTruoc = bayGio;
+
+    // Vuốt lật ảnh CHỈ khi chưa phóng — đang phóng thì cú kéo ngang là
+    // để xem phần ảnh bị khuất, lật đi là cướp mất thao tác đó.
+    if (dangPhong || soAnh < 2) return;
     if (Math.abs(dx) < 50 || Math.abs(dx) < Math.abs(dy)) return;
     if (dx > 0) lui();
     else toi();
   };
+
+  /*
+    Cuộn chuột để phóng.
+
+    Nghe trên `window` với `passive: false` vì React gắn `onWheel` ở
+    chế độ passive, mà passive thì không gọi được `preventDefault` —
+    thiếu nó là cuộn chuột vừa phóng ảnh vừa cuộn trang nền phía sau.
+  */
+  React.useEffect(() => {
+    const kh = khungRef.current;
+    if (!kh) return;
+    const xuLy = (e: WheelEvent) => {
+      e.preventDefault();
+      const p = tuTam(e.clientX, e.clientY);
+      // Nhân/chia theo bước chứ không cộng trừ: phóng mà cộng đều thì
+      // lúc ảnh còn nhỏ nhảy quá nhanh, lúc đã to lại nhích từng tí.
+      const buoc = e.deltaY < 0 ? 1.15 : 1 / 1.15;
+      datTiLe((s) => s * buoc, p.x, p.y);
+    };
+    kh.addEventListener("wheel", xuLy, { passive: false });
+    return () => kh.removeEventListener("wheel", xuLy);
+  }, [datTiLe]);
+
+  // Kéo bằng chuột khi đang phóng.
+  const keoChuot = React.useRef<{ x: number; y: number } | null>(null);
+  const batDauKeo = (e: React.MouseEvent) => {
+    if (!dangPhong) return;
+    e.preventDefault();
+    keoChuot.current = { x: e.clientX, y: e.clientY };
+  };
+  React.useEffect(() => {
+    const diChuyen = (e: MouseEvent) => {
+      const d = keoChuot.current;
+      if (!d) return;
+      const dx = e.clientX - d.x;
+      const dy = e.clientY - d.y;
+      keoChuot.current = { x: e.clientX, y: e.clientY };
+      setZoom((z) => kep({ ...z, x: z.x + dx, y: z.y + dy }));
+    };
+    const tha = () => {
+      keoChuot.current = null;
+    };
+    window.addEventListener("mousemove", diChuyen);
+    window.addEventListener("mouseup", tha);
+    return () => {
+      window.removeEventListener("mousemove", diChuyen);
+      window.removeEventListener("mouseup", tha);
+    };
+  }, [kep]);
 
   if (!anh) return null;
 
@@ -187,6 +393,7 @@ function Ruot({
     <div
       className="relative flex h-full w-full flex-col"
       onTouchStart={batDauCham}
+      onTouchMove={dangCham}
       onTouchEnd={ketThucCham}
       /* Khoảng trống của chính cột này (hai bên thanh trên, dải dưới
          khi không có chú thích) cũng tính là "ngoài ảnh". */
@@ -198,9 +405,38 @@ function Ruot({
       <div className="flex shrink-0 items-center justify-between gap-2 p-3">
         <span className="rounded-full bg-navy-950/60 px-3 py-1.5 text-[13px] font-semibold tabular-nums text-white/90">
           {soAnh > 1 ? `${i + 1} / ${soAnh}` : "Ảnh"}
+          {dangPhong && ` · ${Math.round(zoom.s * 100)}%`}
         </span>
 
         <div className="flex items-center gap-2">
+          {/*
+            HAI NÚT +/− CHỈ HIỆN TRÊN THIẾT BỊ CÓ CHUỘT.
+
+            Trên điện thoại, chụm hai ngón là cử chỉ ai cũng biết nên
+            thêm nút chỉ tổ che mất ảnh. Trên máy tính thì ngược lại:
+            cuộn chuột để phóng là thói quen có thật nhưng không phải ai
+            cũng nghĩ tới, mà không có gì trên màn hình gợi ý rằng phóng
+            được.
+          */}
+          <button
+            type="button"
+            onClick={() => datTiLe((s) => s / 1.5)}
+            disabled={!dangPhong}
+            aria-label="Thu nhỏ"
+            className="hidden size-11 place-items-center rounded-full bg-navy-950/60 text-white/90 transition-colors hover:bg-navy-950/80 hover:text-white disabled:opacity-35 disabled:hover:bg-navy-950/60 pointer-fine:grid"
+          >
+            <Minus className="size-5" />
+          </button>
+          <button
+            type="button"
+            onClick={() => datTiLe((s) => s * 1.5)}
+            disabled={zoom.s >= TOI_DA}
+            aria-label="Phóng to"
+            className="hidden size-11 place-items-center rounded-full bg-navy-950/60 text-white/90 transition-colors hover:bg-navy-950/80 hover:text-white disabled:opacity-35 disabled:hover:bg-navy-950/60 pointer-fine:grid"
+          >
+            <Plus className="size-5" />
+          </button>
+
           {/* Giữ lại lối mở tệp gốc — đó là thứ DUY NHẤT mất đi khi bỏ
               `target="_blank"`, và vẫn có người cần tải ảnh về. */}
           <a
@@ -243,19 +479,42 @@ function Ruot({
         còn lại nên đoán sai cũng không méo ảnh.
       */}
       <div
+        ref={khungRef}
         onClick={(e) => {
-          if (e.target === e.currentTarget) dong();
+          // Đang phóng thì cú nhả chuột sau khi kéo cũng tính là một cú
+          // bấm — đóng ở đây là đóng ngay giữa lúc người ta đang xem.
+          if (e.target === e.currentTarget && !dangPhong) dong();
         }}
-        className="flex min-h-0 flex-1 items-center justify-center"
+        onDoubleClick={(e) => {
+          const p = tuTam(e.clientX, e.clientY);
+          if (dangPhong) ganLai();
+          else datTiLe(() => 2.5, p.x, p.y);
+        }}
+        onMouseDown={batDauKeo}
+        /* `touch-action: none` để trình duyệt đừng tự xử lý cử chỉ: thiếu
+           nó thì chụm hai ngón bị hiểu thành phóng to CẢ TRANG, còn kéo
+           một ngón thì thành cuộn. */
+        className={cn(
+          "flex min-h-0 flex-1 touch-none items-center justify-center overflow-hidden",
+          dangPhong ? "cursor-grab active:cursor-grabbing" : "cursor-zoom-in",
+        )}
       >
         <Image
+          ref={anhRef}
           key={anh.id}
           src={anh.url}
           alt={anh.alt ?? "Ảnh phóng to"}
           width={anh.width ?? 1600}
           height={anh.height ?? 1200}
           sizes="100vw"
-          className="h-auto max-h-full w-auto max-w-full object-contain"
+          draggable={false}
+          /* Không có `transition` lúc đang chụm/kéo: mỗi khung hình là
+             một giá trị mới, thêm hiệu ứng vào là ảnh chạy đuổi theo
+             ngón tay chậm một nhịp, cảm giác như bị trượt. */
+          style={{
+            transform: `translate(${zoom.x}px, ${zoom.y}px) scale(${zoom.s})`,
+          }}
+          className="h-auto max-h-full w-auto max-w-full object-contain select-none"
         />
       </div>
 
