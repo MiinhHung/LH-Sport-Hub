@@ -21,7 +21,22 @@ export const maxDuration = 60;
  * Tác vụ định kỳ. Gọi bằng:
  *   GET /api/cron  với header  Authorization: Bearer <CRON_SECRET>
  *
- * Nên chạy mỗi giờ (Vercel Cron, cron-job.org, hoặc pg_cron).
+ * CHẠY MỘT LẦN MỖI NGÀY, 01:00 UTC — xem `vercel.json` (tệp đó là JSON
+ * thuần, không viết chú thích vào được, nên lý do nằm ở đây).
+ *
+ * Vì sao mỗi ngày chứ không mỗi giờ: gói Hobby của Vercel chỉ cho cron
+ * chạy một lần/ngày, lịch mỗi giờ bị từ chối thẳng lúc deploy.
+ *
+ * Vì sao đúng 01:00 UTC: đó là 8 giờ sáng giờ Việt Nam. Buổi tập của
+ * team ở 00:00 UTC thứ 7 (7 giờ sáng VN). Chạy 01:00 UTC thứ 6 thì buổi
+ * ấy còn cách 23 tiếng — lọt đúng cửa sổ 24h của phần nhắc lịch bên
+ * dưới — nên lời nhắc tới vào sáng thứ 6 cho buổi sáng thứ 7. Đổi sang
+ * giờ khác thì vẫn chạy, chỉ là lời nhắc đến sớm hoặc muộn hơn.
+ *
+ * MỘT LẦN/NGÀY KHÔNG LÀM SÓT BUỔI NÀO: phần nhắc lịch quét cửa sổ 24h
+ * tới và đánh dấu `reminderSentAt`, mà cron cũng chạy cách nhau 24h —
+ * hai con số khớp nhau nên mọi buổi đều rơi vào đúng một lần quét.
+ *
  * Mọi bước đều idempotent — chạy lại nhiều lần không sinh dữ liệu trùng.
  */
 export async function GET(request: NextRequest) {
