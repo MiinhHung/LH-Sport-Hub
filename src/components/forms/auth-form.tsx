@@ -18,6 +18,24 @@ import { AuthField, AuthInput, AuthSubmit } from "@/components/auth/dark-field";
  * chuyển sang bảng màu nền tối cho hợp mặt kính bao ngoài.
  */
 
+/**
+ * Gợi ý trong ô email — chỉ hiện khi có khai domain công ty.
+ *
+ * KHÔNG CÓ GỢI Ý MẶC ĐỊNH. Trước đây chỗ này rơi về "ban@congty.com"
+ * mỗi khi `ALLOWED_EMAIL_DOMAINS` để trống. Mà app đang để đăng ký tự
+ * do, mail nào cũng dùng được — nên một gợi ý mang chữ "congty" lại nói
+ * ngược với sự thật, khiến người dùng Gmail tưởng mình không đăng ký
+ * được. Để trống thì nhãn "Email" phía trên đã đủ rõ.
+ *
+ * Khi nào khai domain thì gợi ý tự hiện lại, và lúc đó nó nói đúng.
+ *
+ * Gom vào một hàm vì cả ô đăng nhập lẫn ô đăng ký đều dùng — trước đây
+ * là hai dòng chép tay giống hệt, sửa một chỗ thì quên chỗ kia.
+ */
+function goiYEmail(domainHint: string | null) {
+  return domainHint ? `ten.ban${domainHint}` : undefined;
+}
+
 function Heading({ title, sub }: { title: string; sub?: string }) {
   return (
     <div className="mb-6 text-center">
@@ -113,7 +131,7 @@ export function SignInForm({ domainHint }: { domainHint: string | null }) {
             autoComplete="email"
             inputMode="email"
             required
-            placeholder={domainHint ? `ten.ban${domainHint}` : "ban@congty.com"}
+            placeholder={goiYEmail(domainHint)}
           />
         </AuthField>
 
@@ -185,7 +203,7 @@ export function SignUpForm({ domainHint }: { domainHint: string | null }) {
             autoComplete="email"
             inputMode="email"
             required
-            placeholder={domainHint ? `ten.ban${domainHint}` : "ban@congty.com"}
+            placeholder={goiYEmail(domainHint)}
           />
         </AuthField>
 
