@@ -2,6 +2,13 @@
 
 import * as React from "react";
 
+import {
+  DELAY,
+  EASE_OUT_CSS,
+  MS,
+  REVEAL_MARGIN,
+} from "@/components/landing/motion";
+
 /**
  * Chữ trồi lên từ sau một khe che, từng từ lệch nhau một nhịp.
  *
@@ -30,10 +37,10 @@ export function CutReveal({
   className,
   style,
   delay = 0,
-  step = 65,
+  step = DELAY.word,
   as: Tag = "span",
   gachChan,
-  mauGach = "#855c12",
+  mauGach = "var(--color-gold-700)",
   chay,
 }: {
   text: string;
@@ -84,7 +91,11 @@ export function CutReveal({
     const el = ref.current;
     if (!el) return;
 
-    if (typeof IntersectionObserver === "undefined") {
+    // Giảm chuyển động: chữ hiện thẳng, không khe che, không trồi lên.
+    if (
+      typeof IntersectionObserver === "undefined" ||
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ) {
       setTuChay(true);
       return;
     }
@@ -103,7 +114,7 @@ export function CutReveal({
           io.disconnect();
         }
       },
-      { rootMargin: "0px 0px -10% 0px" },
+      { rootMargin: REVEAL_MARGIN },
     );
     io.observe(el);
 
@@ -150,7 +161,7 @@ export function CutReveal({
           // JavaScript không chạy, chữ vẫn đọc bình thường.
           transform: armed && !run ? "translateY(110%)" : "none",
           transition: run
-            ? `transform 760ms cubic-bezier(0.16,1,0.3,1) ${delay + i * step}ms`
+            ? `transform ${MS.slow}ms ${EASE_OUT_CSS} ${delay + i * step}ms`
             : undefined,
         }}
       >
@@ -184,7 +195,7 @@ export function CutReveal({
               // Nét kẻ chạy SAU khi cụm chữ đã trồi lên xong, nếu không
               // thì nó gạch dưới một khoảng còn trống.
               transition: run
-                ? `transform 620ms cubic-bezier(0.16,1,0.3,1) ${delay + khoangGach.cuoi * step + 260}ms`
+                ? `transform ${MS.base}ms ${EASE_OUT_CSS} ${delay + khoangGach.cuoi * step + MS.fast}ms`
                 : undefined,
             }}
           />

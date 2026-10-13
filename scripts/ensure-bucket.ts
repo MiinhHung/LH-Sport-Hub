@@ -11,7 +11,7 @@ import { createClient } from "@supabase/supabase-js";
 
 import { UPLOAD } from "../src/lib/constants";
 
-config({ path: ".env.local" });
+config({ path: [".env.local", ".env"] });
 
 async function main() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;

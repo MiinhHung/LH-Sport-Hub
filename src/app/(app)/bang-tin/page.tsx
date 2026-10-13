@@ -1,306 +1,59 @@
-import {
-  BookOpen,
-  CalendarDays,
-  MapPin,
-  MessageSquare,
-  Plus,
-  Swords,
-  Users,
-} from "lucide-react";
 import type { Metadata } from "next";
-import Image from "next/image";
-import Link from "next/link";
-
-import { CoverArt } from "@/components/handbook/cover-art";
+import { SideRail, UpcomingStrip } from "@/components/feed/ben-phai";
+import { FeedFilter, type FeedFilterKey } from "@/components/feed/feed-filter";
 import { PostCard } from "@/components/feed/post-card";
 import { PostComposer } from "@/components/feed/post-composer";
-import {
-  AvatarStack,
-  Badge,
-  Card,
-  EmptyState,
-  PageIntro,
-  SectionTitle,
-} from "@/components/ui";
-import { BeamRing, TiltWrap } from "@/components/ui/beam-frame";
+import { CalendarDays, Swords } from "@/components/icons";
+import { EmptyState, PageIntro } from "@/components/ui";
 import { LinkButton } from "@/components/ui/button";
-import { FlowLink } from "@/components/ui/flow-button";
 import { isModerator, requireProfile } from "@/lib/auth";
-import { LIMITS, STAKES, formatStake, type StakeKey } from "@/lib/constants";
-import { ARTICLES } from "@/content/cam-nang";
+import { LIMITS } from "@/lib/constants";
 import { listFeed } from "@/lib/feed";
 import { listChallenges, listUpcomingSessions } from "@/lib/queries";
-import { formatDateTime, timeUntil } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Bảng tin" };
 
 /* ------------------------------------------------------------------ */
-/* Cột phải                                                            */
+/* Trang Bảng tin                                                     */
 /* ------------------------------------------------------------------ */
 
-async function SideRail({ viewerId }: { viewerId: string }) {
-  // Đổi bài gợi ý theo ngày, khỏi lúc nào cũng thấy đúng một bài.
-  //
-  // `react-hooks/purity` kêu vì `Date.now()` gọi trong lúc render. Luật
-  // đó đúng với component phía client, nơi render có thể chạy lại nhiều
-  // lượt và phải cho cùng kết quả. Đây là SERVER component (`async`), mỗi
-  // yêu cầu chạy đúng một lượt rồi trả HTML — đọc đồng hồ ở đây là cố ý
-  // và là cách duy nhất để "mỗi ngày một bài" hoạt động. Plugin không
-  // phân biệt được hai loại component.
-  // eslint-disable-next-line react-hooks/purity
-  const tip = ARTICLES[Math.floor(Date.now() / 86_400_000) % ARTICLES.length];
-
-  const [sessions, openChallenges] = await Promise.all([
-    listUpcomingSessions(2),
-    listChallenges({ tab: "open", userId: viewerId, limit: 3 }),
-  ]);
-
-  return (
-    <aside className="space-y-5 lg:sticky lg:top-24">
-      {/* Buổi tập sắp tới */}
-      <section aria-labelledby="sap-toi">
-        <SectionTitle
-          action={
-            <Link
-              href="/buoi-tap"
-              className="text-[12px] font-bold text-link hover:underline"
-            >
-              Tất cả
-            </Link>
-          }
-        >
-          <CalendarDays className="size-4 text-gold-500" aria-hidden />
-          <span id="sap-toi">Sắp ra sân</span>
-        </SectionTitle>
-
-        {sessions.length === 0 ? (
-          <Card className="p-4">
-            <p className="text-[13px] text-ink-500">
-              Chưa có lịch nào. Ai đứng ra đặt sân đi?
-            </p>
-            <LinkButton
-              href="/buoi-tap/tao"
-              variant="secondary"
-              size="sm"
-              className="mt-3 w-full"
-            >
-              <Plus className="size-3.5" />
-              Tạo lịch
-            </LinkButton>
-          </Card>
-        ) : (
-          <div className="space-y-2">
-            {sessions.map((s) => {
-              const going = s.attendees.filter((a) => a.status === "going");
-              return (
-                <TiltWrap key={s.id}>
-                  <Card interactive className="overflow-hidden">
-                    <Link
-                      href={`/buoi-tap/${s.id}`}
-                      className="relative block p-3.5"
-                    >
-                      <BeamRing />
-                      <div className="flex items-start justify-between gap-2">
-                        <p className="text-[14px] leading-snug font-bold text-ink-100">
-                          {s.title}
-                        </p>
-                        <span className="shrink-0 text-[11px] font-bold text-gold-700 dark:text-gold-300">
-                          {timeUntil(s.startsAt)}
-                        </span>
-                      </div>
-                      <p className="mt-1.5 flex items-center gap-1.5 text-[12px] text-ink-500">
-                        <CalendarDays className="size-3.5" aria-hidden />
-                        {formatDateTime(s.startsAt)}
-                      </p>
-                      <p className="mt-0.5 flex items-center gap-1.5 truncate text-[12px] text-ink-500">
-                        <MapPin className="size-3.5 shrink-0" aria-hidden />
-                        {s.venueName}
-                      </p>
-                      <div className="mt-2.5 flex items-center justify-between gap-2 border-t border-ink-800 pt-2.5">
-                        <AvatarStack
-                          people={going.map((a) => ({
-                            id: a.userId,
-                            fullName: a.user.fullName,
-                            avatarUrl: a.user.avatarUrl,
-                          }))}
-                          max={4}
-                          size="xs"
-                        />
-                        <span className="tabular flex items-center gap-1 text-[12px] font-bold text-ink-300">
-                          <Users
-                            className="size-3.5 text-ink-500"
-                            aria-hidden
-                          />
-                          {going.length}
-                        </span>
-                      </div>
-                    </Link>
-                  </Card>
-                </TiltWrap>
-              );
-            })}
-          </div>
-        )}
-      </section>
-
-      {/* Kèo đang tìm đối */}
-      <section aria-labelledby="keo-mo">
-        <SectionTitle
-          action={
-            <Link
-              href="/keo"
-              className="text-[12px] font-bold text-link hover:underline"
-            >
-              Tất cả
-            </Link>
-          }
-        >
-          <Swords className="size-4 text-gold-500" aria-hidden />
-          <span id="keo-mo">Kèo đang tìm đối</span>
-        </SectionTitle>
-
-        {openChallenges.length === 0 ? (
-          <Card className="p-4">
-            <p className="text-[13px] text-ink-500">
-              Chưa ai thách ai. Mở màn đi?
-            </p>
-            <LinkButton
-              href="/keo/tao"
-              variant="secondary"
-              size="sm"
-              className="mt-3 w-full"
-            >
-              <Plus className="size-3.5" />
-              Tạo kèo
-            </LinkButton>
-          </Card>
-        ) : (
-          <div className="space-y-2">
-            {openChallenges.map((c) => (
-              <TiltWrap key={c.id}>
-                <Card interactive className="overflow-hidden">
-                  <Link href={`/keo/${c.id}`} className="relative block p-3.5">
-                    <BeamRing />
-                    <p className="text-[14px] leading-snug font-bold text-ink-100">
-                      {c.title}
-                    </p>
-                    <p className="mt-1.5 flex items-center gap-1.5 text-[12px] font-semibold text-gold-700 dark:text-gold-300">
-                      <span aria-hidden>
-                        {STAKES[c.stakeType as StakeKey].icon}
-                      </span>
-                      {formatStake(
-                        c.stakeType as StakeKey,
-                        c.stakeQty,
-                        c.stakeNote,
-                      )}
-                    </p>
-                    <p className="mt-1 text-[11.5px] text-ink-500">
-                      bởi {c.creator.fullName}
-                    </p>
-                  </Link>
-                </Card>
-              </TiltWrap>
-            ))}
-          </div>
-        )}
-      </section>
-
-      {/* Cẩm nang — mỗi lần mở trang gợi một bài khác nhau */}
-      <section aria-labelledby="cam-nang-rail">
-        <SectionTitle
-          action={
-            <Link
-              href="/cam-nang"
-              className="text-[12px] font-bold text-link hover:underline"
-            >
-              Tất cả
-            </Link>
-          }
-        >
-          <BookOpen className="size-4 text-gold-500" aria-hidden />
-          <span id="cam-nang-rail">Cẩm nang</span>
-        </SectionTitle>
-
-        <Link
-          href={`/cam-nang/${tip.slug}`}
-          className="group block overflow-hidden rounded-2xl ring-1 ring-ink-800"
-        >
-          <div className="relative aspect-[16/9]">
-            {tip.cover ? (
-              <Image
-                src={tip.cover}
-                alt=""
-                fill
-                sizes="320px"
-                className="object-cover transition-transform duration-700 group-hover:scale-105"
-              />
-            ) : tip.art ? (
-              <CoverArt
-                motif={tip.art}
-                className="transition-transform duration-700 group-hover:scale-105"
-              />
-            ) : (
-              <div className="bg-gradient-navy size-full" />
-            )}
-            <div className="absolute inset-0 bg-gradient-to-t from-navy-950 via-navy-950/50 to-transparent" />
-            <div className="absolute inset-x-0 bottom-0 p-3.5">
-              <p className="text-[10px] font-semibold tracking-[0.16em] text-gold-300 uppercase">
-                {tip.category}
-              </p>
-              <p className="font-display mt-1 text-[15px] leading-tight font-bold text-white">
-                {tip.title}
-              </p>
-            </div>
-          </div>
-        </Link>
-      </section>
-    </aside>
-  );
-}
-
-/* ------------------------------------------------------------------ */
-/* Trang chủ                                                           */
-/* ------------------------------------------------------------------ */
-
-/*
- * BAO NHIÊU BÀI ĐANG HIỆN, KHÔNG PHẢI ĐANG Ở TRANG MẤY.
- *
- * Phân trang kiểu "trang 2" thì mỗi lần bấm là thay sạch bài cũ bằng bài
- * mới — đọc bảng tin kiểu đó rất khó chịu, vì cuộn xuống rồi bấm thì
- * những bài vừa đọc biến mất. Ở đây tham số là TỔNG số bài muốn thấy, nên
- * bấm "Xem thêm" là danh sách dài thêm ra, bài cũ vẫn nguyên chỗ.
- *
- * Đổi lại là mỗi lần bấm phải truy vấn lại từ đầu. Với một đội 19 người
- * thì không đáng kể, và cái được là PostCard giữ nguyên là Server
- * Component: không phải bê nó sang client chỉ để có nút tải thêm.
- */
 const MOI_LAN = LIMITS.feedPageSize;
-
-/**
- * Chặn trên, chỉ để ai đó sửa tay `?bai=999999` không kéo sập truy vấn.
- * Đây là rào an toàn, không phải giới hạn sản phẩm — 300 bài với đội này
- * là nhiều năm.
- */
 const TOI_DA = 300;
+
+function loiChao(): string {
+  const gio = Number(
+    new Intl.DateTimeFormat("en-US", {
+      timeZone: process.env.NEXT_PUBLIC_TIME_ZONE || "Asia/Ho_Chi_Minh",
+      hour: "numeric",
+      hourCycle: "h23",
+    }).format(new Date()),
+  );
+  if (gio < 11) return "Chào buổi sáng";
+  if (gio < 14) return "Chào buổi trưa";
+  if (gio < 18) return "Chào buổi chiều";
+  return "Chào buổi tối";
+}
 
 export default async function HomePage({
   searchParams,
 }: {
-  searchParams: Promise<{ bai?: string }>;
+  searchParams: Promise<{ bai?: string; loai?: string }>;
 }) {
   const profile = await requireProfile();
 
-  const { bai } = await searchParams;
+  const { bai, loai } = await searchParams;
   const xin = Number.parseInt(bai ?? "", 10);
   const soBai = Math.min(
     Number.isFinite(xin) && xin > 0 ? xin : MOI_LAN,
     TOI_DA,
   );
 
-  const { items, hasMore } = await listFeed({
-    viewerId: profile.id,
-    limit: soBai,
-  });
+  // Ba truy vấn độc lập, chạy song song
+  const [{ items, hasMore }, sessions, openChallenges] = await Promise.all([
+    listFeed({ viewerId: profile.id, limit: soBai }),
+    listUpcomingSessions(3),
+    listChallenges({ tab: "open", userId: profile.id, limit: 3 }),
+  ]);
 
   const viewer = {
     id: profile.id,
@@ -308,33 +61,64 @@ export default async function HomePage({
     avatarUrl: profile.avatarUrl,
   };
   const canModerate = isModerator(profile);
+  const tenGoi = profile.fullName.trim().split(/\s+/).at(-1) ?? "";
+
+  // Lọc theo loại bài hiển thị
+  const activeLoai = (loai as FeedFilterKey) || "all";
+  const displayedItems = items.filter((post) => {
+    if (activeLoai === "keo") return Boolean(post.challenge);
+    if (activeLoai === "tim-nguoi") return post.type === "looking_for_player";
+    if (activeLoai === "thong-bao") return post.type === "announcement";
+    return true;
+  });
 
   return (
     <div className="space-y-6">
       <PageIntro
-        eyebrow="Cộng đồng"
-        title="Bảng tin"
+        title={`${loiChao()}, ${tenGoi}`}
+        lead="Tin tức, thách đấu và những khoảnh khắc ra sân của Light Human Sport Hub hôm nay."
         action={
-          <div className="hidden gap-2 sm:flex">
-            <FlowLink href="/keo/tao" text="Tạo kèo" />
+          <div className="flex gap-2">
+            <LinkButton href="/buoi-tap/tao" variant="secondary">
+              <CalendarDays className="size-4" />
+              <span>Lên lịch</span>
+            </LinkButton>
+            <LinkButton href="/keo/tao" variant="accent">
+              <Swords className="size-4" />
+              <span>Tạo kèo</span>
+            </LinkButton>
           </div>
         }
       />
 
-      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
-        {/* Bảng tin */}
+      <div className="grid grid-cols-[minmax(0,1fr)] items-start gap-6 lg:gap-8 lg:grid-cols-[minmax(0,1fr)_300px] xl:grid-cols-[minmax(0,1fr)_320px]">
         <div className="min-w-0 space-y-4">
+          <UpcomingStrip sessions={sessions} />
+
           <PostComposer author={viewer} canAnnounce={canModerate} />
 
-          {items.length === 0 ? (
+          <FeedFilter
+            activeKey={activeLoai}
+            baseQuery={{ bai: bai ?? "" }}
+          />
+
+          {displayedItems.length === 0 ? (
             <EmptyState
-              icon={<MessageSquare className="size-5" />}
-              title="Chưa có bài nào"
-              description="Đăng bài đầu tiên đi — khoe ảnh buổi đánh hôm trước cũng được."
+              icon={<Swords className="size-5" />}
+              title={
+                activeLoai === "all"
+                  ? "Bảng tin còn trống"
+                  : "Không có bài viết nào trong mục này"
+              }
+              description={
+                activeLoai === "all"
+                  ? "Đăng bài đầu tiên đi. Khoe ảnh buổi đánh hôm trước cũng được."
+                  : "Chưa có bài viết phù hợp với bộ lọc đã chọn. Hãy thử chọn mục khác hoặc đăng bài mới."
+              }
             />
           ) : (
-            <div className="space-y-4">
-              {items.map((post, i) => (
+            <div className="space-y-3">
+              {displayedItems.map((post, i) => (
                 <div
                   key={post.id}
                   className="animate-rise"
@@ -350,19 +134,8 @@ export default async function HomePage({
             </div>
           )}
 
-          {/*
-            CHỈ NÓI "HẾT BÀI" KHI THẬT SỰ HẾT.
-
-            Bản trước in câu đó vô điều kiện trong khi `listFeed` vẫn trả
-            về `hasMore` mà trang bỏ qua. Cỡ trang là 15, nên từ bài thứ
-            16 trở đi không ai xem được, mà màn hình còn khẳng định là
-            không còn gì — vừa mất nội dung vừa nói sai.
-
-            `scroll={false}` để bấm xong vẫn đứng nguyên chỗ đang đọc,
-            thay vì bị kéo vọt lên đầu trang.
-          */}
-          {hasMore && soBai < TOI_DA && (
-            <div className="pt-2 text-center">
+          {hasMore && soBai < TOI_DA && activeLoai === "all" && (
+            <div className="pt-1 text-center">
               <LinkButton
                 href={`?bai=${Math.min(soBai + MOI_LAN, TOI_DA)}`}
                 variant="secondary"
@@ -373,23 +146,24 @@ export default async function HomePage({
             </div>
           )}
 
-          {items.length > 0 && !hasMore && (
-            <p className="pt-2 text-center text-[12px] text-ink-500">
-              Hết bài rồi. <Badge tone="slate">Mẹo</Badge> Enter để gửi bình
-              luận, Shift+Enter để xuống dòng.
+          {items.length > 0 && !hasMore && activeLoai === "all" && (
+            <p className="flex items-center gap-3 pt-2 text-[12.5px] text-ink-500">
+              <span aria-hidden className="h-px flex-1 bg-ink-800" />
+              <span>Bạn đã xem hết bảng tin</span>
+              <span aria-hidden className="h-px flex-1 bg-ink-800" />
             </p>
           )}
 
-          {hasMore && soBai >= TOI_DA && (
-            <p className="pt-2 text-center text-[12px] text-ink-500">
+          {hasMore && soBai >= TOI_DA && activeLoai === "all" && (
+            <p className="pt-2 text-center text-[12.5px] text-ink-500">
               Đang hiện {TOI_DA} bài mới nhất.
             </p>
           )}
         </div>
 
-        {/* Cột phải — ẩn trên điện thoại cho đỡ rối */}
+        {/* Cột phải */}
         <div className="hidden lg:block">
-          <SideRail viewerId={profile.id} />
+          <SideRail sessions={sessions} openChallenges={openChallenges} />
         </div>
       </div>
     </div>

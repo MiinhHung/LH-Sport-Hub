@@ -104,12 +104,44 @@
          sáng phải dùng mức đậm hơn hẳn so với nền tối. --- */
   --color-beam: #c8951a;
 
+  /* --- SHADCN & SEMANTIC DESIGN TOKENS --- */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-surface-elevated: var(--surface-elevated);
+  --color-text-muted: var(--text-muted);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-danger: var(--danger);
+  --color-danger-foreground: var(--danger-foreground);
+  --color-gold-accent: var(--gold-accent);
+
   /* --- Chữ --- */
   --font-sans:
-    var(--font-be-vietnam), ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    var(--font-sans), ui-sans-serif, system-ui, -apple-system, "Segoe UI",
     Roboto, "Helvetica Neue", Arial, sans-serif;
-  --font-display:
-    var(--font-playfair), ui-serif, Georgia, Cambria, "Times New Roman", serif;
+  --font-display: var(--font-sans);
+  --font-sport: var(--font-sport), "Barlow Condensed", ui-sans-serif, sans-serif;
+  --font-signature: var(--font-signature), "Caveat", "Dancing Script", "Segoe Script", cursive;
 
   /* --- Bo góc --- */
   --radius-xl2: 1.25rem;
@@ -132,7 +164,49 @@
 
 :root {
   color-scheme: light;
-  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+
+  /* --- SHADCN VARIABLES LIGHT MODE (Navy & Gold Warm Tint) --- */
+  --background: #fbfaf6;
+  --foreground: #001a4a;
+
+  --card: #ffffff;
+  --card-foreground: #001a4a;
+
+  --popover: #ffffff;
+  --popover-foreground: #001a4a;
+
+  --primary: #001a4a;
+  --primary-foreground: #ffffff;
+
+  --secondary: #f1f4f9;
+  --secondary-foreground: #001a4a;
+
+  --muted: #f1f4f9;
+  --muted-foreground: #5a6882;
+
+  --accent: #fef7e6;
+  --accent-foreground: #855c12;
+
+  --destructive: #e11d48;
+  --destructive-foreground: #ffffff;
+
+  --border: #e4e8f0;
+  --input: #e4e8f0;
+  --ring: #001a4a;
+
+  --surface-elevated: #ffffff;
+  --text-muted: #64748b;
+  --success: #059669;
+  --success-foreground: #ffffff;
+  --warning: #d97706;
+  --warning-foreground: #ffffff;
+  --danger: #e11d48;
+  --danger-foreground: #ffffff;
+  --gold-accent: #c8951a;
+  --gold-accent-hover: #b48312;
+
+  --radius: 0.75rem;
 }
 
 /* ==================================================================
@@ -170,6 +244,46 @@
 
   /* Trên mặt thẻ tối thì ngược lại: vàng đậm chìm, phải lên mức sáng. */
   --color-beam: #e8c56a;
+
+  /* --- SHADCN VARIABLES DARK MODE --- */
+  --background: #090e1a;
+  --foreground: #f1f5f9;
+
+  --card: #0f172a;
+  --card-foreground: #f1f5f9;
+
+  --popover: #0f172a;
+  --popover-foreground: #f1f5f9;
+
+  --primary: #e8c56a;
+  --primary-foreground: #001a4a;
+
+  --secondary: #1e293b;
+  --secondary-foreground: #f1f5f9;
+
+  --muted: #1e293b;
+  --muted-foreground: #94a3b8;
+
+  --accent: #252014;
+  --accent-foreground: #e8c56a;
+
+  --destructive: #f43f5e;
+  --destructive-foreground: #ffffff;
+
+  --border: #1e293b;
+  --input: #1e293b;
+  --ring: #e8c56a;
+
+  --surface-elevated: #1e293b;
+  --text-muted: #94a3b8;
+  --success: #10b981;
+  --success-foreground: #001a4a;
+  --warning: #f59e0b;
+  --warning-foreground: #001a4a;
+  --danger: #f43f5e;
+  --danger-foreground: #ffffff;
+  --gold-accent: #e8c56a;
+  --gold-accent-hover: #f3dfa4;
 
   /* Bóng ám navy vô hình trên nền tối — đổi sang đen và đậm hơn, vì trên
      nền tối cái tách được lớp ra khỏi nền là vùng tối chứ không phải vệt
@@ -231,58 +345,19 @@
 
 html {
   -webkit-text-size-adjust: 100%;
+  /* Cuộn mượt gốc cho liên kết neo (#trong-nay-co-gi). Next tự tắt nó lúc
+     chuyển trang nhờ data-scroll-behavior="smooth" trên <html>. */
+  scroll-behavior: smooth;
 }
 
 body {
   background-color: var(--color-ink-950);
-  /* Ánh sáng ấm rất nhẹ phía trên, gợi lại gradient của logo. */
-  background-image:
-    radial-gradient(
-      ellipse 70% 40% at 50% -5%,
-      rgba(200, 149, 26, 0.09),
-      transparent 70%
-    ),
-    radial-gradient(
-      ellipse 50% 40% at 95% 5%,
-      rgba(0, 26, 74, 0.025),
-      transparent 70%
-    );
   color: var(--color-ink-300);
   font-family: var(--font-sans);
-  font-feature-settings: "cv02", "cv03";
   min-height: 100dvh;
   padding-bottom: env(safe-area-inset-bottom);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-}
-
-/* Ở nền tối, ánh vàng ấm phía trên hoá thành vệt xám bẩn — đổi sang một
-   quầng vàng mờ hơn nhiều, đủ để mép trên không phẳng lì. */
-.dark body {
-  background-image:
-    radial-gradient(
-      ellipse 70% 40% at 50% -5%,
-      rgba(220, 174, 66, 0.07),
-      transparent 70%
-    ),
-    radial-gradient(
-      ellipse 50% 40% at 95% 5%,
-      rgba(13, 63, 138, 0.14),
-      transparent 70%
-    );
-}
-
-/* Lớp nhiễu rất mảnh phá cảm giác phẳng lì của màu đặc. */
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  opacity: 0.03;
-  /* Tach thanh lop rieng de cuon khong phai ve lai. */
-  will-change: transform;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 240 240' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
 /* Kiểu chữ nền.
@@ -317,8 +392,14 @@ body::before {
   font-feature-settings: "tnum";
 }
 
+/*
+ * Chữ tiêu đề: cùng một họ chữ với phần còn lại (Plus Jakarta Sans), chỉ đậm
+ * hơn và khít hơn. Không đổi họ chữ, không kéo giãn. Xem DESIGN.md mục 3.
+ */
 .font-display {
   font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.02em;
 }
 
 /* Chữ gold chuyển sắc — chỉ dùng cho chữ lớn, không dùng cho body. */
@@ -456,9 +537,9 @@ input[type="time"]::-webkit-calendar-picker-indicator:hover {
   :root {
     scroll-behavior: auto;
   }
-  *,
-  *::before,
-  *::after {
+  *:not(.intro):not(.intro *):not([class*="intro-"]):not([class*="hero-"]):not([class*="rg-"]),
+  *:not(.intro):not(.intro *):not([class*="intro-"]):not([class*="hero-"]):not([class*="rg-"])::before,
+  *:not(.intro):not(.intro *):not([class*="intro-"]):not([class*="hero-"]):not([class*="rg-"])::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
@@ -466,87 +547,300 @@ input[type="time"]::-webkit-calendar-picker-indicator:hover {
 }
 
 /* ------------------------------------------------------------------ */
-/* Màn mở đầu của trang giới thiệu                                     */
+/* Màn mở đầu + hero của trang giới thiệu                              */
 /* ------------------------------------------------------------------ */
+/*
+ * Nhịp (mili giây, khớp INTRO_TIMING trong lib/intro.ts):
+ *      0   nhà thi đấu và sân hiện dần, người chơi nhún ở thế sẵn sàng,
+ *          bộ đếm chạy 0 -> 100% (1600ms)
+ *    480   vung vợt ra sau, 1180 nén lấy đà, 1260 bật lên; 1380 vệt
+ *          vung vợt vàng quét theo mặt vợt (nhịp chi tiết: athlete-rig.ts)
+ *   1600   đỉnh cú nhảy, chạm cầu: chớp sáng ở mặt vợt, cả cảnh rung nhẹ.
+ *          Quả cầu rời vợt, bay vòng cung về phía quả cầu của hero.
+ *   2000   nền sân bắt đầu mờ, trang chủ hiện dần bên dưới
+ *   2300+  chữ hero vào, so le 110ms
+ *   3000   quả cầu chạm đích, quả cầu hero hiện lên thay chỗ (cùng ảnh,
+ *          cùng chỗ, cùng góc), rồi tiếp tục lơ lửng như thường
+ *   3600   màn mở đầu xong hẳn
+ *
+ * Không có tấm màn kéo lên: chuyển cảnh chính là đường bay của quả cầu.
+ * Chỉ dùng transform và opacity, nên vẫn mượt cả khi main thread đang bận
+ * hydrate. `data-intro="play"` do INTRO_SCRIPT gắn trước khung hình đầu.
+ */
+.intro {
+  display: none;
+}
 
-/* Quả cầu rơi xuống rồi nảy nhẹ — chúc đế xuống như quả cầu thật. */
-@keyframes intro-drop {
-  0% {
-    opacity: 0;
-    transform: translateY(-90px) scale(0.86);
+html[data-intro="play"]:not([data-intro-done]) .intro {
+  display: block;
+  /* Phòng khi JavaScript không bao giờ tới: tự ẩn, không chặn trang. */
+  animation: intro-hide 1ms linear 3600ms forwards;
+}
+
+html[data-intro="play"] .intro[data-phase="out"] {
+  animation: intro-fade 260ms ease-out both;
+}
+
+html[data-intro="play"] {
+  /* Giữ chỗ thanh cuộn, để lúc nhả khoá cuộn trang không giật ngang. */
+  scrollbar-gutter: stable;
+}
+
+/* Khoá cuộn bằng animation, nên tự nhả kể cả khi JavaScript hỏng; bấm
+   "Bỏ qua" gắn data-intro-skip là nhả ngay. */
+html[data-intro="play"]:not([data-intro-skip]) {
+  animation: intro-lock 3600ms linear;
+}
+
+html[data-intro="play"] .intro-bg {
+  animation: intro-fade 800ms cubic-bezier(0.45, 0, 0.55, 1) 2000ms forwards;
+}
+
+/* Bố cục dọc cho điện thoại, ngang cho màn rộng hơn cao. */
+.intro-scene-d {
+  display: none;
+}
+
+@media (min-aspect-ratio: 1/1) {
+  .intro-scene-d {
+    display: block;
   }
-  60% {
-    opacity: 1;
-    transform: translateY(6px) scale(1);
-  }
-  80% {
-    transform: translateY(-4px) scale(1);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0) scale(1);
+  .intro-scene-m {
+    display: none;
   }
 }
 
-/* Chữ trồi lên từ dưới mép khối cha (khối cha có overflow-hidden). */
-@keyframes intro-rise {
+html[data-intro="play"] .intro-court {
+  animation: intro-fade-in 500ms ease-out both;
+}
+
+/* Phông nhà thi đấu. */
+html[data-intro="play"] .intro-arena {
+  animation: intro-fade-in 700ms ease-out both;
+}
+
+.intro-backword {
+  top: 16%;
+  font-size: 26vw;
+  -webkit-text-stroke: 1px rgba(232, 197, 106, 0.12);
+}
+
+/* Người chơi: dọc thì ở dưới bên trái, ngang thì đứng ở mép trái sân. */
+.intro-athlete {
+  aspect-ratio: 500 / 720;
+  height: 52vh;
+  left: 2vw;
+  bottom: 9vh;
+}
+
+@media (min-aspect-ratio: 1/1) {
+  .intro-backword {
+    top: 7%;
+    font-size: 15vw;
+  }
+  .intro-athlete {
+    height: min(68vh, 620px);
+    left: max(4vw, calc(50vw - 620px));
+    bottom: 3vh;
+  }
+}
+
+/* Viền sáng vàng như đèn rọi sau lưng. Tĩnh: vẽ một lần, lớp chỉ dịch. */
+.intro-rim {
+  filter: drop-shadow(0 0 1px rgba(255, 226, 150, 0.95))
+    drop-shadow(0 0 14px rgba(212, 160, 23, 0.45));
+}
+
+html[data-intro="play"] .intro-shake {
+  animation: intro-shake 180ms linear 1600ms;
+}
+
+/*
+ * Nhân vật đánh cầu: keyframes của từng khớp được SINH từ
+ * components/intro/athlete-rig.ts và render cùng SVG (class `rg-*`).
+ * Ở đây chỉ còn chế độ soi pose `?debug=1`.
+ */
+html[data-intro-debug] .intro {
+  /* Giữ màn mở đầu đứng lại, không tự ẩn, không mờ nền. */
+  animation: none !important;
+}
+html[data-intro-debug] .intro-bg {
+  animation: none !important;
+}
+html[data-intro-debug] .intro-skip {
+  display: none;
+}
+.rg-joint {
+  display: none;
+}
+html[data-rig-joints] .rg-joint {
+  display: inline;
+}
+
+/* Bộ đếm phần trăm thuần CSS: số nguyên được nội suy nhờ @property. */
+@property --intro-pct {
+  syntax: "<integer>";
+  inherits: false;
+  initial-value: 0;
+}
+
+.intro-pct {
+  counter-reset: intro-pct var(--intro-pct);
+}
+
+.intro-pct::after {
+  content: counter(intro-pct, decimal-leading-zero) "%";
+}
+
+html[data-intro="play"] .intro-pct {
+  animation: intro-pct 1600ms cubic-bezier(0.3, 0.6, 0.4, 1) both;
+}
+
+html[data-intro="play"] .intro-skip {
+  animation: intro-fade-in 300ms ease-out 500ms both;
+}
+
+@keyframes intro-hide {
+  to {
+    visibility: hidden;
+  }
+}
+
+@keyframes intro-lock {
+  from,
+  to {
+    overflow: hidden;
+  }
+}
+
+@keyframes intro-fade {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes intro-fade-in {
   from {
     opacity: 0;
-    transform: translateY(100%);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
   }
 }
 
-@keyframes intro-line {
-  from {
-    transform: scaleX(0);
-  }
-  to {
-    transform: scaleX(1);
-  }
-}
 
-/* Từng ký tự của dòng tiêu đề trồi lên và rõ dần. */
-@keyframes headline-char {
-  from {
-    opacity: 0;
-    transform: translateY(0.42em) rotate(2deg);
-    filter: blur(6px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) rotate(0);
-    filter: blur(0);
-  }
-}
 
-/* Dấu hiệu mời cuộn ở cuối hero: quả cầu nhún, vệt sáng chạy xuống. */
-@keyframes cue-bob {
+
+@keyframes intro-shake {
   0%,
   100% {
-    transform: translateY(0);
+    transform: none;
+  }
+  25% {
+    transform: translate(-4px, 3px);
   }
   50% {
-    transform: translateY(5px);
+    transform: translate(4px, -3px);
+  }
+  75% {
+    transform: translate(-2px, 2px);
   }
 }
 
-@keyframes cue-run {
-  0% {
-    top: -0.75rem;
-    opacity: 0;
+@keyframes intro-draw {
+  from {
+    stroke-dashoffset: 1;
   }
-  30% {
-    opacity: 1;
-  }
-  100% {
-    top: 100%;
-    opacity: 0;
+  to {
+    stroke-dashoffset: 0;
   }
 }
+
+@keyframes intro-pct {
+  to {
+    --intro-pct: 100;
+  }
+}
+
+
+/*
+ * Hero vào trang. `--i` là thứ tự so le, đặt inline trên từng phần tử.
+ * Có màn mở đầu thì chữ vào từ 2300ms, ngay dưới lớp nền đang mờ đi; bấm
+ * "Bỏ qua" thì gỡ phần cộng đó.
+ */
+.hero-in {
+  animation: hero-in 800ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(var(--i, 0) * 90ms + 60ms);
+}
+
+.hero-media {
+  animation-name: hero-media;
+  animation-duration: 1100ms;
+}
+
+html[data-intro="play"]:not([data-intro-skip]) .hero-in {
+  animation-delay: calc(var(--i, 0) * 110ms + 2300ms);
+}
+
+/*
+ * Quả cầu hero khi có màn mở đầu: không bay vào riêng nữa, mà hiện lên
+ * đúng lúc quả cầu của màn mở đầu chạm đích (3000ms). Hai ảnh trùng khít
+ * nên chỉ cần mờ chéo rất ngắn.
+ */
+html[data-intro="play"]:not([data-intro-skip]) .hero-shuttle {
+  animation: intro-fade-in 240ms linear 3000ms both;
+}
+
+/* Quả cầu hero lơ lửng rất chậm. Tách lớp với `hero-in` để hai animation
+   transform không giành nhau. */
+.hero-float {
+  animation: hero-float 6s ease-in-out infinite;
+}
+
+/* Có màn mở đầu: bắt đầu lơ lửng từ khung 0% đúng lúc chạm đích, khớp với
+   góc (-2°) và độ cao (-8px) mà quả cầu bay đáp vào. */
+html[data-intro="play"]:not([data-intro-skip]) .hero-float {
+  animation-delay: 3000ms;
+}
+
+/* Quỹ đạo nét đứt: hiện dần cùng quả cầu. */
+.hero-arc {
+  animation: intro-fade-in 900ms ease-out both;
+  animation-delay: calc(var(--i, 0) * 90ms + 60ms);
+}
+
+html[data-intro="play"]:not([data-intro-skip]) .hero-arc {
+  animation-delay: 3000ms;
+}
+
+.font-signature {
+  font-family: var(--font-signature), "Caveat", "Dancing Script", "Segoe Script", cursive;
+}
+
+@keyframes hero-in {
+  from {
+    opacity: 0;
+    transform: translateY(22px);
+  }
+}
+
+@keyframes hero-media {
+  from {
+    opacity: 0;
+    transform: scale(0.9) rotate(-8deg);
+  }
+}
+
+@keyframes hero-float {
+  0%,
+  100% {
+    transform: translateY(-8px) rotate(-2deg);
+  }
+  50% {
+    transform: translateY(8px) rotate(2deg);
+  }
+}
+
 
 /* Vệt sáng quét ngang nút gửi trong lúc server action đang chạy. */
 @keyframes nut-quet {
@@ -555,6 +849,16 @@ input[type="time"]::-webkit-calendar-picker-indicator:hover {
   }
   to {
     transform: translateX(100%);
+  }
+}
+
+/* Dải chữ ký kỷ niệm chạy ngang */
+@keyframes marquee {
+  from {
+    transform: translateX(0%);
+  }
+  to {
+    transform: translateX(-50%);
   }
 }
 
@@ -583,56 +887,35 @@ input[data-auth-input]:-webkit-autofill:focus {
 }
 
 /* ==================================================================
-   CON TRỎ QUẢ CẦU LÔNG (chỉ trang giới thiệu)
+   Trang giới thiệu: vòng focus theo nền
    ------------------------------------------------------------------
-   Lớp này do chính thành phần con trỏ gắn vào <html>, và chỉ gắn khi
-   hiệu ứng thực sự chạy — máy cảm ứng hoặc máy bật "giảm chuyển động"
-   thì không bao giờ có lớp này, nên con trỏ thật còn nguyên.
-
-   PHẢI CÓ `!important` VÀ PHẢI QUÉT CẢ CÂY CON. `cursor` tuy là thuộc
-   tính kế thừa, nhưng trình duyệt tự đặt `cursor: pointer` cho thẻ <a>,
-   và Tailwind đặt cho <button>. Chỉ khai ở gốc thì mọi nút và mọi liên
-   kết vẫn hiện bàn tay bên cạnh quả cầu — thành hai con trỏ.
+   Vòng focus mặc định (gold-500) chỉ đạt 2,7:1 trên nền trắng và mất hẳn
+   trên nền navy. Trên nền sáng của nhánh (marketing) dùng gold-700 (5,9:1),
+   trên nền navy (hero, header trong suốt, khối video) dùng gold-300.
    ================================================================== */
-
-/*
- * Vùng nào tự xin giữ con trỏ thật thì LOẠI HẲN khỏi luật này, chứ không
- * ghi đè lại bằng một luật khác. Ghi đè thì phải dùng `cursor: auto`, mà
- * như vậy sẽ xoá luôn con trỏ bàn tay nắm của trò đố vui — chỗ cần kéo
- * thả lại càng phải nói rõ là kéo được. Loại khỏi luật thì cả cây con
- * không bị đụng tới, mọi khai báo sẵn có giữ nguyên.
- */
-.con-tro-cau,
-.con-tro-cau *:not([data-con-tro-that], [data-con-tro-that] *) {
-  cursor: none !important;
+.theme-sang :focus-visible {
+  outline-color: var(--color-gold-700);
+}
+[data-landing-hero] :focus-visible,
+[data-on-navy] :focus-visible,
+header[data-solid="false"] :focus-visible {
+  outline-color: var(--color-gold-300);
 }
 
-/*
- * Hai quầng đèn nhà thi đấu ở hero: sáng lên tối xuống rất chậm, biên độ
- * nhỏ. Đủ để nền không đứng chết, chưa đủ để ai nhận ra là nó đang động —
- * đúng mức mong muốn, vì thứ đáng nhìn ở đó là quả cầu chứ không phải
- * cái nền.
- *
- * Viết bằng CSS thuần chứ không qua JavaScript: một hiệu ứng 14 giây
- * không cần đến một vòng lặp khung hình, và như vậy nó tự tắt theo
- * @media bên dưới mà không phải đọc matchMedia ở đâu cả.
- */
-@keyframes den-tho {
-  0%,
-  100% {
-    opacity: 0.82;
-  }
-  50% {
-    opacity: 1;
-  }
+/* ==================================================================
+   Bản thử /gioi-thieu-v2 (token của skill design-system)
+   ------------------------------------------------------------------
+   Nền đen đặc, nên vòng focus là trắng (đạt hơn 15:1) thay vì vàng, và
+   vùng chọn chữ là xanh lá. Chỉ áp trong khung có `data-v2`.
+   ================================================================== */
+[data-v2] {
+  color-scheme: dark;
 }
-
-.den-nha-thi-dau {
-  animation: den-tho 14s ease-in-out infinite;
+[data-v2] :focus-visible {
+  outline-color: #ffffff;
+  outline-offset: 3px;
 }
-
-@media (prefers-reduced-motion: reduce) {
-  .den-nha-thi-dau {
-    animation: none;
-  }
+[data-v2] ::selection {
+  background: #00ad4a;
+  color: #000000;
 }

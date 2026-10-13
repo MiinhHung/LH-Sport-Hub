@@ -1,4 +1,4 @@
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft } from "@/components/icons";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
@@ -24,7 +24,7 @@ export default async function EditSessionPage({
   const session = await getSessionDetail(id);
   if (!session) notFound();
 
-  // Kiểm ở trang, và `updateSessionAction` kiểm lại lần nữa — ẩn nút
+  // Kiểm ở trang, và `updateSessionAction` kiểm lại lần nữa: ẩn nút
   // "Sửa" ở trang buổi tập chỉ giấu đường đi, gõ thẳng địa chỉ vẫn vào.
   if (session.creatorId !== profile.id && !isModerator(profile)) {
     redirect(`/buoi-tap/${id}`);
@@ -49,7 +49,7 @@ export default async function EditSessionPage({
   };
 
   return (
-    <div className="mx-auto max-w-2xl space-y-5">
+    <div className="mx-auto max-w-2xl space-y-6">
       <Link
         href={`/buoi-tap/${id}`}
         className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-ink-500 transition-colors hover:text-ink-100"
@@ -59,7 +59,6 @@ export default async function EditSessionPage({
       </Link>
 
       <PageIntro
-        eyebrow="Lịch"
         title="Sửa buổi tập"
         lead="Đổi giờ hoặc đổi sân thì người đã nhận đi sẽ nhận được thông báo."
       />

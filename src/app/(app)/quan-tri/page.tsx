@@ -1,20 +1,12 @@
 import { count, desc, eq } from "drizzle-orm";
-import { ShieldCheck, Swords, Users } from "lucide-react";
+import { Lock, Swords, Users } from "@/components/icons";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
 import { db } from "@/db";
 import { auditLogs, challenges, profiles } from "@/db/schema";
 import { NhatKy } from "@/components/quan-tri/nhat-ky";
-import {
-  Avatar,
-  Badge,
-  Card,
-  PageIntro,
-  SectionTitle,
-  Stat,
-  Well,
-} from "@/components/ui";
+import { Avatar, Badge, Card, PageIntro, type Tone } from "@/components/ui";
 import { isModerator, requireProfile } from "@/lib/auth";
 import { nhanHoatDong } from "@/lib/hoat-dong";
 import { ROLES, type RoleKey } from "@/lib/constants";
@@ -23,6 +15,14 @@ import { cn } from "@/lib/utils";
 import { MemberControls } from "./member-controls";
 
 export const metadata: Metadata = { title: "Quản trị" };
+
+/** Người có quyền thì nhãn navy / vàng, thành viên thường để xám cho lặng. */
+const TONE_VAI_TRO: Record<RoleKey, Tone> = {
+  admin: "navy",
+  moderator: "navy",
+  organizer: "lime",
+  member: "slate",
+};
 
 export default async function AdminPage() {
   const me = await requireProfile();
@@ -77,13 +77,19 @@ export default async function AdminPage() {
     );
   });
 
+  const soKhoa = allProfiles.filter((x) => x.status === "suspended").length;
+
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <PageIntro
-        eyebrow="Hệ thống"
         title="Quản trị"
         lead="Quản lý thành viên, vai trò và theo dõi hoạt động."
-        action={<Badge tone="navy">{ROLES[me.role].label}</Badge>}
+        action={
+          <span className="inline-flex items-center gap-1.5 text-[12.5px] font-semibold text-ink-500">
+            Bạn đang là
+            <Badge tone="navy">{ROLES[me.role].label}</Badge>
+          </span>
+        }
       />
 
       {/*
@@ -103,97 +109,159 @@ export default async function AdminPage() {
               so: openChallenges[0]?.v ?? 0,
               Icon: Swords,
             },
-            {
-              nhan: "Tài khoản khoá",
-              so: allProfiles.filter((x) => x.status === "suspended").length,
-              Icon: ShieldCheck,
-            },
+            { nhan: "Tài khoản khoá", so: soKhoa, Icon: Lock },
           ].map(({ nhan, so, Icon }) => (
-            <div key={nhan} className="px-4 py-3.5">
-              <p className="flex items-center gap-1.5 text-[10.5px] font-bold tracking-[0.12em] text-ink-500 uppercase">
-                <Icon className="size-3.5" aria-hidden />
-                {nhan}
-              </p>
-              <p className="tabular font-display mt-1 text-[24px] leading-none font-bold text-ink-100">
-                {so}
-              </p>
+            <div
+              key={nhan}
+              className="flex items-center gap-3 px-3 py-3.5 sm:px-5 sm:py-4"
+            >
+              <span
+                aria-hidden
+                className="hidden size-10 shrink-0 place-items-center rounded-lg bg-ink-850 text-ink-300 sm:grid"
+              >
+                <Icon className="size-[18px]" />
+              </span>
+              <div className="min-w-0">
+                <p className="tabular font-display text-[24px] leading-none font-bold text-ink-100">
+                  {so}
+                </p>
+                <p className="mt-1 truncate text-[12.5px] font-medium text-ink-500">
+                  {nhan}
+                </p>
+              </div>
             </div>
           ))}
         </div>
       </Card>
 
-      {/* Thành viên */}
-      <section aria-labelledby="ql-thanh-vien">
-        <SectionTitle>
-          <span id="ql-thanh-vien">Thành viên ({allProfiles.length})</span>
-        </SectionTitle>
-
-        <Card className="divide-y divide-ink-800 overflow-hidden">
-          {dsThanhVien.map((p) => (
-            <div
-              key={p.id}
-              className={cn(
-                "flex flex-wrap items-center gap-3 p-4",
-                p.status === "suspended" && "bg-rose-50/50 dark:bg-rose-500/10",
+      <div className="grid grid-cols-[minmax(0,1fr)] items-start gap-6 lg:grid-cols-[minmax(0,1fr)_300px] xl:grid-cols-[minmax(0,1fr)_340px]">
+        {/* Thành viên */}
+        <section aria-labelledby="ql-thanh-vien" className="min-w-0">
+          <Card className="overflow-hidden">
+            <div className="flex items-center justify-between gap-3 border-b border-ink-800 px-4 py-3.5 sm:px-5">
+              <h2
+                id="ql-thanh-vien"
+                className="text-[16px] font-semibold text-ink-100"
+              >
+                Thành viên
+                <span className="tabular ml-1.5 font-semibold text-ink-500">
+                  {allProfiles.length}
+                </span>
+              </h2>
+              {soKhoa > 0 && (
+                <Badge tone="rose">
+                  <Lock className="size-3" />
+                  {soKhoa} đang khoá
+                </Badge>
               )}
-            >
-              <Avatar
-                name={p.fullName}
-                src={p.avatarUrl}
-                seed={p.id}
-                size="md"
-              />
-
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-[14.5px] font-bold text-ink-100">
-                  {p.fullName}
-                </p>
-                <p className="truncate text-[12.5px] text-ink-500">{p.email}</p>
-                {/* Hoạt động lần cuối — ở trang quản trị thì đây là thứ
-                    đáng giá hơn mọi chỗ khác: nó trả lời "ai đăng ký rồi
-                    bỏ đó" mà không phải đi hỏi từng người. */}
-                <p className="truncate text-[12px] text-ink-500">
-                  {nhanHoatDong(p.lastActiveAt)}
-                </p>
-                <div className="mt-1.5 flex flex-wrap gap-1">
-                  <Badge tone={p.role === "member" ? "slate" : "navy"}>
-                    {ROLES[p.role].label}
-                  </Badge>
-                  {p.status === "suspended" && (
-                    <Badge tone="rose">Đang khoá</Badge>
-                  )}
-                </div>
-              </div>
-
-              <div className="w-full sm:w-auto">
-                <MemberControls
-                  userId={p.id}
-                  fullName={p.fullName}
-                  role={p.role as RoleKey}
-                  status={p.status}
-                  canAssignRoles={me.role === "admin"}
-                  isSelf={p.id === me.id}
-                />
-              </div>
             </div>
-          ))}
-        </Card>
-      </section>
 
-      {/* Nhật ký hoạt động */}
-      <section aria-labelledby="audit">
-        <SectionTitle>
-          <span id="audit">Nhật ký hoạt động</span>
-        </SectionTitle>
+            <ul className="divide-y divide-ink-800">
+              {dsThanhVien.map((p) => {
+                const khoa = p.status === "suspended";
+                return (
+                  <li
+                    key={p.id}
+                    className={cn(
+                      "relative flex flex-wrap items-center gap-x-3 gap-y-2.5 px-4 py-3 sm:px-5",
+                      khoa && "bg-rose-50/60 dark:bg-rose-500/10",
+                    )}
+                  >
+                    {khoa && (
+                      <span
+                        aria-hidden
+                        className="absolute inset-y-0 left-0 w-[3px] bg-rose-500"
+                      />
+                    )}
 
-        {logs.length === 0 ? (
-          <Well>
-            <p className="text-[13.5px] text-ink-500">Chưa có hoạt động nào.</p>
-          </Well>
-        ) : (
-          <NhatKy logs={logs} nguoiTheoId={nguoiTheoId} />
-        )}
-      </section>
+                    <Avatar
+                      name={p.fullName}
+                      src={p.avatarUrl}
+                      seed={p.id}
+                      size="md"
+                      className={cn(khoa && "opacity-60 grayscale")}
+                    />
+
+                    <div className="min-w-0 flex-1">
+                      <div className="flex min-w-0 items-center gap-2">
+                        <p className="truncate text-[14px] font-semibold text-ink-100">
+                          {p.fullName}
+                        </p>
+                        {p.id === me.id && (
+                          <span className="shrink-0 text-[12px] font-medium text-ink-500">
+                            (bạn)
+                          </span>
+                        )}
+                        <Badge
+                          tone={TONE_VAI_TRO[p.role as RoleKey]}
+                          className="shrink-0"
+                        >
+                          {ROLES[p.role as RoleKey].label}
+                        </Badge>
+                        {khoa && (
+                          <Badge tone="rose" className="shrink-0">
+                            Đang khoá
+                          </Badge>
+                        )}
+                      </div>
+                      {/* Hoạt động lần cuối: ở trang quản trị thì đây là
+                          thứ đáng giá hơn mọi chỗ khác: nó trả lời "ai
+                          đăng ký rồi bỏ đó" mà không phải đi hỏi từng
+                          người. */}
+                      <p className="mt-0.5 flex min-w-0 items-center gap-1.5 text-[12.5px] text-ink-500">
+                        <span className="truncate">{p.email}</span>
+                        <span aria-hidden className="text-ink-600">
+                          ·
+                        </span>
+                        <span className="shrink-0">
+                          {nhanHoatDong(p.lastActiveAt)}
+                        </span>
+                      </p>
+                    </div>
+
+                    {/* Hàng của chính mình không có nút (MemberControls tự
+                        trả null), nên bỏ luôn ô bọc để khỏi chừa khoảng trống. */}
+                    {p.id !== me.id && (
+                      <div className="w-full pl-[52px] sm:w-auto sm:pl-0">
+                        <MemberControls
+                          userId={p.id}
+                          fullName={p.fullName}
+                          role={p.role as RoleKey}
+                          status={p.status}
+                          canAssignRoles={me.role === "admin"}
+                          isSelf={p.id === me.id}
+                        />
+                      </div>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          </Card>
+        </section>
+
+        {/* Nhật ký hoạt động */}
+        <section aria-labelledby="audit" className="lg:sticky lg:top-10">
+          <Card className="overflow-hidden">
+            <div className="flex items-center justify-between gap-3 px-4 pt-4 pb-1">
+              <h2 id="audit" className="text-[16px] font-semibold text-ink-100">
+                Nhật ký hoạt động
+              </h2>
+              <span className="text-[12.5px] font-medium text-ink-500">
+                {logs.length} việc gần nhất
+              </span>
+            </div>
+
+            {logs.length === 0 ? (
+              <p className="px-4 pt-2 pb-5 text-[13.5px] text-ink-500">
+                Chưa có hoạt động nào.
+              </p>
+            ) : (
+              <NhatKy logs={logs} nguoiTheoId={nguoiTheoId} />
+            )}
+          </Card>
+        </section>
+      </div>
     </div>
   );
 }

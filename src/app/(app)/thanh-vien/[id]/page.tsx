@@ -1,4 +1,4 @@
-import { ArrowLeft, Swords, Users } from "lucide-react";
+import { ArrowLeft, Swords } from "@/components/icons";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
@@ -74,7 +74,6 @@ export default async function MemberProfilePage({
       href={`/keo/tao?doi=${profile.id}`}
       variant="accent"
       size="sm"
-      className="gap-1.5"
     >
       <Swords className="size-4" aria-hidden />
       Thách luôn
@@ -82,10 +81,10 @@ export default async function MemberProfilePage({
   );
 
   return (
-    <div className="mx-auto max-w-3xl space-y-7">
+    <div className="mx-auto max-w-3xl space-y-6">
       <Link
         href="/thanh-vien"
-        className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-ink-500 transition-colors hover:text-ink-100"
+        className="-my-1 inline-flex items-center gap-1.5 rounded-lg py-1 text-[13px] font-semibold text-ink-500 transition-colors hover:text-ink-100"
       >
         <ArrowLeft className="size-4" aria-hidden />
         Thành viên
@@ -113,41 +112,63 @@ export default async function MemberProfilePage({
         }
       />
 
-      <KhoiDoiDau doiDau={doiDau} tenHo={ten} moi={thachLuon} />
+      <KhoiDoiDau
+        doiDau={doiDau}
+        tenHo={ten}
+        moi={thachLuon}
+        ban={{ id: me.id, fullName: me.fullName, avatarUrl: me.avatarUrl }}
+        ho={{
+          id: profile.id,
+          fullName: profile.fullName,
+          avatarUrl: profile.avatarUrl,
+        }}
+      />
 
       {banHayDanh.length > 0 && (
         <section aria-labelledby="hay-danh-cung">
-          <SectionTitle>
-            <Users className="size-4 text-gold-500" aria-hidden />
-            <span id="hay-danh-cung">Hay đánh cùng</span>
-          </SectionTitle>
-
-          <Card className="divide-y divide-ink-800">
-            {banHayDanh.map((b) => (
-              <Link
-                key={b.id}
-                href={b.id === me.id ? "/ho-so" : `/thanh-vien/${b.id}`}
-                className="flex items-center gap-3 p-3 transition-colors hover:bg-ink-850"
+          <Card className="overflow-hidden">
+            <div className="flex items-baseline justify-between gap-3 px-4 pt-4 pb-3 sm:px-5">
+              <h2
+                id="hay-danh-cung"
+                className="text-[16px] font-semibold text-ink-100"
               >
-                <Avatar
-                  name={b.fullName}
-                  src={b.avatarUrl}
-                  seed={b.id}
-                  size="sm"
-                />
-                <p className="min-w-0 flex-1 truncate text-[13.5px] font-semibold text-ink-200">
-                  {b.fullName}
-                  {b.id === me.id && (
-                    <span className="ml-1.5 text-[11px] font-bold text-link">
-                      bạn
+                Hay đánh cùng
+              </h2>
+              <span className="text-[12.5px] text-ink-500">Số trận chung</span>
+            </div>
+            <ul className="divide-y divide-ink-800 border-t border-ink-800">
+              {banHayDanh.map((b) => (
+                <li key={b.id}>
+                  <Link
+                    href={b.id === me.id ? "/ho-so" : `/thanh-vien/${b.id}`}
+                    className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-ink-850 sm:px-5"
+                  >
+                    <Avatar
+                      name={b.fullName}
+                      src={b.avatarUrl}
+                      seed={b.id}
+                      size="md"
+                    />
+                    <span className="flex min-w-0 flex-1 items-center gap-2">
+                      <span className="truncate text-[14px] font-semibold text-ink-100">
+                        {b.fullName}
+                      </span>
+                      {b.id === me.id && (
+                        <span className="shrink-0 rounded-lg bg-navy-900 px-1.5 py-px text-[11px] font-semibold text-white dark:bg-ink-700">
+                          Bạn
+                        </span>
+                      )}
                     </span>
-                  )}
-                </p>
-                <span className="tabular shrink-0 text-[12.5px] text-ink-500">
-                  {b.soTran} trận
-                </span>
-              </Link>
-            ))}
+                    <span className="shrink-0 text-[12.5px] text-ink-500">
+                      <span className="tabular font-display text-[16px] font-bold text-ink-100">
+                        {b.soTran}
+                      </span>{" "}
+                      trận
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
           </Card>
         </section>
       )}
@@ -168,12 +189,12 @@ export default async function MemberProfilePage({
             là chỗ dễ bỏ cuộc. Đặt nút ngay tại điểm nảy ra ý định.
           */
           <EmptyState
-            icon={<Swords className="size-5" />}
+            icon={<Swords className="size-6" />}
             title={`${ten} chưa tham gia kèo nào`}
             description="Thách một kèo để mở hàng cho người ta."
             action={
               <LinkButton href={`/keo/tao?doi=${profile.id}`} variant="accent">
-                <Swords className="size-4" strokeWidth={2.5} />
+                <Swords className="size-4" />
                 Thách {ten}
               </LinkButton>
             }

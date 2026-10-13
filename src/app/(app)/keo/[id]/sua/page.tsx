@@ -1,4 +1,4 @@
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft } from "@/components/icons";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
@@ -52,7 +52,7 @@ export default async function EditChallengePage({
     Buổi tập đang gắn phải luôn có trong danh sách, kể cả khi nó đã qua
     giờ — `listSelectableSessions` chỉ trả về buổi còn mở và chưa kết
     thúc. Thiếu vế này thì ô chọn không khớp giá trị nào, trình duyệt
-    hiện "— Đánh lúc nào cũng được —", và chỉ cần bấm Lưu là kèo bị gỡ
+    hiện "Đánh lúc nào cũng được", và chỉ cần bấm Lưu là kèo bị gỡ
     khỏi buổi tập mà người sửa không hề biết.
   */
   const daCo = sessions.some((s) => s.id === challenge.sessionId);
@@ -100,7 +100,7 @@ export default async function EditChallengePage({
   };
 
   return (
-    <div className="mx-auto max-w-5xl space-y-5">
+    <div className="mx-auto max-w-5xl space-y-6">
       <Link
         href={`/keo/${id}`}
         className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-ink-500 transition-colors hover:text-ink-100"
@@ -110,7 +110,6 @@ export default async function EditChallengePage({
       </Link>
 
       <PageIntro
-        eyebrow="Thách đấu"
         title="Sửa kèo"
         lead="Đổi tên, đổi điểm, đổi phần thưởng. Người trong kèo sẽ được báo nếu điều khoản thay đổi."
       />

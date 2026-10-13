@@ -1,4 +1,4 @@
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft } from "@/components/icons";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -42,7 +42,7 @@ export default async function CreateChallengePage({
   return (
     /* max-w-5xl chứ không 2xl: biểu mẫu giờ có thêm cột xem trước bên
        phải, 2xl (672px) thì hai cột chen nhau còn 350px mỗi bên. */
-    <div className="mx-auto max-w-5xl space-y-5">
+    <div className="mx-auto max-w-5xl space-y-6">
       <Link
         href="/keo"
         className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-ink-500 transition-colors hover:text-ink-100"
@@ -52,7 +52,6 @@ export default async function CreateChallengePage({
       </Link>
 
       <PageIntro
-        eyebrow="Thách đấu"
         title="Tạo kèo"
         lead="Chốt thể thức, chốt điểm, chốt ăn gì. Xong là có kèo."
       />

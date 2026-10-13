@@ -22,6 +22,7 @@ import {
   type TeamSide,
 } from "@/lib/challenge-logic";
 import { STAKES, formatStake, type StakeKey } from "@/lib/constants";
+import { settleChallenge } from "@/lib/challenge-settle";
 import { notify } from "@/lib/notifications";
 import {
   disputeSchema,
@@ -72,7 +73,7 @@ function scoreLine(
   scoreB: number | null,
 ): string | null {
   if (scoreA === null || scoreB === null) return null;
-  return `${scoreA} – ${scoreB}`;
+  return `${scoreA} - ${scoreB}`;
 }
 
 /* ------------------------------------------------------------------ */
@@ -121,7 +122,7 @@ export async function submitResultAction(
           winnerScore < challenge.pointsTarget
         ) {
           return {
-            error: `Kèo đánh tới ${challenge.pointsTarget} điểm — điểm của đội thắng phải đạt ít nhất ${challenge.pointsTarget}.`,
+            error: `Kèo đánh tới ${challenge.pointsTarget} điểm, điểm của đội thắng phải đạt ít nhất ${challenge.pointsTarget}.`,
             field: "scoreA",
           };
         }
@@ -216,94 +217,6 @@ export async function submitResultAction(
 /* ------------------------------------------------------------------ */
 /* Xac nhan ket qua -> sinh no                                         */
 /* ------------------------------------------------------------------ */
-
-/**
- * Chốt kết quả và (nếu kèo có phần thưởng) sinh khoản nợ CẤP ĐỘI:
- * cả đội thua bao cả đội thắng.
- * Dùng chung cho xác nhận thủ công và tự động xác nhận bằng cron.
- */
-export async function settleChallenge(
-  tx: Tx,
-  challengeId: string,
-  options: { confirmedBy: string | null; auto: boolean },
-) {
-  const [challenge] = await tx
-    .select()
-    .from(challenges)
-    .where(eq(challenges.id, challengeId))
-    .for("update");
-
-  if (!challenge) throw new AppError("Không tìm thấy kèo này.");
-
-  const [result] = await tx
-    .select()
-    .from(challengeResults)
-    .where(eq(challengeResults.challengeId, challengeId));
-
-  if (!result) throw new AppError("Kèo chưa có kết quả.");
-
-  const now = new Date();
-  const winningTeam = result.winningTeam as TeamSide;
-  const losingTeam = otherTeam(winningTeam);
-
-  await tx
-    .update(challengeResults)
-    .set({
-      status: "confirmed",
-      confirmedBy: options.confirmedBy,
-      confirmedAt: now,
-      autoConfirmed: options.auto,
-      updatedAt: now,
-    })
-    .where(eq(challengeResults.challengeId, challengeId));
-
-  await tx
-    .update(challenges)
-    .set({ status: "completed", completedAt: now, updatedAt: now })
-    .where(eq(challenges.id, challengeId));
-
-  const stakeType = challenge.stakeType as StakeKey;
-  // Kèo danh dự thì không ai phải bao ai.
-  const hasStake = STAKES[stakeType].createsDebt;
-
-  const participants = (await tx
-    .select()
-    .from(challengeParticipants)
-    .where(
-      eq(challengeParticipants.challengeId, challengeId),
-    )) as unknown as ParticipantLike[];
-
-  const stakeLabel = formatStake(
-    stakeType,
-    challenge.stakeQty,
-    challenge.stakeNote,
-  );
-
-  await notify(
-    tx,
-    activeParticipants(participants).map((p) => ({
-      recipientId: p.userId,
-      actorId: options.confirmedBy,
-      type: options.auto
-        ? ("result_auto_confirmed" as const)
-        : ("result_confirmed" as const),
-      title: options.auto
-        ? `Kèo "${challenge.title}" tự động chốt kết quả`
-        : `Kèo "${challenge.title}" đã chốt kết quả`,
-      message:
-        p.team === winningTeam
-          ? hasStake
-            ? `Bạn thắng! Đội kia nợ bạn ${stakeLabel}.`
-            : "Bạn thắng!"
-          : hasStake
-            ? `Đội bạn thua, nợ ${stakeLabel}.`
-            : "Đội bạn thua.",
-      href: `/keo/${challengeId}`,
-    })),
-  );
-
-  return { winningTeam, hasStake };
-}
 
 export async function confirmResultAction(
   _prev: ActionState,

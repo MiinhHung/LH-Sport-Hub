@@ -1,74 +1,95 @@
+import { cva, type VariantProps } from "class-variance-authority";
 import Link from "next/link";
-import type { ComponentProps } from "react";
+import * as React from "react";
 
 import { cn } from "@/lib/utils";
 
 /**
- * Hành động chính dùng navy thương hiệu — chữ trắng trên navy đạt 15:1.
- * Gold chỉ dùng làm nền cho nút "accent" với chữ navy; gold làm CHỮ trên
- * nền trắng thì không đủ tương phản nên tránh.
+ * Button variants chuẩn shadcn/ui với design tokens:
+ * - Primary: Navy thương hiệu đậm nét, tương phản tối đa
+ * - Accent: Vàng kim, chữ navy (accent duy nhất của app)
+ * - Secondary: Thẻ nổi viền mảnh 1px
+ * - Ghost: Tinh giản cho các hành động phụ
+ * - Destructive: Màu đỏ cảnh báo
+ * - Outline: Viền nhẹ trong suốt
  */
-const VARIANTS = {
-  primary:
-    "bg-navy-900 text-white font-semibold shadow-[var(--shadow-card)] hover:bg-navy-800 hover:shadow-[var(--shadow-lift)] active:translate-y-px active:shadow-[var(--shadow-soft)]",
-  accent:
-    "bg-gradient-gold text-navy-900 font-bold shadow-[var(--shadow-card)] hover:brightness-[1.06] hover:shadow-[var(--shadow-lift)] active:translate-y-px",
-  secondary:
-    "bg-ink-900 text-ink-200 font-medium border border-ink-700 shadow-[var(--shadow-soft)] hover:border-ink-600 hover:bg-ink-850 active:translate-y-px",
-  ghost:
-    "text-ink-400 font-medium hover:bg-ink-850 hover:text-ink-100 active:translate-y-px",
-  danger:
-    "bg-rose-600 text-white font-semibold shadow-[var(--shadow-card)] hover:bg-rose-700 active:translate-y-px",
-  outline:
-    "border border-ink-100/20 text-ink-100 font-medium hover:border-ink-100/40 hover:bg-navy-50 dark:hover:bg-navy-600/15 active:translate-y-px",
-} as const;
+export const buttonVariants = cva(
+  "inline-flex items-center justify-center whitespace-nowrap outline-none transition-[background-color,border-color,box-shadow,color,transform] duration-200 disabled:pointer-events-none disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 active:scale-[0.98]",
+  {
+    variants: {
+      variant: {
+        primary:
+          "bg-primary text-primary-foreground font-semibold hover:bg-primary/90",
+        accent:
+          "bg-gold-accent text-navy-900 font-semibold hover:bg-gold-accent-hover dark:bg-primary dark:text-primary-foreground",
+        secondary:
+          "bg-card text-foreground font-medium border border-ink-700 hover:bg-muted",
+        ghost:
+          "text-muted-foreground font-medium hover:bg-muted hover:text-foreground",
+        destructive:
+          "bg-destructive text-destructive-foreground font-semibold hover:bg-rose-700",
+        danger:
+          "bg-destructive text-destructive-foreground font-semibold hover:bg-rose-700",
+        outline:
+          "border border-ink-700 bg-transparent text-foreground font-medium hover:bg-muted",
+      },
+      size: {
+        sm: "h-8 px-3 text-[13px] rounded-lg gap-1.5",
+        md: "h-10 px-4 text-sm rounded-lg gap-2",
+        lg: "h-11 px-6 text-sm rounded-lg gap-2",
+        icon: "size-10 rounded-lg p-0 flex items-center justify-center",
+        "icon-sm": "size-8 rounded-lg p-0 flex items-center justify-center",
+      },
+    },
+    defaultVariants: {
+      variant: "primary",
+      size: "md",
+    },
+  },
+);
 
-const SIZES = {
-  sm: "h-8 px-3 text-[13px] rounded-lg gap-1.5",
-  md: "h-10 px-4 text-sm rounded-xl gap-2",
-  lg: "h-12 px-6 text-[15px] rounded-xl gap-2",
-} as const;
-
-export type ButtonVariant = keyof typeof VARIANTS;
-export type ButtonSize = keyof typeof SIZES;
+export type ButtonVariantProps = VariantProps<typeof buttonVariants>;
+export type ButtonVariant = NonNullable<ButtonVariantProps["variant"]>;
+export type ButtonSize = NonNullable<ButtonVariantProps["size"]>;
 
 export function buttonClass(
-  variant: ButtonVariant = "primary",
-  size: ButtonSize = "md",
+  variant: ButtonVariantProps["variant"] = "primary",
+  size: ButtonVariantProps["size"] = "md",
   className?: string,
 ) {
-  return cn(
-    "inline-flex items-center justify-center whitespace-nowrap outline-none transition-all duration-200",
-    "focus-visible:ring-4 focus-visible:ring-gold-400/30",
-    "disabled:pointer-events-none disabled:opacity-50",
-    VARIANTS[variant],
-    SIZES[size],
-    className,
-  );
+  return cn(buttonVariants({ variant, size, className }));
 }
 
-export function Button({
-  variant = "primary",
-  size = "md",
-  className,
-  ...props
-}: ComponentProps<"button"> & {
-  variant?: ButtonVariant;
-  size?: ButtonSize;
-}) {
-  return (
-    <button className={buttonClass(variant, size, className)} {...props} />
-  );
-}
+export interface ButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+    ButtonVariantProps {}
 
-export function LinkButton({
-  variant = "primary",
-  size = "md",
-  className,
-  ...props
-}: ComponentProps<typeof Link> & {
-  variant?: ButtonVariant;
-  size?: ButtonSize;
-}) {
-  return <Link className={buttonClass(variant, size, className)} {...props} />;
-}
+export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+  ({ className, variant, size, ...props }, ref) => {
+    return (
+      <button
+        ref={ref}
+        className={cn(buttonVariants({ variant, size, className }))}
+        {...props}
+      />
+    );
+  },
+);
+Button.displayName = "Button";
+
+export interface LinkButtonProps
+  extends React.ComponentProps<typeof Link>,
+    ButtonVariantProps {}
+
+export const LinkButton = React.forwardRef<HTMLAnchorElement, LinkButtonProps>(
+  ({ className, variant, size, ...props }, ref) => {
+    return (
+      <Link
+        ref={ref}
+        className={cn(buttonVariants({ variant, size, className }))}
+        {...props}
+      />
+    );
+  },
+);
+LinkButton.displayName = "LinkButton";

@@ -1,6 +1,6 @@
 "use client";
 
-import { TriangleAlert } from "lucide-react";
+import { TriangleAlert } from "@/components/icons";
 import * as React from "react";
 
 import { Button } from "@/components/ui/button";
@@ -96,7 +96,7 @@ export function useHoiLai() {
         if (e.target === ref.current) dong(false);
       }}
       className={cn(
-        "m-auto w-[min(26rem,calc(100vw-2rem))] rounded-2xl border border-ink-800 bg-ink-900 p-0 text-ink-200 shadow-[var(--shadow-pop)]",
+        "m-auto w-[min(26rem,calc(100vw-2rem))] rounded-xl border border-ink-800 bg-ink-900 p-0 text-ink-200 shadow-[var(--shadow-pop)]",
         "backdrop:bg-navy-950/45 backdrop:backdrop-blur-[2px]",
       )}
     >

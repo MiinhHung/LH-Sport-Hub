@@ -3,7 +3,8 @@ import Link from "next/link";
 import { StartChatButton } from "@/components/chat/start-chat";
 import { duongDanHoSo } from "@/components/thanh-vien/link-ho-so";
 import { ChamHoatDong } from "@/components/ui/cham-hoat-dong";
-import { Avatar, Badge, Card } from "@/components/ui";
+import { Avatar, MetaLine } from "@/components/ui";
+import { LinkButton } from "@/components/ui/button";
 import {
   ROLES,
   SKILL_LEVELS,
@@ -27,25 +28,15 @@ export type ThanhVien = {
 };
 
 /**
- * Một thẻ thành viên.
+ * Một dòng thành viên, nằm trong `<ul divide-y>` của danh sách.
  *
- * BA THỨ ĐÃ SỬA so với bản cũ:
+ * Trước đây mỗi người là một thẻ riêng, mười lăm thẻ giống hệt nhau xếp
+ * lưới và thẻ của chính mình thấp hơn các thẻ cạnh bên. Một dòng gọn thì
+ * mọi hàng cao bằng nhau, quét tên theo chiều dọc dễ hơn, và vẫn đủ chỗ
+ * cho số liệu: ai chưa ra sân thì nói thẳng bằng một dòng chữ, ai đã
+ * đánh thì có thanh tỉ lệ thắng để so nhanh.
  *
- * 1. CHIỀU CAO BẰNG NHAU. Thẻ của chính mình trước đây không có nút
- *    "Nhắn tin" nên thấp hơn hẳn các thẻ bên cạnh, hàng lưới gãy một
- *    khoảng. Giờ thẻ là `flex-col h-full`, phần hành động đẩy xuống đáy
- *    bằng `mt-auto`, và thẻ của mình cũng có một hành động thật ("Xem
- *    hồ sơ") chứ không bỏ trống.
- *
- * 2. BỎ "CHƯA GHI PHÒNG BAN". Chỗ nào không có dữ liệu thì để trống,
- *    đừng in ra một câu nhắc rằng nó trống — mười lăm thẻ cùng in một
- *    dòng xám giống nhau thì mắt chỉ thấy nhiễu.
- *
- * 3. BA CỘT SỐ 0 THÀNH MỘT DÒNG CHỮ. Người chưa đánh trận nào trước đây
- *    vẫn hiện "Thắng 0 / Thua 0 / Tỉ lệ —", ba con số rỗng chiếm một
- *    phần ba chiều cao thẻ. Giờ chỉ một dòng "Chưa ra sân trận nào", còn
- *    người đã đánh thì được một thanh tỉ lệ thắng — nhờ đó các thẻ
- *    trông KHÁC nhau, thay vì hai mươi ô giống hệt.
+ * Không ghi "chưa ghi phòng ban": chỗ nào thiếu dữ liệu thì để trống.
  */
 export function TheThanhVien({
   m,
@@ -63,133 +54,116 @@ export function TheThanhVien({
   const skill = SKILL_LEVELS[m.skillLevel as SkillLevelKey];
   const daDanh = m.played > 0;
   const tiLe = Math.round(m.winRate * 100);
+  const hoSo = duongDanHoSo(m.id, nguoiXem);
 
   return (
-    <Card
+    <li
       className={cn(
-        "flex h-full flex-col p-4",
-        isMe &&
-          "border-navy-100 bg-navy-50 dark:border-navy-600/35 dark:bg-navy-600/15",
+        "relative flex items-center gap-3 px-4 py-3.5 sm:px-5",
+        isMe && "bg-gold-50/60 dark:bg-gold-400/5",
       )}
     >
-      <div className="flex items-start gap-3">
-        {/* Cả ảnh lẫn tên dẫn tới hồ sơ. Thẻ này KHÔNG phải một liên kết
-            nên lồng được thoải mái — khác thẻ kèo. */}
-        <Link
-          href={duongDanHoSo(m.id, nguoiXem)}
-          aria-label={`Xem hồ sơ của ${m.fullName}`}
-          className="relative shrink-0 rounded-2xl outline-none transition-opacity hover:opacity-80 focus-visible:ring-2 focus-visible:ring-gold-400/50"
-        >
-          <Avatar name={m.fullName} src={m.avatarUrl} seed={m.id} size="lg" />
-          {/* Chấm nằm góc TRÊN phải vì góc dưới phải đã có số hạng. */}
-          <ChamHoatDong
-            lastActiveAt={m.lastActiveAt}
-            className="top-0 bottom-auto"
-          />
-          {hang != null && (
-            <span
-              className="tabular font-display absolute -right-1 -bottom-1 grid size-5 place-items-center rounded-full border-2 border-ink-900 bg-gold-400 text-[10px] font-bold text-navy-950"
-              title={`Hạng ${hang} trong team`}
-            >
-              {hang}
+      {/* Vạch vàng mép trái đánh dấu dòng của mình */}
+      {isMe && (
+        <span
+          aria-hidden
+          className="absolute inset-y-0 left-0 w-[3px] bg-gold-400"
+        />
+      )}
+
+      {/* Cả ảnh lẫn tên dẫn tới hồ sơ. Dòng này KHÔNG phải một liên kết
+          nên lồng được thoải mái, khác thẻ kèo. */}
+      <Link
+        href={hoSo}
+        aria-label={`Xem hồ sơ của ${m.fullName}`}
+        className="relative shrink-0 rounded-full outline-none transition-opacity hover:opacity-85 focus-visible:ring-2 focus-visible:ring-gold-400/50"
+      >
+        <Avatar name={m.fullName} src={m.avatarUrl} seed={m.id} size="md" />
+        <ChamHoatDong lastActiveAt={m.lastActiveAt} />
+        {hang != null && (
+          <span
+            className="tabular font-display absolute -top-1 -left-1 grid size-5 place-items-center rounded-full border-2 border-ink-900 bg-gold-400 text-[10px] font-bold text-navy-900"
+            title={`Hạng ${hang} trong team`}
+          >
+            {hang}
+          </span>
+        )}
+      </Link>
+
+      <div className="min-w-0 flex-1">
+        <p className="flex min-w-0 items-center gap-2">
+          <Link
+            href={hoSo}
+            className="min-w-0 truncate rounded text-[15px] font-semibold text-ink-100 outline-none hover:underline focus-visible:ring-2 focus-visible:ring-gold-400/50"
+          >
+            {m.fullName}
+          </Link>
+          {isMe && (
+            <span className="shrink-0 rounded-lg bg-navy-900 px-1.5 py-px text-[11px] font-semibold text-white dark:bg-ink-700">
+              Bạn
             </span>
           )}
-        </Link>
+        </p>
+        <MetaLine
+          className="mt-0.5"
+          items={[
+            m.department,
+            skill.label,
+            m.role !== "member" ? ROLES[m.role].label : null,
+          ]}
+        />
 
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-[15px] font-bold text-ink-100">
-            <Link
-              href={duongDanHoSo(m.id, nguoiXem)}
-              className="rounded outline-none hover:underline focus-visible:ring-2 focus-visible:ring-gold-400/50"
-            >
-              {m.fullName}
-            </Link>
-            {isMe && (
-              <span className="ml-1.5 text-[11px] font-bold text-link">
-                bạn
-              </span>
-            )}
-          </p>
-          {m.department && (
-            <p className="truncate text-[12.5px] text-ink-500">
-              {m.department}
-            </p>
-          )}
-          <div className="mt-1.5 flex flex-wrap gap-1">
-            <Badge tone="slate">{skill.label}</Badge>
-            {m.role !== "member" && (
-              <Badge tone="navy">{ROLES[m.role].label}</Badge>
-            )}
-          </div>
-        </div>
-      </div>
-
-      <div className="mt-3.5 border-t border-ink-800 pt-3">
         {daDanh ? (
-          <>
-            <p className="flex items-baseline justify-between gap-2">
-              <span className="text-[12.5px] text-ink-400">
-                <span className="tabular font-bold text-ink-200">{m.wins}</span>{" "}
-                thắng
-                <span aria-hidden className="mx-1.5 text-ink-600">
-                  ·
-                </span>
-                <span className="tabular font-bold text-ink-200">
-                  {m.losses}
-                </span>{" "}
-                thua
+          <div className="mt-1.5 flex items-center gap-3">
+            <p className="tabular shrink-0 text-[12.5px] text-ink-500">
+              <span className="font-semibold text-ink-100">{m.wins}</span> thắng
+              <span aria-hidden className="mx-1.5 text-ink-600">
+                ·
+              </span>
+              <span className="font-semibold text-ink-300">{m.losses}</span> thua
+              <span aria-hidden className="mx-1.5 text-ink-600">
+                ·
               </span>
               <span
                 className={cn(
-                  "tabular text-[14px] font-bold",
+                  "font-semibold",
                   tiLe >= 50
                     ? "text-gold-700 dark:text-gold-300"
-                    : "text-ink-500",
+                    : "text-ink-300",
                 )}
               >
                 {tiLe}%
               </span>
             </p>
-
-            {/* Thanh tỉ lệ thắng. Con số 67% nói đúng chừng ấy thông tin,
-                nhưng mười lăm thẻ toàn số thì phải đọc từng cái mới so
-                được; thanh thì liếc một cái là thấy ai hơn ai. */}
+            {/* Thanh tỉ lệ thắng: liếc một cái là thấy ai hơn ai. */}
             <div
-              className="mt-2 h-1.5 overflow-hidden rounded-full bg-ink-850"
+              className="hidden h-1.5 w-20 overflow-hidden rounded-full bg-ink-850 sm:block"
               role="img"
               aria-label={`Tỉ lệ thắng ${tiLe} phần trăm sau ${m.played} trận`}
             >
               <span
                 className="block h-full rounded-full bg-gold-400"
-                /* Kéo lên tối thiểu 3% để 1% vẫn nhìn thấy được, nhưng 0%
-                   thì phải trống hẳn — một vạch vàng cỏn con ở người
-                   chưa thắng trận nào là nói sai. */
+                /* Tối thiểu 3% để 1% vẫn thấy; 0% thì trống hẳn. */
                 style={{ width: tiLe === 0 ? "0%" : `${Math.max(tiLe, 3)}%` }}
               />
             </div>
-          </>
+          </div>
         ) : (
-          <p className="text-[12.5px] text-ink-500">Chưa ra sân trận nào</p>
+          <p className="mt-1.5 text-[12.5px] text-ink-500">
+            Chưa ra sân trận nào
+          </p>
         )}
       </div>
 
-      {/* mt-auto: dù khối số liệu phía trên cao thấp khác nhau, hàng nút
-          vẫn nằm sát đáy nên các thẻ cùng hàng thẳng chân với nhau. */}
-      <div className="mt-auto pt-3">
+      <div className="shrink-0">
         {isMe ? (
-          <Link
-            href="/ho-so"
-            className="block rounded-xl border border-ink-800 px-3 py-1.5 text-center text-[13px] font-semibold text-ink-300 transition-colors hover:border-ink-700 hover:text-ink-100"
-          >
-            Xem hồ sơ của bạn
-          </Link>
+          <LinkButton href="/ho-so" variant="secondary" size="sm">
+            Hồ sơ
+          </LinkButton>
         ) : (
-          <StartChatButton
-            partnerId={m.id}
-            className="w-full [&_button]:w-full"
-          />
+          <StartChatButton partnerId={m.id} />
         )}
       </div>
-    </Card>
+    </li>
   );
 }

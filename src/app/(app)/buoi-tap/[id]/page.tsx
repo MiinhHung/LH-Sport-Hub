@@ -1,31 +1,32 @@
+import { SportIcon } from "@/components/domain-icons";
 import {
   ArrowLeft,
-  CalendarDays,
+  Clock,
   Info,
   MapPin,
   Navigation,
   Users,
-  Wallet,
-} from "lucide-react";
+} from "@/components/icons";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { ChallengeCard } from "@/components/challenge-card";
-import {
-  Avatar,
-  Badge,
-  Card,
-  CardBody,
-  EmptyState,
-  SectionTitle,
-  Stat,
-} from "@/components/ui";
+import { ONgay, ThanhCho } from "@/components/session-row";
+import { Avatar, Badge, Card, SectionTitle } from "@/components/ui";
+import { buttonClass } from "@/components/ui/button";
 import { isModerator, requireProfile } from "@/lib/auth";
 import { SPORTS, type SportKey } from "@/lib/constants";
 import { directionsUrl, mapEmbedSrc } from "@/lib/maps";
 import { getSessionDetail } from "@/lib/queries";
-import { formatDateTime, formatTime, formatVnd, timeUntil } from "@/lib/utils";
+import {
+  dayLabel,
+  formatDate,
+  formatTime,
+  formatVnd,
+  timeUntil,
+  weekdayLabel,
+} from "@/lib/utils";
 
 import { AttendanceButtons } from "./attendance";
 import { SessionOwnerActions } from "./session-actions";
@@ -46,6 +47,28 @@ const STATUS_LABEL = {
   completed: { label: "Đã xong", tone: "slate" },
 } as const;
 
+/** Thẻ ở cột phải: tiêu đề một dòng, nội dung bên dưới. */
+function RailCard({
+  id,
+  title,
+  children,
+}: {
+  id: string;
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section aria-labelledby={id}>
+      <Card className="overflow-hidden">
+        <h2 id={id} className="px-4 pt-4 pb-2 text-[15px] font-semibold text-ink-100">
+          {title}
+        </h2>
+        <div className="px-4 pb-4">{children}</div>
+      </Card>
+    </section>
+  );
+}
+
 export default async function SessionDetailPage({
   params,
 }: {
@@ -62,6 +85,7 @@ export default async function SessionDetailPage({
   const sport = SPORTS[session.sport as SportKey];
   const status = STATUS_LABEL[session.status];
   const isOwner = session.creatorId === profile.id || isModerator(profile);
+  const nhanNgay = dayLabel(session.startsAt);
 
   const directions = directionsUrl(
     session.venueName,
@@ -77,8 +101,11 @@ export default async function SessionDetailPage({
       ? Math.round(session.costTotal / going.length)
       : null;
 
+  const conThieu =
+    session.maxPlayers !== null ? session.maxPlayers - going.length : null;
+
   return (
-    <div className="mx-auto max-w-3xl space-y-5">
+    <div className="space-y-6">
       <Link
         href="/buoi-tap"
         className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-ink-500 transition-colors hover:text-ink-100"
@@ -87,256 +114,350 @@ export default async function SessionDetailPage({
         Lịch tập
       </Link>
 
-      <header>
-        <div className="flex flex-wrap items-center gap-1.5">
-          <Badge tone="slate">
-            {sport.icon} {sport.label}
-          </Badge>
-          <Badge tone={status.tone}>{status.label}</Badge>
-          {session.status === "open" && (
-            <span className="text-[11.5px] font-semibold text-gold-700 dark:text-gold-300">
-              {timeUntil(session.startsAt)}
+      {/* Đầu trang: ô ngày, tên buổi, giờ, sân. */}
+      <header className="animate-rise">
+        <Card>
+          <div className="flex gap-4 p-4 sm:gap-5 sm:p-6">
+            <span aria-hidden>
+              <ONgay
+                ngay={session.startsAt}
+                homNay={nhanNgay === "Hôm nay"}
+                lon
+              />
             </span>
-          )}
-        </div>
 
-        <h1 className="font-display mt-3 text-[28px] leading-[1.15] font-bold text-ink-100 sm:text-[34px]">
-          {session.title}
-        </h1>
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5">
+                <Badge tone={status.tone}>{status.label}</Badge>
+                <span className="flex items-center gap-1 text-[12.5px] font-medium text-ink-500">
+                  <SportIcon sport={session.sport as SportKey} />
+                  {sport.label}
+                </span>
+                {session.status === "open" && (
+                  <span className="text-[12.5px] font-semibold text-gold-700 dark:text-gold-300">
+                    {nhanNgay ?? timeUntil(session.startsAt)}
+                  </span>
+                )}
+              </div>
+
+              <h1 className="font-display mt-2 text-[24px] leading-[1.15] text-ink-100 sm:text-[32px]">
+                {session.title}
+              </h1>
+
+              <dl className="mt-3 space-y-2 text-[14px]">
+                <div className="flex items-start gap-2.5">
+                  <dt className="flex shrink-0 pt-0.5 text-ink-500">
+                    <Clock className="size-4" aria-hidden />
+                    <span className="sr-only">Thời gian</span>
+                  </dt>
+                  <dd className="text-ink-300">
+                    <span className="font-semibold text-ink-200">
+                      {weekdayLabel(session.startsAt)},{" "}
+                      {formatDate(session.startsAt)}
+                    </span>
+                    <span aria-hidden className="mx-2 text-ink-600">
+                      ·
+                    </span>
+                    <span className="tabular">
+                      {formatTime(session.startsAt)} đến{" "}
+                      {formatTime(session.endsAt)}
+                    </span>
+                  </dd>
+                </div>
+
+                <div className="flex items-start gap-2.5">
+                  <dt className="flex shrink-0 pt-0.5 text-ink-500">
+                    <MapPin className="size-4" aria-hidden />
+                    <span className="sr-only">Địa điểm</span>
+                  </dt>
+                  <dd className="min-w-0">
+                    <span className="font-semibold text-ink-200">
+                      {session.venueName}
+                    </span>
+                    {session.venueAddress && (
+                      <span className="block text-[13px] text-ink-500">
+                        {session.venueAddress}
+                      </span>
+                    )}
+                  </dd>
+                </div>
+              </dl>
+
+              {directions && (
+                <a
+                  href={directions}
+                  target="_blank"
+                  rel="noreferrer"
+                  className={buttonClass("secondary", "sm", "mt-4")}
+                >
+                  <Navigation className="size-4" aria-hidden />
+                  Chỉ đường
+                </a>
+              )}
+            </div>
+          </div>
+
+          {session.notes && (
+            <div className="flex items-start gap-2.5 border-t border-ink-800 px-4 py-3.5 sm:px-6">
+              <Info
+                className="mt-0.5 size-4 shrink-0 text-ink-500"
+                aria-hidden
+              />
+              <p className="text-[14px] leading-relaxed whitespace-pre-wrap text-ink-300">
+                <span className="sr-only">Ghi chú: </span>
+                {session.notes}
+              </p>
+            </div>
+          )}
+        </Card>
       </header>
 
       {session.status === "cancelled" && session.cancellationReason && (
-        <div className="rounded-xl border border-rose-200 dark:border-rose-400/30 bg-rose-50 dark:bg-rose-500/10 px-4 py-3">
-          <p className="text-[13px] font-bold text-rose-700 dark:text-rose-300">Buổi này đã huỷ</p>
+        <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 dark:border-rose-400/30 dark:bg-rose-500/10">
+          <p className="text-[13px] font-semibold text-rose-700 dark:text-rose-300">
+            Buổi này đã huỷ
+          </p>
           <p className="mt-0.5 text-[13.5px] text-rose-800 dark:text-rose-200/80">
             {session.cancellationReason}
           </p>
         </div>
       )}
 
-      {/* Thông tin chính */}
-      <Card>
-        <CardBody className="space-y-4">
-          <dl className="space-y-3.5 text-[14.5px]">
-            <div className="flex items-start gap-3">
-              <CalendarDays
-                className="mt-0.5 size-[18px] shrink-0 text-ink-500"
-                aria-hidden
-              />
-              <div>
-                <dt className="sr-only">Thời gian</dt>
-                <dd className="font-semibold text-ink-200">
-                  {formatDateTime(session.startsAt)}
-                </dd>
-                <dd className="text-[13px] text-ink-500">
-                  đến {formatTime(session.endsAt)}
-                </dd>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-3">
-              <MapPin
-                className="mt-0.5 size-[18px] shrink-0 text-ink-500"
-                aria-hidden
-              />
-              <div className="min-w-0 flex-1">
-                <dt className="sr-only">Địa điểm</dt>
-                <dd className="font-semibold text-ink-200">
-                  {session.venueName}
-                </dd>
-                {session.venueAddress && (
-                  <dd className="text-[13px] text-ink-500">
-                    {session.venueAddress}
-                  </dd>
-                )}
-                {directions && (
-                  <dd className="mt-2">
-                    <a
-                      href={directions}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex items-center gap-1.5 rounded-lg bg-navy-900 px-3 py-1.5 text-[12.5px] font-bold text-white transition-colors hover:bg-navy-800"
-                    >
-                      <Navigation className="size-3.5" aria-hidden />
-                      Chỉ đường
-                    </a>
-                  </dd>
-                )}
-              </div>
-            </div>
-
-            {session.notes && (
-              <div className="flex items-start gap-3">
-                <Info
-                  className="mt-0.5 size-[18px] shrink-0 text-ink-500"
-                  aria-hidden
-                />
+      <div className="grid grid-cols-[minmax(0,1fr)] items-start gap-6 lg:grid-cols-[minmax(0,1fr)_300px] lg:gap-8 xl:grid-cols-[minmax(0,1fr)_320px]">
+        <div className="min-w-0 space-y-6">
+          {/* Điểm danh: sĩ số và nút gạt đi/không đi */}
+          <section aria-labelledby="diem-danh">
+            <Card className="p-4 sm:p-5">
+              <div className="flex items-end justify-between gap-3">
                 <div>
-                  <dt className="sr-only">Ghi chú</dt>
-                  <dd className="whitespace-pre-wrap text-ink-300">
-                    {session.notes}
-                  </dd>
+                  <h2
+                    id="diem-danh"
+                    className="text-[15px] font-semibold text-ink-100"
+                  >
+                    {session.status === "open" ? "Bạn có đi không?" : "Sĩ số"}
+                  </h2>
+                  <p className="mt-0.5 text-[12.5px] text-ink-500">
+                    <span className="tabular font-semibold text-ink-200">
+                      {going.length}
+                      {session.maxPlayers ? `/${session.maxPlayers}` : ""}
+                    </span>{" "}
+                    người đã nhận đi
+                  </p>
                 </div>
+                {conThieu !== null && conThieu > 0 && (
+                  <span className="text-[12.5px] font-semibold text-gold-700 dark:text-gold-300">
+                    Còn {conThieu} chỗ
+                  </span>
+                )}
+                {conThieu !== null && conThieu <= 0 && (
+                  <span className="text-[12.5px] font-semibold text-emerald-700 dark:text-emerald-300">
+                    Đủ người
+                  </span>
+                )}
               </div>
-            )}
-          </dl>
 
-          {/* Bản đồ — nạp muộn để không kéo chậm lần mở trang đầu tiên. */}
-          {embedSrc && (
-            <div className="overflow-hidden rounded-xl border border-ink-800">
-              <iframe
-                src={embedSrc}
-                title={`Bản đồ tới ${session.venueName}`}
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-                allowFullScreen
-                className="h-56 w-full sm:h-64"
+              <ThanhCho
+                di={going.length}
+                toiDa={session.maxPlayers}
+                className="mt-3"
               />
-            </div>
-          )}
 
-          {session.status === "open" && (
-            <div className="border-t border-ink-800 pt-4">
-              <AttendanceButtons
-                sessionId={session.id}
-                isGoing={mine?.status === "going"}
-                isNotGoing={mine?.status === "not_going"}
-              />
-            </div>
-          )}
-        </CardBody>
-      </Card>
+              {session.status === "open" && (
+                <div className="mt-4">
+                  <AttendanceButtons
+                    sessionId={session.id}
+                    isGoing={mine?.status === "going"}
+                    isNotGoing={mine?.status === "not_going"}
+                  />
+                </div>
+              )}
+            </Card>
+          </section>
 
-      {/* Số liệu nhanh */}
-      <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
-        <Stat
-          label="Đã nhận đi"
-          value={
-            session.maxPlayers
-              ? `${going.length}/${session.maxPlayers}`
-              : going.length
-          }
-          icon={<Users className="size-3.5" />}
-          tone="navy"
-        />
-        {session.costTotal !== null && (
-          <>
-            <Stat
-              label="Tiền sân"
-              value={formatVnd(session.costTotal)}
-              icon={<Wallet className="size-3.5" />}
-              tone="lime"
-            />
-            <Stat
-              label="Mỗi người"
-              value={perHead === null ? "—" : formatVnd(perHead)}
-              sub={perHead === null ? "chưa ai nhận đi" : "tạm tính"}
-              tone="slate"
-            />
-          </>
-        )}
-      </div>
+          {/* Danh sách người tham gia, chia theo trả lời */}
+          <section aria-labelledby="ds-di">
+            <Card className="overflow-hidden">
+              <div className="flex items-center justify-between gap-3 px-4 pt-4 pb-2 sm:px-5">
+                <h2 id="ds-di" className="text-[15px] font-semibold text-ink-100">
+                  Sẽ đi{" "}
+                  <span className="tabular font-semibold text-ink-500">
+                    {going.length}
+                  </span>
+                </h2>
+              </div>
 
-      {/* Danh sách người đi */}
-      <section aria-labelledby="ds-di">
-        <SectionTitle>
-          <span id="ds-di">Người đi ({going.length})</span>
-        </SectionTitle>
-
-        {going.length === 0 ? (
-          <EmptyState
-            icon={<Users className="size-5" />}
-            title="Chưa ai nhận đi"
-            description="Bạn xung phong trước đi, có người đầu tiên là kiểu gì cũng có người theo."
-          />
-        ) : (
-          <ul className="grid gap-2 sm:grid-cols-2">
-            {going.map((a) => (
-              <li
-                key={a.id}
-                className="flex items-center gap-3 rounded-xl border border-ink-800 bg-ink-900 p-3 shadow-[var(--shadow-soft)]"
-              >
-                <Avatar
-                  name={a.user.fullName}
-                  src={a.user.avatarUrl}
-                  seed={a.userId}
-                  size="md"
-                />
-                <div className="min-w-0">
-                  <p className="truncate text-[14px] font-semibold text-ink-200">
-                    {a.user.fullName}
-                    {a.userId === session.creatorId && (
-                      <span className="ml-1.5 text-[11px] font-semibold text-gold-700 dark:text-gold-300">
-                        chủ kèo
-                      </span>
-                    )}
-                  </p>
-                  <p className="truncate text-xs text-ink-500">
-                    {a.user.department || "Thành viên"}
+              {going.length === 0 ? (
+                <div className="flex items-center gap-3 px-4 pt-1 pb-5 sm:px-5">
+                  <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-ink-850 text-ink-500">
+                    <Users className="size-[18px]" />
+                  </span>
+                  <p className="text-[13px] leading-relaxed text-ink-500">
+                    Chưa ai nhận đi. Bạn xung phong trước đi, có người đầu
+                    tiên là kiểu gì cũng có người theo.
                   </p>
                 </div>
-              </li>
-            ))}
-          </ul>
-        )}
+              ) : (
+                <ul className="grid gap-0.5 px-2 pb-2 sm:grid-cols-2">
+                  {going.map((a) => (
+                    <li key={a.id}>
+                      <Link
+                        href={`/thanh-vien/${a.userId}`}
+                        prefetch={false}
+                        className="flex items-center gap-3 rounded-lg p-2 transition-colors hover:bg-ink-850"
+                      >
+                        <Avatar
+                          name={a.user.fullName}
+                          src={a.user.avatarUrl}
+                          seed={a.userId}
+                          size="md"
+                        />
+                        <span className="min-w-0">
+                          <span className="flex items-center gap-1.5">
+                            <span className="truncate text-[14px] font-semibold text-ink-100">
+                              {a.user.fullName}
+                            </span>
+                            {a.userId === session.creatorId && (
+                              <Badge variant="gold" className="shrink-0 px-1.5 py-0 text-[11px]">
+                                Tổ chức
+                              </Badge>
+                            )}
+                          </span>
+                          <span className="block truncate text-[12.5px] text-ink-500">
+                            {a.user.department || "Thành viên"}
+                          </span>
+                        </span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              )}
 
-        {notGoing.length > 0 && (
-          <p className="mt-3 text-[13px] text-ink-500">
-            Không đi:{" "}
-            <span className="text-ink-400">
-              {notGoing.map((a) => a.user.fullName).join(", ")}
-            </span>
-          </p>
-        )}
-      </section>
+              {notGoing.length > 0 && (
+                <div className="border-t border-ink-800 px-4 py-3.5 sm:px-5">
+                  <h3 className="text-[13px] font-semibold text-ink-400">
+                    Không đi{" "}
+                    <span className="tabular text-ink-500">
+                      {notGoing.length}
+                    </span>
+                  </h3>
+                  <ul className="mt-2 flex flex-wrap gap-1.5">
+                    {notGoing.map((a) => (
+                      <li
+                        key={a.id}
+                        className="flex items-center gap-1.5 rounded-full border border-ink-800 py-0.5 pr-2.5 pl-0.5"
+                      >
+                        <Avatar
+                          name={a.user.fullName}
+                          src={a.user.avatarUrl}
+                          seed={a.userId}
+                          size="xs"
+                          className="rounded-full"
+                        />
+                        <span className="text-[12.5px] text-ink-400">
+                          {a.user.fullName}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </Card>
+          </section>
 
-      {/* Chân trang: người tạo + hành động của chủ buổi */}
-      <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-ink-800 pt-5">
-        <div className="flex items-center gap-2.5">
-          <Avatar
-            name={session.creator.fullName}
-            src={session.creator.avatarUrl}
-            seed={session.creator.id}
-            size="sm"
-          />
-          <div className="text-[12.5px]">
-            <p className="font-semibold text-ink-300">
-              {session.creator.fullName}
-            </p>
-            <p className="text-ink-500">đứng ra tổ chức</p>
-          </div>
+          {/* Kèo gắn với buổi này */}
+          {session.challenges.length > 0 && (
+            <section aria-labelledby="keo-trong-buoi">
+              <SectionTitle>
+                <span id="keo-trong-buoi">
+                  Kèo trong buổi này ({session.challenges.length})
+                </span>
+              </SectionTitle>
+              <div className="grid gap-3">
+                {session.challenges.map((c) => (
+                  <ChallengeCard
+                    key={c.id}
+                    challenge={c}
+                    currentUserId={profile.id}
+                    href={`/keo/${c.id}`}
+                  />
+                ))}
+              </div>
+            </section>
+          )}
         </div>
 
-        {isOwner && (
-          <SessionOwnerActions
-            sessionId={session.id}
-            canCancel={session.status === "open"}
-            canEdit={session.status !== "cancelled"}
-            goingCount={going.length}
-          />
-        )}
-      </footer>
-
-      {/* Kèo gắn với buổi này */}
-      {session.challenges.length > 0 && (
-        <section aria-labelledby="keo-trong-buoi">
-          <SectionTitle>
-            <span id="keo-trong-buoi">
-              Kèo trong buổi này ({session.challenges.length})
-            </span>
-          </SectionTitle>
-          <div className="grid gap-3">
-            {session.challenges.map((c) => (
-              <ChallengeCard
-                key={c.id}
-                challenge={c}
-                currentUserId={profile.id}
-                href={`/keo/${c.id}`}
+        <aside className="space-y-6 lg:sticky lg:top-10">
+          {/* Người tổ chức + hành động của chủ buổi */}
+          <RailCard id="to-chuc" title="Người tổ chức">
+            <div className="flex items-center gap-3">
+              <Avatar
+                name={session.creator.fullName}
+                src={session.creator.avatarUrl}
+                seed={session.creator.id}
+                size="md"
               />
-            ))}
-          </div>
-        </section>
-      )}
+              <div className="min-w-0">
+                <p className="truncate text-[14px] font-semibold text-ink-100">
+                  {session.creator.fullName}
+                </p>
+                <p className="text-[12.5px] text-ink-500">đứng ra đặt sân</p>
+              </div>
+            </div>
+
+            {isOwner && (
+              <div className="mt-4 border-t border-ink-800 pt-4">
+                <SessionOwnerActions
+                  sessionId={session.id}
+                  canCancel={session.status === "open"}
+                  canEdit={session.status !== "cancelled"}
+                  goingCount={going.length}
+                />
+              </div>
+            )}
+          </RailCard>
+
+          {session.costTotal !== null && (
+            <RailCard id="chi-phi" title="Chi phí">
+              <dl className="space-y-2.5 text-[13.5px]">
+                <div className="flex items-baseline justify-between gap-3">
+                  <dt className="text-ink-500">Tiền sân</dt>
+                  <dd className="tabular font-semibold text-ink-200">
+                    {formatVnd(session.costTotal)}
+                  </dd>
+                </div>
+                <div className="flex items-baseline justify-between gap-3">
+                  <dt className="text-ink-500">Mỗi người (tạm tính)</dt>
+                  {perHead === null ? (
+                    <dd className="text-[13px] text-ink-500">
+                      Chưa ai nhận đi
+                    </dd>
+                  ) : (
+                    <dd className="tabular font-display text-[17px] text-ink-100">
+                      {formatVnd(perHead)}
+                    </dd>
+                  )}
+                </div>
+              </dl>
+            </RailCard>
+          )}
+
+          {/* Bản đồ: nạp muộn để không kéo chậm lần mở trang đầu tiên. */}
+          {embedSrc && (
+            <section aria-label={`Bản đồ tới ${session.venueName}`}>
+              <Card className="overflow-hidden">
+                <iframe
+                  src={embedSrc}
+                  title={`Bản đồ tới ${session.venueName}`}
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  allowFullScreen
+                  className="block h-56 w-full"
+                />
+              </Card>
+            </section>
+          )}
+        </aside>
+      </div>
     </div>
   );
 }

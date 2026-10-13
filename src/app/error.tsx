@@ -44,10 +44,8 @@ export default function RootError({
       <div style={{ maxWidth: "26rem" }}>
         <p
           style={{
-            fontSize: "11px",
+            fontSize: "13px",
             fontWeight: 600,
-            letterSpacing: "0.22em",
-            textTransform: "uppercase",
             color: "#dcae42",
           }}
         >
@@ -97,9 +95,9 @@ export default function RootError({
           style={{
             marginTop: "1.75rem",
             display: "flex",
-            flexWrap: "wrap",
-            gap: "0.5rem",
-            justifyContent: "center",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: "1rem",
           }}
         >
           <button
@@ -108,12 +106,12 @@ export default function RootError({
             style={{
               height: "2.75rem",
               padding: "0 1.5rem",
-              borderRadius: "999px",
+              borderRadius: "8px",
               border: "none",
               background: "#dcae42",
-              color: "#00112e",
-              fontSize: "13px",
-              fontWeight: 700,
+              color: "#001a4a",
+              fontSize: "15px",
+              fontWeight: 600,
               cursor: "pointer",
             }}
           >
@@ -132,16 +130,11 @@ export default function RootError({
           <a
             href="/"
             style={{
-              height: "2.75rem",
-              padding: "0 1.5rem",
-              display: "inline-flex",
-              alignItems: "center",
-              borderRadius: "999px",
-              border: "1px solid rgba(255,255,255,0.25)",
-              color: "#ffffff",
-              fontSize: "13px",
+              color: "rgba(255,255,255,0.7)",
+              fontSize: "14px",
               fontWeight: 600,
-              textDecoration: "none",
+              textDecoration: "underline",
+              textUnderlineOffset: "4px",
             }}
           >
             Về trang chủ

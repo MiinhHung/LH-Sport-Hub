@@ -1,11 +1,11 @@
 "use client";
 
-import { Pencil, Trash2, X } from "lucide-react";
+import { Pencil, Trash2, X } from "@/components/icons";
 import { useActionState, useRef, useState } from "react";
 
 import { cancelSessionAction, deleteSessionAction } from "@/actions/sessions";
 import { idleState } from "@/actions/types";
-import { Alert, Card, CardBody, Field, Input } from "@/components/ui";
+import { Alert, Field, Input } from "@/components/ui";
 import { Button, LinkButton } from "@/components/ui/button";
 import { useHoiLai } from "@/components/ui/hoi-lai";
 import { SubmitButton } from "@/components/ui/submit-button";
@@ -46,112 +46,109 @@ export function SessionOwnerActions({
       ? `Xoá hẳn buổi tập này? ${goingCount} người đã nhận đi sẽ nhận được thông báo.\n\nKhông khôi phục lại được. Nếu chỉ báo là nghỉ thì dùng Huỷ buổi.`
       : "Xoá hẳn buổi tập này? Không khôi phục lại được.";
 
+  // Nằm trong một thẻ ở cột phải, nên ô huỷ là một vùng tô nhạt chứ
+  // không phải thêm một thẻ nữa (thẻ lồng thẻ).
   if (cancelling) {
     return (
-      <Card className="w-full border-rose-200 dark:border-rose-400/30 bg-rose-50 dark:bg-rose-500/10">
-        <CardBody>
-          <h3 className="mb-3 text-sm font-bold text-rose-700 dark:text-rose-300">
-            Huỷ buổi tập này?
-          </h3>
-          <form action={cancelAction} className="space-y-3">
-            <input type="hidden" name="sessionId" value={sessionId} />
-            <Field
-              label="Lý do huỷ"
-              hint="Mọi người đã nhận đi sẽ nhận được thông báo kèm lý do."
+      <div className="rounded-xl border border-rose-200 bg-rose-50 p-3.5 dark:border-rose-400/30 dark:bg-rose-500/10">
+        <h3 className="mb-3 text-[14px] font-semibold text-rose-700 dark:text-rose-300">
+          Huỷ buổi tập này?
+        </h3>
+        <form action={cancelAction} className="space-y-3">
+          <input type="hidden" name="sessionId" value={sessionId} />
+          <Field
+            label="Lý do huỷ"
+            hint="Mọi người đã nhận đi sẽ nhận được thông báo kèm lý do."
+          >
+            <Input name="reason" maxLength={300} placeholder="Mưa, sân ngập…" />
+          </Field>
+          <div className="flex justify-end gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              type="button"
+              onClick={() => setCancelling(false)}
             >
-              <Input
-                name="reason"
-                maxLength={300}
-                placeholder="Mưa, sân ngập…"
-              />
-            </Field>
-            <div className="flex justify-end gap-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                type="button"
-                onClick={() => setCancelling(false)}
-              >
-                Quay lại
-              </Button>
-              <SubmitButton variant="danger" size="sm" pendingText="Đang huỷ…">
-                Xác nhận huỷ
-              </SubmitButton>
-            </div>
-            {cancelState.status === "error" && cancelState.message && (
-              <Alert tone="rose">{cancelState.message}</Alert>
-            )}
-          </form>
-        </CardBody>
-      </Card>
+              Quay lại
+            </Button>
+            <SubmitButton variant="danger" size="sm" pendingText="Đang huỷ…">
+              Xác nhận huỷ
+            </SubmitButton>
+          </div>
+          {cancelState.status === "error" && cancelState.message && (
+            <Alert tone="rose">{cancelState.message}</Alert>
+          )}
+        </form>
+      </div>
     );
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-1">
+    <div className="space-y-2">
       {/* Sửa đứng đầu và là việc KHÔNG phá gì: gõ nhầm tên sân thì sửa,
           chứ trước đây phải xoá buổi rồi tạo lại, mất sạch danh sách
           người đã nhận đi. */}
       {canEdit && (
         <LinkButton
-          variant="ghost"
+          variant="secondary"
           size="sm"
           href={`/buoi-tap/${sessionId}/sua`}
-          className="text-ink-500 hover:text-ink-100"
+          className="w-full"
         >
           <Pencil className="size-4" />
           Sửa buổi
         </LinkButton>
       )}
 
-      {canCancel && (
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setCancelling(true)}
-          className="text-ink-500 hover:text-rose-600 dark:text-rose-400"
-        >
-          <X className="size-4" />
-          Huỷ buổi
-        </Button>
-      )}
+      <div className="flex gap-2">
+        {canCancel && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setCancelling(true)}
+            className="flex-1 hover:text-rose-700 dark:hover:text-rose-300"
+          >
+            <X className="size-4" />
+            Huỷ buổi
+          </Button>
+        )}
 
-      <form
-        action={deleteAction}
-        ref={formRef}
-        onSubmit={async (e) => {
-          if (daHoiRoi.current) {
-            daHoiRoi.current = false;
-            return;
-          }
-          e.preventDefault();
-          const ok = await hoi({
-            tieuDe: "Xoá hẳn buổi tập này?",
-            moTa: confirmDelete,
-            nguyHiem: true,
-          });
-          if (!ok) return;
-          daHoiRoi.current = true;
-          formRef.current?.requestSubmit();
-        }}
-      >
-        {hopThoai}
-        <input type="hidden" name="sessionId" value={sessionId} />
-        <SubmitButton
-          variant="ghost"
-          size="sm"
-          className="text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 hover:text-rose-700 dark:text-rose-300"
-          pendingText="Đang xoá…"
+        <form
+          action={deleteAction}
+          ref={formRef}
+          className="flex flex-1"
+          onSubmit={async (e) => {
+            if (daHoiRoi.current) {
+              daHoiRoi.current = false;
+              return;
+            }
+            e.preventDefault();
+            const ok = await hoi({
+              tieuDe: "Xoá hẳn buổi tập này?",
+              moTa: confirmDelete,
+              nguyHiem: true,
+            });
+            if (!ok) return;
+            daHoiRoi.current = true;
+            formRef.current?.requestSubmit();
+          }}
         >
-          <Trash2 className="size-4" />
-          Xoá buổi
-        </SubmitButton>
-      </form>
+          {hopThoai}
+          <input type="hidden" name="sessionId" value={sessionId} />
+          <SubmitButton
+            variant="ghost"
+            size="sm"
+            className="w-full text-rose-600 hover:bg-rose-50 hover:text-rose-700 dark:text-rose-400 dark:hover:bg-rose-500/10 dark:hover:text-rose-300"
+            pendingText="Đang xoá…"
+          >
+            <Trash2 className="size-4" />
+            Xoá buổi
+          </SubmitButton>
+        </form>
+      </div>
 
       {deleteState.status === "error" && deleteState.message && (
-        <Alert tone="rose" className="w-full">
-          {deleteState.message}
-        </Alert>
+        <Alert tone="rose">{deleteState.message}</Alert>
       )}
     </div>
   );

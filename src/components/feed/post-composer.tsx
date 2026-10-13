@@ -7,7 +7,7 @@ import {
   MessageSquare,
   UserSearch,
   X,
-} from "lucide-react";
+} from "@/components/icons";
 import { useActionState, useEffect, useRef, useState } from "react";
 
 import { createPostAction } from "@/actions/posts";
@@ -19,6 +19,9 @@ import { LIMITS, MAX_POST_IMAGES, type PostTypeKey } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
 type Draft = { file: File; url: string };
+
+const NUT_NHANH =
+  "inline-flex h-10 items-center gap-1.5 rounded-lg px-3 text-[13px] font-semibold text-ink-400 transition-colors hover:bg-ink-850 hover:text-ink-100";
 
 const TYPE_OPTIONS: {
   key: PostTypeKey;
@@ -67,13 +70,10 @@ export function PostComposer({
   // Thu hồi object URL khi rời trang, tránh rò bộ nhớ.
   useEffect(() => {
     return () => drafts.forEach((d) => URL.revokeObjectURL(d.url));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   /**
    * Ghi danh sách ảnh hiện tại ngược vào input file.
-   * Không có bước này thì chọn ảnh làm nhiều đợt hoặc bỏ bớt ảnh
-   * sẽ gửi lên sai, vì input chỉ nhớ đúng lần chọn cuối cùng.
    */
   useEffect(() => {
     if (!fileRef.current) return;
@@ -95,13 +95,6 @@ export function PostComposer({
     setOpen(true);
   }
 
-  /**
-   * Nhận ảnh dán thẳng từ clipboard.
-   *
-   * Đây là đường ngắn nhất để khoe ảnh: chụp màn hình hoặc copy ảnh ở
-   * chỗ khác rồi Ctrl+V vào ô soạn. Không có nó thì phải lưu ảnh ra tệp
-   * rồi mới bấm nút chọn — ba bước cho một việc đáng lẽ một bước.
-   */
   function khiDan(e: React.ClipboardEvent) {
     const anh = Array.from(e.clipboardData.files).filter((f) =>
       f.type.startsWith("image/"),
@@ -125,6 +118,14 @@ export function PostComposer({
     addFiles(dt.files);
   }
 
+  function moVoiLoai(loai: PostTypeKey) {
+    setType(loai);
+    setOpen(true);
+    requestAnimationFrame(() =>
+      formRef.current?.querySelector("textarea")?.focus(),
+    );
+  }
+
   function removeDraft(index: number) {
     setDrafts((current) => {
       URL.revokeObjectURL(current[index].url);
@@ -135,11 +136,6 @@ export function PostComposer({
   const options = TYPE_OPTIONS.filter((o) => !o.modOnly || canAnnounce);
   const overLimit = content.length > LIMITS.postContent;
   const laLink = type === "link";
-  /*
-    Bài dạng link KHÔNG đòi lời dẫn: chia sẻ một video kỹ thuật mà bắt
-    phải viết thêm một câu thì người ta gõ bừa "hay nè" cho xong. Thẻ
-    link tự nó đã là nội dung — luật này khớp với `postSchema` ở server.
-  */
   const canSubmit = laLink
     ? linkUrl.trim().length > 0 && !overLimit
     : content.trim().length > 0 && !overLimit;
@@ -154,21 +150,18 @@ export function PostComposer({
           dangKeo && "bg-gold-50 dark:bg-gold-400/10",
         )}
         onDragOver={(e) => {
-          // Chỉ bật khi thứ đang kéo là tệp, không phải chữ bôi đen.
           if (!e.dataTransfer.types.includes("Files")) return;
           e.preventDefault();
           setDangKeo(true);
         }}
         onDragLeave={(e) => {
-          // `relatedTarget` nằm ngoài form mới là rời thật. Không kiểm thì
-          // rê qua từng phần tử con cũng bị tính là rời, khung nháy liên tục.
           if (e.currentTarget.contains(e.relatedTarget as Node)) return;
           setDangKeo(false);
         }}
         onDrop={khiTha}
       >
         {dangKeo && (
-          <div className="pointer-events-none absolute inset-2 grid place-items-center rounded-xl border-2 border-dashed border-gold-400 text-[13px] font-bold text-gold-700 dark:text-gold-300">
+          <div className="pointer-events-none absolute inset-2 grid place-items-center rounded-lg border-2 border-dashed border-gold-500 bg-ink-900/90 text-[13px] font-semibold text-gold-700 dark:text-gold-300">
             Thả ảnh vào đây
           </div>
         )}
@@ -190,7 +183,7 @@ export function PostComposer({
               onChange={(e) => setContent(e.target.value)}
               onFocus={() => setOpen(true)}
               onPaste={khiDan}
-              rows={open ? 4 : 1}
+              rows={open ? 4 : 2}
               maxLength={LIMITS.postContent + 200}
               placeholder={
                 laLink
@@ -199,9 +192,9 @@ export function PostComposer({
               }
               aria-label="Nội dung bài viết"
               className={cn(
-                "w-full resize-none rounded-xl border border-ink-700 bg-ink-850 px-3.5 py-2.5 text-[15px] leading-relaxed text-ink-200 outline-none transition-all duration-200",
-                "placeholder:text-ink-500 hover:border-ink-600",
-                "focus:border-gold-400 focus:bg-ink-900 focus:ring-4 focus:ring-gold-400/15",
+                "w-full resize-none rounded-lg border border-transparent bg-ink-850 px-3.5 py-2.5 text-[15px] leading-relaxed text-ink-200 outline-none transition-[background-color,border-color,box-shadow] duration-200",
+                "placeholder:text-ink-500 hover:border-ink-700",
+                "focus:border-gold-500 focus:bg-ink-900 focus:ring-2 focus:ring-gold-400/25",
               )}
             />
 
@@ -214,53 +207,50 @@ export function PostComposer({
                     <img
                       src={d.url}
                       alt={`Ảnh đính kèm ${i + 1}`}
-                      className="aspect-square w-full rounded-xl object-cover ring-1 ring-ink-800"
+                      className="aspect-square w-full rounded-lg object-cover ring-1 ring-ink-800"
                     />
                     <button
                       type="button"
                       onClick={() => removeDraft(i)}
                       aria-label={`Bỏ ảnh ${i + 1}`}
-                      className="absolute top-1 right-1 grid size-6 place-items-center rounded-full bg-navy-900/85 text-white transition-colors hover:bg-navy-900"
+                      className="absolute top-1 right-1 grid size-6 place-items-center rounded-full bg-navy-950/80 text-white transition-colors hover:bg-navy-950"
                     >
-                      <X className="size-3.5" strokeWidth={3} />
+                      <X className="size-3" strokeWidth={2.5} />
                     </button>
                   </li>
                 ))}
               </ul>
             )}
 
-            {/*
-              HÀNG NÚT LUÔN HIỆN, KHÔNG GIẤU SAU CÚ BẤM ĐẦU TIÊN.
-
-              Bản trước gói cả nút ảnh, chọn loại bài và nút đăng vào
-              `{open && ...}`, nên lúc nghỉ ô soạn bài chỉ còn trơ một ô
-              chữ. Chụp bảng tin thật thì thấy đúng vậy: không một dấu
-              hiệu nào cho biết đăng được ảnh — mà "khoe ảnh buổi vừa
-              đánh" lại chính là việc người ta vào đây để làm.
-
-              Giờ nút ảnh nằm ngoài, thấy ngay từ đầu. Phần còn lại
-              (chọn loại bài, đếm chữ, nút đăng) vẫn chỉ hiện khi bắt đầu
-              viết — những thứ đó chỉ có nghĩa khi đã có nội dung.
-            */}
             {!open && (
-              <div className="flex items-center gap-1">
+              <div className="-ml-1 flex flex-wrap items-center gap-1">
                 <button
                   type="button"
                   onClick={() => fileRef.current?.click()}
-                  className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[12.5px] font-semibold text-ink-500 transition-colors hover:bg-ink-850 hover:text-ink-100"
+                  className={NUT_NHANH}
                 >
                   <ImagePlus className="size-4" />
-                  Ảnh
+                  <span>Ảnh</span>
                 </button>
-                {/*
-                  Ẩn trên màn cảm ứng. Dán và kéo-thả là hai thao tác
-                  của chuột và bàn phím; trên điện thoại thì không kéo
-                  thả được, còn muốn đăng ảnh thì bấm nút "Ảnh" ngay
-                  bên cạnh. Để dòng này lại chỉ là bày ra một lối đi
-                  không tồn tại rồi để người ta tự đoán.
-                */}
-                <span className="text-[12px] text-ink-500 pointer-coarse:hidden">
-                  hoặc dán ảnh thẳng vào đây
+                <button
+                  type="button"
+                  onClick={() => moVoiLoai("looking_for_player")}
+                  className={NUT_NHANH}
+                >
+                  <UserSearch className="size-4" />
+                  <span>Tìm người</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => moVoiLoai("link")}
+                  className={NUT_NHANH}
+                >
+                  <Link2 className="size-4" />
+                  <span>Link</span>
+                </button>
+
+                <span className="ml-auto text-[12.5px] font-medium text-ink-500 pointer-coarse:hidden max-sm:hidden">
+                  Dán hoặc kéo ảnh vào đây
                 </span>
               </div>
             )}
@@ -279,14 +269,14 @@ export function PostComposer({
                         onClick={() => setType(o.key)}
                         aria-pressed={active}
                         className={cn(
-                          "inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[12.5px] font-semibold transition-colors",
+                          "inline-flex h-9 items-center gap-1.5 rounded-full border px-3 text-[13px] font-semibold transition-colors",
                           active
-                            ? "bg-gold-100 dark:bg-gold-400/20 text-gold-700 dark:text-gold-300"
-                            : "text-ink-500 hover:bg-ink-850 hover:text-ink-300",
+                            ? "border-navy-900 bg-navy-900 text-white dark:border-gold-400 dark:bg-gold-400 dark:text-navy-900"
+                            : "border-ink-700 bg-ink-900 text-ink-400 hover:border-ink-600 hover:text-ink-100",
                         )}
                       >
-                        <Icon className="size-3.5" />
-                        {o.label}
+                        <Icon className="size-3" />
+                        <span>{o.label}</span>
                       </button>
                     );
                   })}
@@ -304,10 +294,10 @@ export function PostComposer({
                       type="button"
                       onClick={() => fileRef.current?.click()}
                       disabled={drafts.length >= MAX_POST_IMAGES}
-                      className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[12.5px] font-semibold text-ink-500 transition-colors hover:bg-ink-850 hover:text-ink-100 disabled:opacity-40"
+                      className="inline-flex h-9 items-center gap-1.5 rounded-lg px-2.5 text-[13px] font-semibold text-ink-400 transition-colors hover:bg-ink-850 hover:text-ink-100 disabled:opacity-40"
                     >
-                      <ImagePlus className="size-4" />
-                      Ảnh
+                      <ImagePlus className="size-3.5" />
+                      <span>Ảnh</span>
                       <span className="tabular text-ink-500">
                         {drafts.length}/{MAX_POST_IMAGES}
                       </span>
@@ -316,7 +306,7 @@ export function PostComposer({
                     {content.length > LIMITS.postContent - 400 && (
                       <span
                         className={cn(
-                          "tabular text-[12px] font-semibold",
+                          "tabular text-[12.5px] font-semibold",
                           overLimit
                             ? "text-rose-600 dark:text-rose-400"
                             : "text-ink-500",
@@ -327,21 +317,30 @@ export function PostComposer({
                     )}
                   </div>
 
-                  <SubmitButton
-                    variant="accent"
-                    size="sm"
-                    disabled={!canSubmit}
-                    pendingText="Đang đăng…"
-                  >
-                    Đăng
-                  </SubmitButton>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setOpen(false)}
+                      className="h-9 rounded-lg px-3 text-[13px] font-semibold text-ink-400 transition-colors hover:text-ink-100"
+                    >
+                      Huỷ
+                    </button>
+                    <SubmitButton
+                      variant="accent"
+                      size="sm"
+                      disabled={!canSubmit}
+                      pendingText="Đang đăng…"
+                    >
+                      Đăng
+                    </SubmitButton>
+                  </div>
                 </div>
               </>
             )}
           </div>
         </div>
 
-        {/* Input file thật, ẩn đi — các nút ở trên điều khiển nó. */}
+        {/* Input file thật */}
         <input
           ref={fileRef}
           type="file"

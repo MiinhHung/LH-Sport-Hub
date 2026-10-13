@@ -1,4 +1,4 @@
-import { Users } from "lucide-react";
+import { Users } from "@/components/icons";
 import type { Metadata } from "next";
 
 import { DanhSachThanhVien } from "@/components/thanh-vien/danh-sach";
@@ -38,9 +38,8 @@ export default async function MembersPage() {
   const soDaRaSan = danhSach.filter((m) => m.played > 0).length;
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <PageIntro
-        eyebrow="Đội hình"
         title="Thành viên"
         /* Câu dẫn nói thêm một con số có ích. "19 người đang hoạt động"
            thì đã thấy ngay ở lưới bên dưới rồi; "bao nhiêu người đã ra
@@ -54,7 +53,7 @@ export default async function MembersPage() {
 
       {danhSach.length === 0 ? (
         <EmptyState
-          icon={<Users className="size-5" />}
+          icon={<Users className="size-6" />}
           title="Chưa có thành viên nào"
           description="Mời anh em đăng ký bằng email công ty."
         />

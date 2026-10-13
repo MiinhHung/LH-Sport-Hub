@@ -22,22 +22,24 @@ export function StartChatTile({
       <input type="hidden" name="partnerId" value={person.id} />
       <button
         type="submit"
-        className="group flex w-20 flex-col items-center gap-2 rounded-xl px-1 py-2 transition-colors hover:bg-ink-850"
+        className="group flex w-[68px] flex-col items-center gap-1.5 rounded-lg px-1 py-2 transition-[background-color,transform] hover:bg-ink-850 active:scale-[0.97]"
         title={`Nhắn tin cho ${person.fullName}`}
       >
         <Avatar
           name={person.fullName}
           src={person.avatarUrl}
           seed={person.id}
-          size="lg"
-          className="transition-transform duration-300 group-hover:-translate-y-0.5"
+          size="md"
+          className="size-11 transition-transform duration-200 group-hover:-translate-y-0.5"
         />
-        <span className="line-clamp-2 text-center text-[11.5px] leading-tight font-medium text-ink-400">
+        <span className="line-clamp-2 text-center text-[11.5px] leading-tight font-medium text-ink-400 group-hover:text-ink-100">
           {shortName}
         </span>
       </button>
       {state.status === "error" && state.message && (
-        <p className="mt-1 text-[10.5px] text-rose-600 dark:text-rose-400">{state.message}</p>
+        <p className="mt-1 w-[68px] text-center text-[10.5px] text-rose-600 dark:text-rose-400">
+          {state.message}
+        </p>
       )}
     </form>
   );

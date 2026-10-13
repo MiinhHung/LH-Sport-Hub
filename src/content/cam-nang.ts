@@ -72,7 +72,7 @@ export const ARTICLES: Article[] = [
           {
             title: "Xoay khớp và động tác động",
             meta: "4 phút",
-            body: "Xoay cổ tay, khuỷu, vai, hông, gối, cổ chân — mỗi khớp 10 vòng mỗi chiều. Sau đó đá chân trước sau, đá chân ngang, lunge bước tới, xoay thân. Cổ tay và vai phải kỹ vì cú đập dồn hết lực vào đó.",
+            body: "Xoay cổ tay, khuỷu, vai, hông, gối, cổ chân, mỗi khớp 10 vòng mỗi chiều. Sau đó đá chân trước sau, đá chân ngang, lunge bước tới, xoay thân. Cổ tay và vai phải kỹ vì cú đập dồn hết lực vào đó.",
           },
           {
             title: "Làm quen với cầu",
@@ -105,7 +105,7 @@ export const ARTICLES: Article[] = [
         type: "para",
         text: "Đánh xong ai cũng muốn cất vợt đi ăn ngay. Nhưng năm phút giãn cơ là thứ rẻ nhất bạn có thể làm để hôm sau không bị đau bắp chân với vai.",
       },
-      { type: "heading", text: "Giữ mỗi động tác 20–30 giây, không nảy" },
+      { type: "heading", text: "Giữ mỗi động tác 20-30 giây, không nảy" },
       {
         type: "steps",
         items: [
@@ -165,13 +165,13 @@ export const ARTICLES: Article[] = [
         items: [
           { label: "Mỗi ván", value: "21 điểm" },
           { label: "Một trận", value: "Thắng 2 trong 3 ván" },
-          { label: "Hoà 20–20", value: "Phải hơn 2 điểm" },
-          { label: "Kịch trần", value: "29–29 thì ai tới 30 trước thắng" },
+          { label: "Hoà 20-20", value: "Phải hơn 2 điểm" },
+          { label: "Kịch trần", value: "29-29 thì ai tới 30 trước thắng" },
         ],
       },
       {
         type: "para",
-        text: "Mỗi pha cầu đều có điểm, bất kể ai giao — luật này gọi là tính điểm trực tiếp, áp dụng từ 2006. Bên nào thắng pha cầu thì được điểm và giành quyền giao cầu pha kế tiếp.",
+        text: "Mỗi pha cầu đều có điểm, bất kể ai giao, luật này gọi là tính điểm trực tiếp, áp dụng từ 2006. Bên nào thắng pha cầu thì được điểm và giành quyền giao cầu pha kế tiếp.",
       },
       { type: "heading", text: "Giao cầu ở ô nào" },
       {
@@ -182,13 +182,13 @@ export const ARTICLES: Article[] = [
         type: "court",
         highlight: "service-doubles",
         caption:
-          "Đánh đôi: ô giao cầu rộng nhưng ngắn — vạch cuối là vạch nét đứt, không phải biên cuối sân.",
+          "Đánh đôi: ô giao cầu rộng nhưng ngắn, vạch cuối là vạch nét đứt, không phải biên cuối sân.",
       },
       {
         type: "court",
         highlight: "service-singles",
         caption:
-          "Đánh đơn: ô giao cầu hẹp nhưng dài — chạm tới tận biên cuối sân.",
+          "Đánh đơn: ô giao cầu hẹp nhưng dài, chạm tới tận biên cuối sân.",
       },
       {
         type: "note",
@@ -203,7 +203,7 @@ export const ARTICLES: Article[] = [
           "Đầu vợt phải chúc xuống, hướng xuống dưới rõ ràng.",
           "Hai chân chạm sàn, không nhấc, không lê chân.",
           "Đánh vào phần đế cầu trước, không phải vào lông.",
-          "Chỉ được một lần giao — hỏng là mất điểm luôn, không có lượt thứ hai.",
+          "Chỉ được một lần giao, hỏng là mất điểm luôn, không có lượt thứ hai.",
         ],
       },
       { type: "heading", text: "Những lỗi hay gặp" },
@@ -235,7 +235,7 @@ export const ARTICLES: Article[] = [
       {
         type: "court",
         highlight: "singles",
-        caption: "Vùng tô sáng là sân đánh đơn — hẹp hơn mỗi bên 46 cm.",
+        caption: "Vùng tô sáng là sân đánh đơn, hẹp hơn mỗi bên 46 cm.",
       },
     ],
   },
@@ -261,7 +261,7 @@ export const ARTICLES: Article[] = [
         items: [
           {
             title: "Cầm thuận tay",
-            body: "Dựng vợt thẳng đứng rồi bắt tay với cán vợt. Kẽ giữa ngón cái và ngón trỏ tạo thành chữ V nằm trên cạnh hẹp của cán. Nắm lỏng như cầm con chim — chỉ siết chặt đúng khoảnh khắc chạm cầu.",
+            body: "Dựng vợt thẳng đứng rồi bắt tay với cán vợt. Kẽ giữa ngón cái và ngón trỏ tạo thành chữ V nằm trên cạnh hẹp của cán. Nắm lỏng như cầm con chim, chỉ siết chặt đúng khoảnh khắc chạm cầu.",
           },
           {
             title: "Cầm trái tay",
@@ -272,7 +272,7 @@ export const ARTICLES: Article[] = [
       {
         type: "note",
         tone: "warn",
-        text: "Kiểu cầm như cầm chảo — mặt vợt song song mặt sàn — chỉ dùng để vê cầu sát lưới. Dùng nó để đánh cầu cao là hỏng cổ tay và mất lực.",
+        text: "Kiểu cầm như cầm chảo, mặt vợt song song mặt sàn, chỉ dùng để vê cầu sát lưới. Dùng nó để đánh cầu cao là hỏng cổ tay và mất lực.",
       },
       { type: "heading", text: "Năm cú đánh nền tảng" },
       {
@@ -284,11 +284,11 @@ export const ARTICLES: Article[] = [
           },
           {
             title: "Bỏ nhỏ",
-            body: "Cùng tư thế như đánh cầu cao nhưng giảm lực lúc chạm, cầu rơi ngay sau lưới. Ăn nhau ở chỗ giấu ý đồ — động tác phải giống hệt cú cao sâu.",
+            body: "Cùng tư thế như đánh cầu cao nhưng giảm lực lúc chạm, cầu rơi ngay sau lưới. Ăn nhau ở chỗ giấu ý đồ, động tác phải giống hệt cú cao sâu.",
           },
           {
             title: "Đập cầu",
-            body: "Cú ghi điểm. Đánh cầu ở điểm cao nhất, mặt vợt chúc xuống, dùng cả xoay thân chứ không chỉ tay. Đập từ cuối sân tốn sức mà ít hiệu quả — đập khi đã ở giữa sân trở lên.",
+            body: "Cú ghi điểm. Đánh cầu ở điểm cao nhất, mặt vợt chúc xuống, dùng cả xoay thân chứ không chỉ tay. Đập từ cuối sân tốn sức mà ít hiệu quả, đập khi đã ở giữa sân trở lên.",
           },
           {
             title: "Cầu ngang",
@@ -360,12 +360,12 @@ export const ARTICLES: Article[] = [
       {
         type: "note",
         tone: "tip",
-        text: "Người đứng trên lưới đừng ngoái lại nhìn đồng đội đập. Giữ mặt hướng về lưới, vợt giơ sẵn — cầu chặn được hay không là ở đó.",
+        text: "Người đứng trên lưới đừng ngoái lại nhìn đồng đội đập. Giữ mặt hướng về lưới, vợt giơ sẵn, cầu chặn được hay không là ở đó.",
       },
       { type: "heading", text: "Giao cầu trong đánh đôi" },
       {
         type: "para",
-        text: "Giao cầu thấp sát lưới là lựa chọn mặc định, rơi ngay sau vạch giao cầu ngắn. Giao cao chỉ dùng để đổi nhịp khi đối phương dâng quá cao. Sau khi giao, người giao lùi lại một bước và giơ vợt lên — đối phương đẩy nhanh là chuyện thường.",
+        text: "Giao cầu thấp sát lưới là lựa chọn mặc định, rơi ngay sau vạch giao cầu ngắn. Giao cao chỉ dùng để đổi nhịp khi đối phương dâng quá cao. Sau khi giao, người giao lùi lại một bước và giơ vợt lên, đối phương đẩy nhanh là chuyện thường.",
       },
     ],
   },
@@ -393,7 +393,7 @@ export const ARTICLES: Article[] = [
           {
             title: "Trọng lượng",
             meta: "chọn 4U hoặc 5U",
-            body: "Ghi trên thân vợt. 3U nặng khoảng 85–89 g, 4U khoảng 80–84 g, 5U nhẹ hơn nữa. Số càng lớn vợt càng nhẹ. Người mới cầm 4U là vừa tay, vung nhanh và đỡ mỏi.",
+            body: "Ghi trên thân vợt. 3U nặng khoảng 85-89 g, 4U khoảng 80-84 g, 5U nhẹ hơn nữa. Số càng lớn vợt càng nhẹ. Người mới cầm 4U là vừa tay, vung nhanh và đỡ mỏi.",
           },
           {
             title: "Điểm cân bằng",
@@ -402,8 +402,8 @@ export const ARTICLES: Article[] = [
           },
           {
             title: "Độ căng dây",
-            meta: "20–23 lbs",
-            body: "Căng cao nghe đã tai và kiểm soát tốt, nhưng đòi kỹ thuật chuẩn mới ra lực. Người mới căng 20–23 lbs sẽ thấy dễ đánh hơn hẳn. Khí hậu nóng ẩm làm dây xuống nhanh, vài tháng nên căng lại.",
+            meta: "20-23 lbs",
+            body: "Căng cao nghe đã tai và kiểm soát tốt, nhưng đòi kỹ thuật chuẩn mới ra lực. Người mới căng 20-23 lbs sẽ thấy dễ đánh hơn hẳn. Khí hậu nóng ẩm làm dây xuống nhanh, vài tháng nên căng lại.",
           },
         ],
       },
@@ -420,8 +420,8 @@ export const ARTICLES: Article[] = [
       {
         type: "facts",
         items: [
-          { label: "Miền Nam, trời nóng", value: "Số 76 – 77" },
-          { label: "Miền Bắc, mùa lạnh", value: "Số 77 – 78" },
+          { label: "Miền Nam, trời nóng", value: "Số 76-77" },
+          { label: "Miền Bắc, mùa lạnh", value: "Số 77-78" },
           { label: "Sân có điều hoà", value: "Số 77" },
           { label: "Tập cơ bản", value: "Cầu nhựa cho rẻ" },
         ],
@@ -460,7 +460,7 @@ export const ARTICLES: Article[] = [
         items: [
           {
             title: "Lật cổ chân",
-            body: "Thường xảy ra khi tiếp đất sau cú đập, hoặc giẫm phải chân đồng đội. Phòng bằng giày cầu lông đúng loại và tập thăng bằng — đứng một chân đánh răng mỗi ngày là đủ.",
+            body: "Thường xảy ra khi tiếp đất sau cú đập, hoặc giẫm phải chân đồng đội. Phòng bằng giày cầu lông đúng loại và tập thăng bằng, đứng một chân đánh răng mỗi ngày là đủ.",
           },
           {
             title: "Đau gân gót",
@@ -481,9 +481,9 @@ export const ARTICLES: Article[] = [
         type: "list",
         items: [
           "Dừng đánh ngay. Cố đánh nốt ván là cách biến chấn thương nhẹ thành nặng.",
-          "48 giờ đầu: chườm lạnh 15–20 phút mỗi lần, vài lần trong ngày.",
+          "48 giờ đầu: chườm lạnh 15-20 phút mỗi lần, vài lần trong ngày.",
           "Kê cao chỗ bị thương khi nằm, băng ép vừa phải cho đỡ sưng.",
-          "Sưng nhiều, đau khi chống chân, hoặc nghe tiếng rắc lúc bị — đi khám, đừng tự đoán.",
+          "Sưng nhiều, đau khi chống chân, hoặc nghe tiếng rắc lúc bị, đi khám, đừng tự đoán.",
         ],
       },
       {
@@ -525,7 +525,7 @@ export const ARTICLES: Article[] = [
       {
         type: "note",
         tone: "tip",
-        text: "Trước khi đối thủ chạm cầu, nhún nhẹ hai chân một cái — gọi là bước nhảy chuẩn bị. Nó không đưa bạn đi đâu cả, nhưng giúp cơ chân sẵn sàng bật theo bất kỳ hướng nào.",
+        text: "Trước khi đối thủ chạm cầu, nhún nhẹ hai chân một cái, gọi là bước nhảy chuẩn bị. Nó không đưa bạn đi đâu cả, nhưng giúp cơ chân sẵn sàng bật theo bất kỳ hướng nào.",
       },
       { type: "heading", text: "Sáu đường chân" },
       {
@@ -585,7 +585,7 @@ export const ARTICLES: Article[] = [
         type: "para",
         text: "Trong cả trận, giao cầu là tình huống duy nhất không ai gây sức ép cho bạn: cầu nằm yên trong tay, muốn đứng bao lâu cũng được. Vậy mà đây lại là chỗ cho điểm nhiều nhất của người mới.",
       },
-      { type: "heading", text: "Giao cầu thấp — quả dùng 80% thời gian" },
+      { type: "heading", text: "Giao cầu thấp, quả dùng 80% thời gian" },
       {
         type: "para",
         text: "Mục tiêu: cầu bay sát mép trên lưới rồi rơi ngay sau vạch giao cầu ngắn của đối phương. Đối thủ phải vươn lên đỡ ở tầm thấp, không thể đập.",
@@ -607,7 +607,7 @@ export const ARTICLES: Article[] = [
           },
           {
             title: "Giao xong là vào thế thủ",
-            body: "Đừng đứng ngắm quả giao của mình. Bước lùi nửa bước về tư thế chuẩn bị, vợt cầm cao — quả trả lưới sẽ tới rất nhanh.",
+            body: "Đừng đứng ngắm quả giao của mình. Bước lùi nửa bước về tư thế chuẩn bị, vợt cầm cao, quả trả lưới sẽ tới rất nhanh.",
           },
         ],
       },
@@ -617,7 +617,7 @@ export const ARTICLES: Article[] = [
         caption:
           "Ô cần rơi vào khi đánh đôi. Nhắm điểm cách vạch giao cầu ngắn chừng 20 cm là vừa đẹp.",
       },
-      { type: "heading", text: "Giao cầu cao — dành cho đánh đơn" },
+      { type: "heading", text: "Giao cầu cao, dành cho đánh đơn" },
       {
         type: "para",
         text: "Đánh mạnh cho cầu bay thật cao và rơi thẳng đứng sát biên cuối sân đối phương. Cầu rơi càng dựng thì đối thủ càng khó đập. Trong đánh đôi hầu như không dùng, vì ô giao cầu ngắn hơn nên đối phương lùi ra đập rất dễ.",
@@ -631,7 +631,7 @@ export const ARTICLES: Article[] = [
       {
         type: "list",
         items: [
-          "Cầu cao quá 1,15 m lúc vợt chạm — tương đương ngang xương sườn dưới của phần lớn người Việt.",
+          "Cầu cao quá 1,15 m lúc vợt chạm, tương đương ngang xương sườn dưới của phần lớn người Việt.",
           "Đầu vợt ngóc lên cao hơn tay cầm. Đầu vợt phải chúc xuống thấy rõ.",
           "Nhấc chân hoặc lê chân trong lúc đánh. Hai chân phải có phần chạm sàn cho tới khi vợt chạm cầu.",
         ],
@@ -665,7 +665,7 @@ export const ARTICLES: Article[] = [
           {
             title: "Cầu chạm vạch",
             meta: "TRONG",
-            body: "Vạch là một phần của sân. Chạm vạch dù chỉ mép ngoài cũng tính trong. Người nhìn rõ nhất là người ở phía cầu rơi, không phải người đánh — thông lệ là bên đỡ gọi.",
+            body: "Vạch là một phần của sân. Chạm vạch dù chỉ mép ngoài cũng tính trong. Người nhìn rõ nhất là người ở phía cầu rơi, không phải người đánh, thông lệ là bên đỡ gọi.",
           },
           {
             title: "Cầu chạm người hoặc quần áo",
@@ -783,7 +783,7 @@ export const ARTICLES: Article[] = [
       {
         type: "list",
         items: [
-          "Nhìn nghiêng thấy rãnh đế đã mòn nhẵn — hết bám, trượt lúc dừng gấp.",
+          "Nhìn nghiêng thấy rãnh đế đã mòn nhẵn, hết bám, trượt lúc dừng gấp.",
           "Đặt giày lên bàn phẳng thấy nó nghiêng sang một bên.",
           "Bóp hông giày thấy mềm oặt so với lúc mới.",
           "Đánh xong thấy đau gót hoặc đau lòng bàn chân mà trước không bị.",
@@ -791,7 +791,7 @@ export const ARTICLES: Article[] = [
       },
       {
         type: "para",
-        text: "Đánh mỗi tuần một buổi thì một đôi dùng được khoảng một năm. Đừng đợi tới lúc đế rách mới thay — phần đệm chết trước khi đế rách, mà chính phần đệm mới là thứ bảo vệ đầu gối.",
+        text: "Đánh mỗi tuần một buổi thì một đôi dùng được khoảng một năm. Đừng đợi tới lúc đế rách mới thay, phần đệm chết trước khi đế rách, mà chính phần đệm mới là thứ bảo vệ đầu gối.",
       },
     ],
   },
@@ -823,7 +823,7 @@ export const ARTICLES: Article[] = [
           "Ngủ đủ. Thiếu ngủ làm phản xạ chậm đi thấy rõ, và đó là thứ cầu lông cần nhất.",
           "Uống một cốc nước trước khi đi ngủ. Bạn sẽ mất nước suốt đêm qua hơi thở và mồ hôi.",
           "Soạn sẵn túi đồ tối hôm trước: vợt, giày, quần áo, nước. Sáng dậy đỡ cập rập, và đỡ cái cớ để ngủ nướng.",
-          "Đừng nhậu tối thứ 6. Cồn làm mất nước và phá giấc ngủ sâu — sáng hôm sau vào sân là biết ngay.",
+          "Đừng nhậu tối thứ 6. Cồn làm mất nước và phá giấc ngủ sâu, sáng hôm sau vào sân là biết ngay.",
         ],
       },
       { type: "heading", text: "Ăn gì trước khi đánh" },
@@ -835,16 +835,16 @@ export const ARTICLES: Article[] = [
         type: "steps",
         items: [
           {
-            title: "Dậy trước giờ đánh 60–90 phút",
+            title: "Dậy trước giờ đánh 60-90 phút",
             body: "Đủ để ăn nhẹ, đi vệ sinh và cho thân nhiệt lên. Dậy trước 20 phút rồi phóng thẳng ra sân là kiểu dễ chấn thương nhất.",
           },
           {
-            title: "Ăn nhẹ, dễ tiêu, trước 45–60 phút",
+            title: "Ăn nhẹ, dễ tiêu, trước 45-60 phút",
             body: "Một quả chuối, lát bánh mì với mật ong, hộp sữa chua, hoặc chén xôi nhỏ. Mục tiêu là có đường trong máu, không phải ăn no.",
           },
           {
             title: "Tránh đồ nhiều dầu mỡ và nhiều đạm",
-            body: "Bún bò, phở tái nạm, bánh mì thịt đầy đủ — để dành ăn sau buổi đánh. Tiêu hoá chậm, vào sân là xóc bụng.",
+            body: "Bún bò, phở tái nạm, bánh mì thịt đầy đủ, để dành ăn sau buổi đánh. Tiêu hoá chậm, vào sân là xóc bụng.",
           },
           {
             title: "Cà phê thì được, nhưng kèm nước",
@@ -860,7 +860,7 @@ export const ARTICLES: Article[] = [
       {
         type: "facts",
         items: [
-          { label: "Vừa ngủ dậy", value: "300–500 ml" },
+          { label: "Vừa ngủ dậy", value: "300-500 ml" },
           { label: "Trước khi đánh", value: "Thêm 200 ml" },
           { label: "Trong lúc đánh", value: "150 ml mỗi 15 phút" },
           { label: "Buổi trên 90 phút", value: "Thêm điện giải" },
@@ -869,12 +869,12 @@ export const ARTICLES: Article[] = [
       {
         type: "note",
         tone: "tip",
-        text: "Trời mát nên ít thấy khát, nhưng mồ hôi vẫn ra như thường — chỉ là bay hơi nhanh hơn nên bạn không nhận ra. Cứ uống theo lịch, đừng chờ cảm giác.",
+        text: "Trời mát nên ít thấy khát, nhưng mồ hôi vẫn ra như thường, chỉ là bay hơi nhanh hơn nên bạn không nhận ra. Cứ uống theo lịch, đừng chờ cảm giác.",
       },
       { type: "heading", text: "Khởi động buổi sáng phải dài hơn" },
       {
         type: "para",
-        text: "Bài khởi động 10 phút thông thường là cho cơ thể đã hoạt động cả ngày. Sáng sớm thì cộng thêm khoảng 5 phút nữa, và phần làm nóng chung phải kỹ hơn hẳn — mục tiêu số một là nâng thân nhiệt lên.",
+        text: "Bài khởi động 10 phút thông thường là cho cơ thể đã hoạt động cả ngày. Sáng sớm thì cộng thêm khoảng 5 phút nữa, và phần làm nóng chung phải kỹ hơn hẳn, mục tiêu số một là nâng thân nhiệt lên.",
       },
       {
         type: "steps",
@@ -906,14 +906,14 @@ export const ARTICLES: Article[] = [
         type: "list",
         items: [
           "Giãn cơ tĩnh 5 phút ngay tại sân, lúc người còn nóng.",
-          "Ăn sáng tử tế trong vòng một tiếng, có đạm — đây mới là lúc cho tô bún bò. Tiện thể là chỗ trả kèo.",
+          "Ăn sáng tử tế trong vòng một tiếng, có đạm, đây mới là lúc cho tô bún bò. Tiện thể là chỗ trả kèo.",
           "Uống bù cho tới khi hết khát hẳn, đừng dừng ở ngụm đầu tiên.",
           "Đừng về nhà ngủ tiếp ngay. Đi lại nhẹ nhàng nửa tiếng cho nhịp tim xuống từ từ.",
         ],
       },
       {
         type: "para",
-        text: "Đánh sáng xong là còn nguyên ngày thứ 7 phía trước. Đó là phần thưởng lớn nhất của khung giờ này — miễn là bạn dành cho nó 30 phút chuẩn bị tử tế.",
+        text: "Đánh sáng xong là còn nguyên ngày thứ 7 phía trước. Đó là phần thưởng lớn nhất của khung giờ này, miễn là bạn dành cho nó 30 phút chuẩn bị tử tế.",
       },
     ],
   },
@@ -953,7 +953,7 @@ export const ARTICLES: Article[] = [
           },
           {
             title: "Cầu lạc sang sân khác thì hô lên và đợi",
-            body: "Đừng chạy vụt sang sân người ta khi họ đang trong pha cầu — vừa nguy hiểm vừa phá trận của họ. Hô một tiếng rồi đợi họ đánh xong.",
+            body: "Đừng chạy vụt sang sân người ta khi họ đang trong pha cầu, vừa nguy hiểm vừa phá trận của họ. Hô một tiếng rồi đợi họ đánh xong.",
           },
           {
             title: "Bên đỡ gọi trong hay ngoài",
@@ -961,15 +961,15 @@ export const ARTICLES: Article[] = [
           },
           {
             title: "Đánh đôi thì phải nói với nhau",
-            body: "Hô Tôi, Của bạn, Ra — ba chữ đó tránh được gần hết những pha hai người cùng lao vào một quả rồi va vợt nhau.",
+            body: "Hô Tôi, Của bạn, Ra, ba chữ đó tránh được gần hết những pha hai người cùng lao vào một quả rồi va vợt nhau.",
           },
           {
             title: "Đánh với người yếu hơn thì đừng đập mặt",
-            body: "Thắng một pha cầu bằng cú đập vào người mới chơi không chứng minh được gì. Đánh vào góc, nhẹ tay lại một chút — họ mới muốn đi đánh tiếp.",
+            body: "Thắng một pha cầu bằng cú đập vào người mới chơi không chứng minh được gì. Đánh vào góc, nhẹ tay lại một chút, họ mới muốn đi đánh tiếp.",
           },
           {
             title: "Xin lỗi khi ăn điểm may",
-            body: "Cầu chạm mép lưới rồi rơi qua, hay trúng cạnh vợt mà thành điểm — giơ tay một cái là đủ. Thông lệ của môn này, không phải khách sáo.",
+            body: "Cầu chạm mép lưới rồi rơi qua, hay trúng cạnh vợt mà thành điểm, giơ tay một cái là đủ. Thông lệ của môn này, không phải khách sáo.",
           },
         ],
       },
@@ -984,7 +984,7 @@ export const ARTICLES: Article[] = [
         items: [
           "Gom cầu hỏng và vỏ chai, đừng để lại cho người sân sau dọn.",
           "Chia tiền sân ngay trong buổi hôm đó. Để sang tuần là quên, mà người ứng tiền thì ngại nhắc.",
-          "Thua kèo thì trả kèo. Cả đội thua bao cả đội thắng — đã chốt thì vui vẻ trả, đừng để phải nhắc.",
+          "Thua kèo thì trả kèo. Cả đội thua bao cả đội thắng, đã chốt thì vui vẻ trả, đừng để phải nhắc.",
         ],
       },
       {

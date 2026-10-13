@@ -1,12 +1,14 @@
 "use client";
 
-import { Search } from "lucide-react";
+import { Search, UserSearch } from "@/components/icons";
 import { useMemo, useState } from "react";
 
 import {
   TheThanhVien,
   type ThanhVien,
 } from "@/components/thanh-vien/the-thanh-vien";
+import { Card, EmptyState } from "@/components/ui";
+import { Button } from "@/components/ui/button";
 import {
   SKILL_LEVELS,
   SKILL_LEVEL_KEYS,
@@ -79,35 +81,45 @@ export function DanhSachThanhVien({
     [loc],
   );
 
+  const pill = (active: boolean) =>
+    cn(
+      "inline-flex h-9 shrink-0 items-center rounded-full border px-3.5 text-[13px] font-semibold whitespace-nowrap transition-colors",
+      active
+        ? "border-navy-900 bg-navy-900 text-white dark:border-ink-600 dark:bg-ink-700"
+        : "border-ink-800 text-ink-400 hover:border-ink-700 hover:text-ink-100",
+    );
+
+  const dangLoc = Boolean(tim.trim()) || muc !== null;
+
   return (
-    <div className="space-y-7">
+    <div className="space-y-6">
       {coBoLoc && (
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-          <div className="relative sm:max-w-xs sm:flex-1">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="relative sm:w-72">
             <Search
-              className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-ink-500"
+              className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-ink-500"
               aria-hidden
             />
             <input
+              type="search"
               value={tim}
               onChange={(e) => setTim(e.target.value)}
-              placeholder="Tìm tên hoặc phòng ban..."
+              placeholder="Tìm tên hoặc phòng ban"
               aria-label="Tìm thành viên"
-              className="h-10 w-full rounded-xl border border-ink-800 bg-ink-850 pr-3 pl-9 text-[14px] text-ink-200 outline-none placeholder:text-ink-500 focus:border-ink-700"
+              className="h-10 w-full rounded-lg border border-ink-700 bg-ink-900 pr-3 pl-10 text-[14px] text-ink-200 outline-none transition-[border-color,box-shadow] placeholder:text-ink-500 hover:border-ink-600 focus:border-gold-500 focus:ring-2 focus:ring-gold-400/25"
             />
           </div>
 
-          <div className="no-scrollbar -mx-4 flex items-center gap-3 overflow-x-auto px-4 sm:mx-0 sm:px-0">
+          <div
+            role="group"
+            aria-label="Lọc theo trình độ"
+            className="no-scrollbar -mx-4 flex items-center gap-2 overflow-x-auto px-4 sm:mx-0 sm:px-0"
+          >
             <button
               type="button"
               onClick={() => setMuc(null)}
               aria-pressed={muc === null}
-              className={cn(
-                "text-[11px] font-semibold tracking-[0.12em] whitespace-nowrap uppercase transition-colors",
-                muc === null
-                  ? "text-gold-700 dark:text-gold-300"
-                  : "text-ink-500 hover:text-ink-300",
-              )}
+              className={pill(muc === null)}
             >
               Tất cả
             </button>
@@ -117,12 +129,7 @@ export function DanhSachThanhVien({
                 type="button"
                 onClick={() => setMuc(muc === key ? null : key)}
                 aria-pressed={muc === key}
-                className={cn(
-                  "text-[11px] font-semibold tracking-[0.12em] whitespace-nowrap uppercase transition-colors",
-                  muc === key
-                    ? "text-gold-700 dark:text-gold-300"
-                    : "text-ink-500 hover:text-ink-300",
-                )}
+                className={pill(muc === key)}
               >
                 {SKILL_LEVELS[key].label}
               </button>
@@ -132,20 +139,44 @@ export function DanhSachThanhVien({
       )}
 
       {loc.length === 0 ? (
-        <p className="py-10 text-center text-[14px] text-ink-500">
-          Không có ai khớp với “{tim}”.
-        </p>
+        <EmptyState
+          icon={<UserSearch className="size-6" />}
+          title={
+            tim.trim()
+              ? `Không có ai khớp với "${tim.trim()}"`
+              : "Không có ai ở mức này"
+          }
+          description="Thử từ khoá khác hoặc bỏ bộ lọc trình độ."
+          action={
+            dangLoc && (
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => {
+                  setTim("");
+                  setMuc(null);
+                }}
+              >
+                Xoá bộ lọc
+              </Button>
+            )
+          }
+        />
       ) : (
         <>
           {daRaSan.length > 0 && (
             <section aria-labelledby="da-ra-san">
               <h2
                 id="da-ra-san"
-                className="mb-3 text-[11px] font-bold tracking-[0.14em] text-ink-500 uppercase"
+                className="mb-3 flex items-baseline gap-2 text-[16px] font-semibold text-ink-100"
               >
-                Đang ra sân · {daRaSan.length}
+                Đang ra sân
+                <span className="tabular text-[12.5px] font-medium text-ink-500">
+                  {daRaSan.length} người
+                </span>
               </h2>
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              <Card className="overflow-hidden">
+                <ul className="divide-y divide-ink-800">
                 {daRaSan.map((m, i) => (
                   <TheThanhVien
                     key={m.id}
@@ -165,7 +196,8 @@ export function DanhSachThanhVien({
                     }
                   />
                 ))}
-              </div>
+                </ul>
+              </Card>
             </section>
           )}
 
@@ -173,11 +205,15 @@ export function DanhSachThanhVien({
             <section aria-labelledby="chua-ra-san">
               <h2
                 id="chua-ra-san"
-                className="mb-3 text-[11px] font-bold tracking-[0.14em] text-ink-500 uppercase"
+                className="mb-3 flex items-baseline gap-2 text-[16px] font-semibold text-ink-100"
               >
-                Chưa ra sân · {chuaRaSan.length}
+                Chưa ra sân
+                <span className="tabular text-[12.5px] font-medium text-ink-500">
+                  {chuaRaSan.length} người
+                </span>
               </h2>
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              <Card className="overflow-hidden">
+                <ul className="divide-y divide-ink-800">
                 {chuaRaSan.map((m) => (
                   <TheThanhVien
                     key={m.id}
@@ -186,7 +222,8 @@ export function DanhSachThanhVien({
                     nguoiXem={meId}
                   />
                 ))}
-              </div>
+                </ul>
+              </Card>
             </section>
           )}
         </>

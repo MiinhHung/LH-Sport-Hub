@@ -1,31 +1,43 @@
 import type { Metadata, Viewport } from "next";
-import { Be_Vietnam_Pro, Playfair_Display } from "next/font/google";
+import { Barlow_Condensed, Plus_Jakarta_Sans, Caveat } from "next/font/google";
 
 import { THEME_SCRIPT } from "@/components/theme";
 import { APP_DESCRIPTION, APP_NAME } from "@/lib/constants";
 import { publicEnv } from "@/lib/env";
+import { INTRO_SCRIPT } from "@/lib/intro";
 import "./globals.css";
 
-/** Be Vietnam Pro được thiết kế riêng cho dấu tiếng Việt. */
-const sans = Be_Vietnam_Pro({
+/**
+ * FONT CHỮ HIỆN ĐẠI HỖ TRỢ TIẾNG VIỆT TOÀN DIỆN.
+ * Plus Jakarta Sans: hình học thanh thoát, tối ưu cho giao diện SaaS.
+ * Barlow Condensed: phong cách thể thao, năng lượng, góc cạnh cho tiêu đề.
+ * Caveat: chữ ký viết tay nghệ thuật của các thành viên.
+ */
+const sans = Plus_Jakarta_Sans({
   subsets: ["vietnamese", "latin"],
-  weight: ["400", "500", "600", "700", "800"],
-  variable: "--font-be-vietnam",
+  variable: "--font-sans",
   display: "swap",
+  weight: ["400", "500", "600", "700", "800"],
 });
 
-/** Serif tương phản cao, khớp với chữ trong logo Light Human. */
-const display = Playfair_Display({
+const barlowCondensed = Barlow_Condensed({
   subsets: ["vietnamese", "latin"],
-  weight: ["600", "700"],
-  variable: "--font-playfair",
+  variable: "--font-sport",
   display: "swap",
+  weight: ["600", "700", "800", "900"],
+});
+
+const caveat = Caveat({
+  subsets: ["latin", "latin-ext"],
+  variable: "--font-signature",
+  display: "swap",
+  weight: ["600", "700"],
 });
 
 export const metadata: Metadata = {
   metadataBase: new URL(publicEnv.siteUrl),
   title: {
-    default: `${APP_NAME} — Kèo & buổi tập của team`,
+    default: `${APP_NAME}: kèo & buổi tập của team`,
     template: `%s · ${APP_NAME}`,
   },
   description: APP_DESCRIPTION,
@@ -68,37 +80,27 @@ export default function RootLayout({
   return (
     <html
       lang="vi"
-      className={`${sans.variable} ${display.variable}`}
-      /*
-       * BẮT BUỘC PHẢI KHAI, KHÔNG PHẢI TUỲ CHỌN.
-       *
-       * globals.css đặt `scroll-behavior: smooth` cho cả trang, để mấy
-       * liên kết neo trong trang trượt tới chứ không nhảy.
-       *
-       * Next bản 15 trở về trước tự tắt thuộc tính đó trong lúc chuyển
-       * trang rồi bật lại, nên chuyển trang vẫn nhảy phắt lên đầu. Bản
-       * 16 BỎ hành vi đó: không khai thuộc tính này thì mỗi lần đổi
-       * trang, trình duyệt cuộn MƯỢT lên đầu — đi cả màn hình, mất mấy
-       * trăm mili giây, và cảm giác ra là app ì chứ không phải là êm.
-       *
-       * Khai vào đây là xin Next làm lại đúng việc nó vẫn làm: tắt tạm
-       * lúc chuyển trang, giữ nguyên cho liên kết neo trong trang.
-       */
+      className={`${sans.variable} ${barlowCondensed.variable} ${caveat.variable}`}
       data-scroll-behavior="smooth"
-      // Đoạn mã chặn bên dưới gắn lớp `.dark` trước khi React hydrate, nên
-      // thuộc tính class của <html> sẽ khác với bản máy chủ dựng ra. Đây là
-      // khác biệt CÓ CHỦ Ý, không phải lỗi; báo cho React biết để nó đừng
-      // cảnh báo, và chỉ báo ở đúng thẻ này chứ không phải cả cây.
       suppressHydrationWarning
     >
-      <body className="antialiased">
+      <head>
         {/*
-          Chạy trước khung hình đầu tiên để không nháy trắng. Nội dung là
-          hằng số do chính ứng dụng viết ra, không có gì từ người dùng lọt
-          vào — xem THEME_SCRIPT trong components/theme.tsx.
-        */}
+         * Thẻ <script> THƯỜNG, không dùng next/script.
+         *
+         * Ở App Router, `<Script strategy="beforeInteractive">` không chạy lúc
+         * trình duyệt đọc HTML: Next xếp nó vào hàng `self.__next_s` rồi mới
+         * chạy sau khi tải xong gói JavaScript, và theo tài liệu thì nó "không
+         * chặn hydrate". Tức là nền tối loé trắng một nhịp, còn màn mở đầu có
+         * khi gắn cờ trễ hơn lúc React mount, thành không chiếu.
+         *
+         * Thẻ thường trong <head> thì trình duyệt chạy ngay khi đọc tới, trước
+         * khung hình đầu tiên. Hai đoạn này nhỏ và không phụ thuộc gì.
+         */}
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
-
+        <script dangerouslySetInnerHTML={{ __html: INTRO_SCRIPT }} />
+      </head>
+      <body className="antialiased">
         <a href="#noi-dung" className="skip-link">
           Bỏ qua tới nội dung
         </a>

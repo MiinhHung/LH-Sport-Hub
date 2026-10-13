@@ -1,6 +1,6 @@
 "use client";
 
-import { Camera } from "lucide-react";
+import { Camera } from "@/components/icons";
 import { useActionState, useState } from "react";
 
 import { updateProfileAction } from "@/actions/profile";
@@ -33,33 +33,35 @@ export function ProfileForm({
   return (
     <form action={action} className="space-y-5">
       {/* Ảnh đại diện */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-4 rounded-lg bg-ink-850 p-3.5">
         <Avatar
           name={profile.fullName}
           src={preview ?? profile.avatarUrl}
           seed={profile.id}
-          size="xl"
+          size="lg"
         />
-        <div className="min-w-0">
-          <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-ink-700 bg-ink-900 px-3.5 py-2 text-[13px] font-semibold text-ink-300 transition-colors hover:border-ink-600 hover:bg-ink-850">
-            <Camera className="size-4" aria-hidden />
-            Đổi ảnh
-            <input
-              type="file"
-              name="avatar"
-              accept={UPLOAD.allowedMimeTypes.join(",")}
-              className="sr-only"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                setPreview(file ? URL.createObjectURL(file) : null);
-              }}
-            />
-          </label>
-          <p className="mt-1.5 text-xs text-ink-500">
+        <div className="min-w-0 flex-1">
+          <p className="text-[13px] font-semibold text-ink-300">Ảnh đại diện</p>
+          <p className="mt-0.5 text-xs text-ink-500">
             JPG, PNG hoặc WebP, tối đa{" "}
             {Math.round(UPLOAD.maxBytes / (1024 * 1024))}MB.
           </p>
         </div>
+        {/* Ô chọn tệp ẩn trong nhãn: vòng focus vẽ lên nhãn qua focus-within */}
+        <label className="inline-flex h-10 shrink-0 cursor-pointer items-center gap-2 rounded-lg border border-ink-700 bg-ink-900 px-3 text-[13px] font-semibold text-ink-200 transition-[border-color,background-color] focus-within:ring-2 focus-within:ring-gold-400/40 hover:border-ink-600 hover:bg-ink-850 active:scale-[0.98]">
+          <Camera className="size-4" aria-hidden />
+          Đổi ảnh
+          <input
+            type="file"
+            name="avatar"
+            accept={UPLOAD.allowedMimeTypes.join(",")}
+            className="sr-only"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              setPreview(file ? URL.createObjectURL(file) : null);
+            }}
+          />
+        </label>
       </div>
 
       <Field label="Họ và tên" htmlFor="fullName" required error={err.fullName}>

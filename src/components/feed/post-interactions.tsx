@@ -1,6 +1,5 @@
 "use client";
 
-import { MessageCircle, Send, SmilePlus, Trash2 } from "lucide-react";
 import { useEffect, useRef, useState, useTransition } from "react";
 
 import {
@@ -9,6 +8,14 @@ import {
   toggleReactionAction,
 } from "@/actions/posts";
 import { idleState } from "@/actions/types";
+import { ReactionBadge } from "@/components/domain-icons";
+import {
+  MessageCircle,
+  Send,
+  SmilePlus,
+  ThumbsUp,
+  Trash2,
+} from "@/components/icons";
 import { Avatar } from "@/components/ui";
 import { useHoiLai } from "@/components/ui/hoi-lai";
 import {
@@ -55,49 +62,25 @@ function applyToggle(
   };
 }
 
-/* ------------------------------------------------------------------ */
-/* Nút cảm xúc                                                         */
-/* ------------------------------------------------------------------ */
-
 /**
- * Ba cảm xúc bày sẵn. Chọn theo thứ tự hay dùng của một nhóm thể thao:
- * thích, cháy (đánh hay), haha (chọc nhau). Ba cái còn lại — thương,
- * vỗ tay, buồn — vẫn ở trong bảng chọn.
+ * Trạng thái cảm xúc của một nội dung, cập nhật lạc quan.
+ *
+ * Tách thành hook vì ở bài viết, CON SỐ (dòng tổng hợp phía trên) và NÚT
+ * BẤM (thanh hành động phía dưới) nằm ở hai chỗ khác nhau mà phải đổi
+ * cùng một nhịp.
  */
-const NHANH: ReactionKey[] = ["like", "fire", "haha"];
-
-function ReactionControl({
-  targetType,
-  targetId,
-  initial,
-  compact,
-}: {
-  targetType: "post" | "comment";
-  targetId: string;
-  initial: ReactionSummary;
-  compact?: boolean;
-}) {
+function useReaction(
+  targetType: "post" | "comment",
+  targetId: string,
+  initial: ReactionSummary,
+) {
   const [summary, setSummary] = useState(initial);
-  const [picking, setPicking] = useState(false);
   const [, startTransition] = useTransition();
-  const ref = useRef<HTMLDivElement>(null);
 
   // Dữ liệu mới từ server (sau revalidate) thì lấy làm chuẩn.
   useEffect(() => setSummary(initial), [initial]);
 
-  useEffect(() => {
-    if (!picking) return;
-    function onDown(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
-        setPicking(false);
-      }
-    }
-    document.addEventListener("mousedown", onDown);
-    return () => document.removeEventListener("mousedown", onDown);
-  }, [picking]);
-
   function toggle(type: ReactionKey) {
-    setPicking(false);
     setSummary((current) => applyToggle(current, type));
 
     const fd = new FormData();
@@ -112,101 +95,121 @@ function ReactionControl({
     });
   }
 
-  const mine = summary.mine;
+  return { summary, toggle };
+}
 
+/* ------------------------------------------------------------------ */
+/* Bảng chọn cảm xúc                                                   */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Sáu huy hiệu nổi lên phía trên nút. Mở bằng: rê chuột chờ một nhịp,
+ * nhấn giữ / chuột phải, hoặc nút mặt cười riêng (cho bàn phím và cho ai
+ * không biết hai cách kia).
+ */
+function usePicker() {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const hen = useRef(0);
+
+  useEffect(() => {
+    if (!open) return;
+    function onDown(e: PointerEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") setOpen(false);
+    }
+    document.addEventListener("pointerdown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("pointerdown", onDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  useEffect(() => () => window.clearTimeout(hen.current), []);
+
+  /** Chỉ chuột mới mở bằng rê — trên cảm ứng "rê" là cú chạm đầu tiên. */
+  const hover = {
+    onPointerEnter: (e: React.PointerEvent) => {
+      if (e.pointerType !== "mouse") return;
+      window.clearTimeout(hen.current);
+      hen.current = window.setTimeout(() => setOpen(true), 450);
+    },
+    onPointerLeave: (e: React.PointerEvent) => {
+      if (e.pointerType !== "mouse") return;
+      window.clearTimeout(hen.current);
+      hen.current = window.setTimeout(() => setOpen(false), 300);
+    },
+  };
+
+  return { open, setOpen, ref, hover };
+}
+
+function ReactionPicker({
+  mine,
+  onPick,
+  className,
+}: {
+  mine: ReactionKey | null;
+  onPick: (k: ReactionKey) => void;
+  className?: string;
+}) {
   return (
-    <div className="relative flex items-center gap-1.5" ref={ref}>
-      {/*
-        BA CẢM XÚC HAY DÙNG NHẤT HIỆN THẲNG RA, KHÔNG GIẤU SAU MỘT CÚ BẤM.
-
-        Bản trước ở trạng thái nghỉ chỉ là một icon mặt cười xám cạnh chữ
-        "Cảm xúc". Chụp bảng tin thật thì hàng đó đọc ra một thanh trống
-        huơ: hai mẩu chữ xám hai đầu, ở giữa không có gì. Và muốn thả tim
-        thì phải bấm hai lần — mở bảng chọn rồi mới chọn.
-
-        Giờ ba cái hay dùng nhất nằm sẵn, một chạm là xong. Ba cái còn
-        lại vẫn ở sau dấu cộng, vì bày cả sáu ra thì hàng này lại đi quá
-        xa về phía ồn ào.
-
-        Ở bình luận (`compact`) thì giữ nguyên một nút: dòng bình luận
-        hẹp, nhét ba nút vào sẽ chen mất chỗ của chính câu bình luận.
-      */}
-      {!compact && !mine && (
-        <div className="flex items-center gap-0.5">
-          {NHANH.map((key) => (
-            <button
-              key={key}
-              type="button"
-              onClick={() => toggle(key)}
-              title={REACTIONS[key].label}
-              aria-label={`Thả ${REACTIONS[key].label}`}
-              className="grid size-8 place-items-center rounded-lg text-[17px] leading-none transition-transform duration-150 hover:scale-125 hover:bg-ink-850"
-            >
-              {REACTIONS[key].icon}
-            </button>
-          ))}
-        </div>
+    <div
+      role="group"
+      aria-label="Chọn cảm xúc"
+      className={cn(
+        "animate-rise absolute bottom-full z-20 mb-2 flex gap-1 rounded-full border border-ink-800 bg-ink-900 p-1.5 shadow-[var(--shadow-pop)]",
+        className,
       )}
-
-      <button
-        type="button"
-        onClick={() => (mine ? toggle(mine) : setPicking((v) => !v))}
-        onContextMenu={(e) => {
-          e.preventDefault();
-          setPicking((v) => !v);
-        }}
-        aria-label={mine ? `Bỏ ${REACTIONS[mine].label}` : "Thêm cảm xúc khác"}
-        className={cn(
-          "inline-flex items-center gap-1.5 rounded-lg font-semibold transition-colors",
-          /* Trên cảm ứng ép cao tối thiểu 32px. Đo được 21px ở bản
-             thường và 16px ở bản gọn — cả hai đều dưới mức 24px tối
-             thiểu cho vùng chạm. */
-          "pointer-coarse:min-h-8",
-          compact ? "px-1.5 py-0.5 text-[11.5px]" : "px-2 py-1.5 text-[12.5px]",
-          mine
-            ? "text-gold-700 dark:text-gold-300 hover:bg-gold-50 dark:hover:bg-gold-400/10"
-            : "text-ink-500 hover:bg-ink-850 hover:text-ink-300",
-        )}
-      >
-        {mine ? (
-          <span className="text-[15px] leading-none">
-            {REACTIONS[mine].icon}
+    >
+      {REACTION_KEYS.map((key) => (
+        <button
+          key={key}
+          type="button"
+          onClick={() => onPick(key)}
+          aria-label={REACTIONS[key].label}
+          aria-pressed={mine === key}
+          className="group/r relative grid place-items-center rounded-full p-0.5 transition-transform duration-150 ease-out hover:-translate-y-1 hover:scale-110 focus-visible:-translate-y-1"
+        >
+          <ReactionBadge reaction={key} size="lg" />
+          <span
+            aria-hidden
+            className="pointer-events-none absolute -top-7 rounded-lg bg-navy-900 px-1.5 py-0.5 text-[11px] font-semibold whitespace-nowrap text-white opacity-0 transition-opacity group-hover/r:opacity-100"
+          >
+            {REACTIONS[key].label}
           </span>
-        ) : (
-          <SmilePlus className={compact ? "size-3.5" : "size-4"} />
-        )}
-        {mine ? REACTIONS[mine].label : compact ? "Cảm xúc" : null}
-      </button>
-
-      {/* Tổng hợp cảm xúc đã có */}
-      {summary.total > 0 && (
-        <span className="inline-flex items-center gap-0.5 text-[12px] text-ink-500">
-          {summary.counts.slice(0, 3).map((c) => (
-            <span key={c.type} title={`${REACTIONS[c.type].label}: ${c.count}`}>
-              {REACTIONS[c.type].icon}
-            </span>
-          ))}
-          <span className="tabular ml-0.5 font-semibold">{summary.total}</span>
-        </span>
-      )}
-
-      {picking && (
-        <div className="animate-rise absolute bottom-full left-0 z-20 mb-1.5 flex gap-0.5 rounded-xl border border-ink-800 bg-ink-900 p-1.5 shadow-[var(--shadow-pop)]">
-          {REACTION_KEYS.map((key) => (
-            <button
-              key={key}
-              type="button"
-              onClick={() => toggle(key)}
-              title={REACTIONS[key].label}
-              aria-label={REACTIONS[key].label}
-              className="grid size-9 place-items-center rounded-lg text-xl transition-transform duration-150 hover:scale-125 hover:bg-ink-850"
-            >
-              {REACTIONS[key].icon}
-            </button>
-          ))}
-        </div>
-      )}
+        </button>
+      ))}
     </div>
+  );
+}
+
+/** Ba huy hiệu đầu chồng lên nhau, kèm tổng số. */
+function ReactionSummaryChip({ summary }: { summary: ReactionSummary }) {
+  if (summary.total === 0) return null;
+  const ten = summary.counts
+    .map((c) => `${REACTIONS[c.type].label}: ${c.count}`)
+    .join(", ");
+  return (
+    <span className="inline-flex items-center gap-1.5" title={ten}>
+      <span className="flex -space-x-1">
+        {summary.counts.slice(0, 3).map((c) => (
+          <ReactionBadge
+            key={c.type}
+            reaction={c.type}
+            size="sm"
+            className="ring-2 ring-ink-900"
+          />
+        ))}
+      </span>
+      <span className="tabular">{summary.total}</span>
+      <span className="sr-only">cảm xúc ({ten})</span>
+    </span>
   );
 }
 
@@ -226,10 +229,22 @@ function CommentRow({
   const [removed, setRemoved] = useState(false);
   const [, startTransition] = useTransition();
   const { hoi, hopThoai } = useHoiLai();
+  const { summary, toggle } = useReaction(
+    "comment",
+    comment.id,
+    comment.reactions,
+  );
+  const {
+    open: chonMo,
+    setOpen: datChon,
+    ref: chonRef,
+    hover: reChon,
+  } = usePicker();
 
   if (removed) return null;
 
   const canDelete = comment.author.id === viewer.id || canModerate;
+  const mine = summary.mine;
 
   async function remove() {
     const ok = await hoi({
@@ -258,8 +273,8 @@ function CommentRow({
         className="mt-0.5"
       />
       <div className="min-w-0 flex-1">
-        <div className="inline-block max-w-full rounded-2xl rounded-tl-md bg-ink-850 px-3.5 py-2">
-          <p className="text-[13px] font-bold text-ink-100">
+        <div className="relative inline-block max-w-full rounded-lg bg-ink-850 px-3.5 py-2">
+          <p className="text-[13px] font-semibold text-ink-100">
             {comment.author.fullName}
           </p>
           <p className="mt-0.5 text-[14px] leading-relaxed break-words whitespace-pre-wrap text-ink-300">
@@ -267,35 +282,65 @@ function CommentRow({
           </p>
         </div>
 
-        <div className="mt-0.5 flex items-center gap-1 pl-1">
+        <div className="mt-1 flex items-center gap-3 pl-1 text-[12.5px]">
           <time
-            className="text-[11px] text-ink-500"
+            className="text-ink-500"
             dateTime={comment.createdAt.toISOString()}
           >
             {timeAgo(comment.createdAt)}
           </time>
-          <ReactionControl
-            targetType="comment"
-            targetId={comment.id}
-            initial={comment.reactions}
-            compact
-          />
+
+          <div ref={chonRef} className="relative" {...reChon}>
+            <button
+              type="button"
+              onClick={() => toggle(mine ?? "like")}
+              onContextMenu={(e) => {
+                e.preventDefault();
+                datChon(true);
+              }}
+              aria-label={
+                mine ? `Bỏ ${REACTIONS[mine].label}` : "Thích bình luận"
+              }
+              className={cn(
+                "font-semibold transition-colors pointer-coarse:min-h-8",
+                mine
+                  ? "text-gold-700 dark:text-gold-300"
+                  : "text-ink-500 hover:text-ink-200",
+              )}
+            >
+              {mine ? REACTIONS[mine].label : "Thích"}
+            </button>
+            {chonMo && (
+              <ReactionPicker
+                mine={mine}
+                className="left-0"
+                onPick={(k) => {
+                  datChon(false);
+                  toggle(k);
+                }}
+              />
+            )}
+          </div>
+
           {canDelete && (
             <button
               type="button"
               onClick={remove}
-              /* Hiện sẵn trên màn cảm ứng — xem ghi chú cùng loại ở
-                 `chat-thread`. Không có nó thì nút xoá bình luận nằm đó
-                 mà không ai dùng điện thoại chạm tới được.
-
-                 Và nới vùng chạm: đo được 24×16px, thấp hơn cả mức tối
-                 thiểu 24×24 của WCAG 2.5.8. Chuột thì 16px vẫn bấm
-                 trúng, đầu ngón tay thì không. */
-              className="rounded px-1.5 py-0.5 text-[11px] font-semibold text-ink-500 opacity-0 transition-opacity group-hover:opacity-100 pointer-coarse:grid pointer-coarse:size-8 pointer-coarse:place-items-center pointer-coarse:opacity-100 hover:text-rose-600 focus-visible:opacity-100 dark:text-rose-400"
+              /* Hiện sẵn trên màn cảm ứng: không có `:hover` thì nút xoá
+                 nằm đó mà không ai dùng điện thoại chạm tới được. Vùng
+                 chạm nới lên 32px cho đầu ngón tay (WCAG 2.5.8). */
+              className="inline-flex items-center gap-1 font-semibold text-ink-500 opacity-0 transition-opacity group-hover:opacity-100 pointer-coarse:min-h-8 pointer-coarse:opacity-100 hover:text-rose-600 focus-visible:opacity-100 dark:hover:text-rose-400"
             >
               <Trash2 className="size-3" />
-              <span className="sr-only">Xoá bình luận</span>
+              Xoá
             </button>
+          )}
+
+          {/* Tổng cảm xúc nằm cuối dòng phụ, không đè lên câu bình luận. */}
+          {summary.total > 0 && (
+            <span className="ml-auto text-[12.5px] font-semibold text-ink-500">
+              <ReactionSummaryChip summary={summary} />
+            </span>
           )}
         </div>
       </div>
@@ -306,6 +351,9 @@ function CommentRow({
 /* ------------------------------------------------------------------ */
 /* Khu tương tác của một bài                                           */
 /* ------------------------------------------------------------------ */
+
+const NUT_HANH_DONG =
+  "inline-flex h-10 flex-1 items-center justify-center gap-2 rounded-lg text-[13.5px] font-semibold transition-colors active:scale-[0.98]";
 
 export function PostInteractions({
   postId,
@@ -321,17 +369,21 @@ export function PostInteractions({
   canModerate: boolean;
 }) {
   const [showAll, setShowAll] = useState(false);
+  const { summary, toggle } = useReaction("post", postId, reactions);
+  const {
+    open: chonMo,
+    setOpen: datChon,
+    ref: chonRef,
+    hover: reChon,
+  } = usePicker();
+  const oNhap = useRef<HTMLTextAreaElement>(null);
 
   /*
    * Ô bình luận CHỈ MỞ SẴN KHI ĐÃ CÓ BÌNH LUẬN.
    *
-   * Bản trước luôn dựng cả khối: avatar, ô nhập, nút gửi — kể cả ở bài
-   * chưa ai bình luận. Mỗi bài tốn thêm chừng 80px cho một ô trống,
-   * nên cuộn bảng tin ra cảm giác lướt qua một chồng biểu mẫu chứ không
-   * phải đọc tin của đội.
-   *
-   * Bài đã có bình luận thì vẫn mở sẵn, vì ở đó ô nhập nằm ngay dưới
-   * mấy câu đang đọc — đúng chỗ người ta muốn trả lời.
+   * Luôn dựng cả khối (avatar, ô nhập, nút gửi) ở bài chưa ai bình luận
+   * thì mỗi bài tốn thêm chừng 80px cho một ô trống, và cuộn bảng tin ra
+   * cảm giác lướt qua một chồng biểu mẫu chứ không phải đọc tin của đội.
    */
   const [moBinhLuan, setMoBinhLuan] = useState(comments.length > 0);
   const [draft, setDraft] = useState("");
@@ -340,6 +392,13 @@ export function PostInteractions({
 
   const visible = showAll ? comments : comments.slice(-3);
   const hidden = comments.length - visible.length;
+  const mine = summary.mine;
+
+  function batBinhLuan() {
+    setMoBinhLuan(true);
+    // Đợi ô nhập được dựng ra rồi mới đưa con trỏ vào.
+    requestAnimationFrame(() => oNhap.current?.focus());
+  }
 
   function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -363,47 +422,104 @@ export function PostInteractions({
   }
 
   return (
-    <div className="border-t border-ink-800">
+    <div>
+      {/* Dòng tổng hợp — chỉ hiện khi có gì để nói */}
+      {(summary.total > 0 || comments.length > 0) && (
+        <div className="flex items-center justify-between gap-3 px-4 pb-2.5 text-[12.5px] text-ink-500 sm:px-5">
+          <ReactionSummaryChip summary={summary} />
+          {comments.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setMoBinhLuan((v) => !v)}
+              className="ml-auto hover:text-ink-200 hover:underline"
+            >
+              <span className="tabular">{comments.length}</span> bình luận
+            </button>
+          )}
+        </div>
+      )}
+
       {/* Thanh hành động */}
-      <div className="flex items-center gap-1 px-4 py-2 sm:px-5">
-        <ReactionControl
-          targetType="post"
-          targetId={postId}
-          initial={reactions}
-        />
+      <div className="flex items-center gap-1 border-t border-ink-800 px-2 py-1 sm:px-3">
+        <div
+          ref={chonRef}
+          className="relative flex flex-1 items-center"
+          {...reChon}
+        >
+          <button
+            type="button"
+            onClick={() => toggle(mine ?? "like")}
+            onContextMenu={(e) => {
+              e.preventDefault();
+              datChon(true);
+            }}
+            aria-pressed={!!mine}
+            aria-label={mine ? `Bỏ ${REACTIONS[mine].label}` : "Thích bài này"}
+            className={cn(
+              NUT_HANH_DONG,
+              mine
+                ? "text-gold-700 hover:bg-gold-50 dark:text-gold-300 dark:hover:bg-gold-400/10"
+                : "text-ink-400 hover:bg-ink-850 hover:text-ink-100",
+            )}
+          >
+            {mine ? (
+              <ReactionBadge reaction={mine} size="sm" />
+            ) : (
+              <ThumbsUp className="size-[18px]" />
+            )}
+            {mine ? REACTIONS[mine].label : "Thích"}
+          </button>
+          <button
+            type="button"
+            onClick={() => datChon((v) => !v)}
+            aria-expanded={chonMo}
+            aria-label="Chọn cảm xúc khác"
+            className="grid size-10 shrink-0 place-items-center rounded-lg text-ink-500 transition-colors hover:bg-ink-850 hover:text-ink-100"
+          >
+            <SmilePlus className="size-[18px]" />
+          </button>
+          {chonMo && (
+            <ReactionPicker
+              mine={mine}
+              className="left-0"
+              onPick={(k) => {
+                datChon(false);
+                toggle(k);
+              }}
+            />
+          )}
+        </div>
+
+        <span aria-hidden className="h-5 w-px bg-ink-800" />
+
         <button
           type="button"
-          onClick={() => setMoBinhLuan((v) => !v)}
-          aria-expanded={moBinhLuan}
-          className="ml-auto inline-flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-[12.5px] font-semibold text-ink-500 transition-colors hover:bg-ink-850 hover:text-ink-200"
-        >
-          <MessageCircle className="size-4" />
-          {comments.length > 0 ? (
-            <>
-              <span className="tabular">{comments.length}</span>
-              <span className="hidden sm:inline">bình luận</span>
-            </>
-          ) : (
-            "Bình luận"
+          onClick={() => (moBinhLuan ? oNhap.current?.focus() : batBinhLuan())}
+          className={cn(
+            NUT_HANH_DONG,
+            "text-ink-400 hover:bg-ink-850 hover:text-ink-100",
           )}
+        >
+          <MessageCircle className="size-[18px]" />
+          Bình luận
         </button>
       </div>
 
       {/* Bình luận */}
       {moBinhLuan && (
-        <div className="space-y-3 border-t border-ink-800 bg-ink-850/40 px-4 py-3 sm:px-5">
+        <div className="space-y-4 border-t border-ink-800 bg-ink-850/50 px-4 py-4 sm:px-5">
           {hidden > 0 && (
             <button
               type="button"
               onClick={() => setShowAll(true)}
-              className="text-[12.5px] font-bold text-link hover:underline"
+              className="text-[12.5px] font-semibold text-gold-700 hover:underline dark:text-gold-300"
             >
               Xem thêm {hidden} bình luận
             </button>
           )}
 
           {visible.length > 0 && (
-            <ul className="space-y-3">
+            <ul className="space-y-4">
               {visible.map((c) => (
                 <CommentRow
                   key={c.id}
@@ -424,8 +540,9 @@ export function PostInteractions({
               className="mt-0.5"
             />
             <div className="min-w-0 flex-1">
-              <div className="flex items-end gap-2">
+              <div className="flex items-end gap-2 rounded-lg border border-ink-700 bg-ink-900 py-1 pr-1 pl-3.5 transition-[border-color,box-shadow] focus-within:border-gold-400 focus-within:ring-2 focus-within:ring-gold-400/25 hover:border-ink-600">
                 <textarea
+                  ref={oNhap}
                   value={draft}
                   onChange={(e) => setDraft(e.target.value)}
                   onKeyDown={(e) => {
@@ -439,20 +556,24 @@ export function PostInteractions({
                   maxLength={LIMITS.commentContent}
                   placeholder="Viết bình luận…"
                   aria-label="Viết bình luận"
-                  className="max-h-32 min-h-9 w-full resize-none rounded-2xl border border-ink-700 bg-ink-900 px-3.5 py-2 text-[14px] text-ink-200 outline-none transition-all placeholder:text-ink-500 hover:border-ink-600 focus:border-gold-400 focus:ring-4 focus:ring-gold-400/15"
+                  className="max-h-32 min-h-8 w-full resize-none bg-transparent py-1.5 text-[14px] text-ink-200 outline-none placeholder:text-ink-500"
                 />
                 <button
                   type="submit"
                   disabled={!draft.trim() || pending}
                   aria-label="Gửi bình luận"
-                  className="grid size-9 shrink-0 place-items-center rounded-xl bg-navy-900 text-white transition-all hover:bg-navy-800 active:translate-y-px disabled:opacity-35"
+                  className="grid size-8 shrink-0 place-items-center rounded-lg bg-navy-900 text-white transition-[background-color,opacity,transform] hover:bg-navy-800 active:scale-95 disabled:opacity-30"
                 >
                   <Send className="size-4" />
                 </button>
               </div>
-              {error && (
-                <p className="mt-1 text-[12px] font-medium text-rose-600 dark:text-rose-400">
+              {error ? (
+                <p className="mt-1.5 text-[12.5px] font-medium text-rose-600 dark:text-rose-400">
                   {error}
+                </p>
+              ) : (
+                <p className="mt-1.5 hidden text-[12.5px] text-ink-500 sm:block">
+                  Enter để gửi · Shift+Enter để xuống dòng
                 </p>
               )}
             </div>

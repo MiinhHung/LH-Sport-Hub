@@ -1,6 +1,14 @@
 "use client";
 
-import { Check, Flag, ShieldAlert, Trash2, X } from "lucide-react";
+import {
+  Check,
+  CheckCheck,
+  Flag,
+  Plus,
+  ShieldAlert,
+  Trash2,
+  X,
+} from "@/components/icons";
 import { useActionState, useRef, useState } from "react";
 
 import {
@@ -59,10 +67,10 @@ export function JoinChallengeForm({
       <input type="hidden" name="challengeId" value={challengeId} />
       <input type="hidden" name="team" value={team} />
       <SubmitButton
-        variant="secondary"
-        size="sm"
+        variant="primary"
         disabled={disabled}
         className="w-full"
+        icon={<Plus className="size-4" />}
         pendingText="Đang vào…"
       >
         Vào đội {team}
@@ -88,7 +96,7 @@ export function RespondInviteForm({ challengeId }: { challengeId: string }) {
           name="answer"
           value="accept"
           className="flex-1"
-          icon={<Check className="size-4" strokeWidth={2.5} />}
+          icon={<Check className="size-4" />}
           pendingText="Đang nhận…"
         >
           Nhận kèo
@@ -119,7 +127,7 @@ export function LeaveChallengeForm({ challengeId }: { challengeId: string }) {
   return (
     <form action={action}>
       <input type="hidden" name="challengeId" value={challengeId} />
-      <SubmitButton variant="ghost" size="sm" className="text-ink-500">
+      <SubmitButton variant="ghost" size="sm">
         Rời kèo
       </SubmitButton>
       <ErrorAlert state={state} />
@@ -141,7 +149,7 @@ export function CancelChallengeForm({ challengeId }: { challengeId: string }) {
         variant="ghost"
         size="sm"
         onClick={() => setOpen(true)}
-        className="text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 hover:text-rose-700 dark:text-rose-300"
+        className="text-rose-600 hover:bg-rose-50 hover:text-rose-700 dark:text-rose-400 dark:hover:bg-rose-500/10 dark:hover:text-rose-300"
       >
         <X className="size-4" />
         Huỷ kèo
@@ -150,9 +158,9 @@ export function CancelChallengeForm({ challengeId }: { challengeId: string }) {
   }
 
   return (
-    <Card className="w-full border-rose-200 dark:border-rose-400/30 bg-rose-50 dark:bg-rose-500/10">
-      <CardBody>
-        <h3 className="mb-3 text-sm font-bold text-rose-700 dark:text-rose-300">
+    <div className="w-full rounded-xl border border-rose-200 bg-rose-50 p-3.5 dark:border-rose-400/30 dark:bg-rose-500/10">
+      <div>
+        <h3 className="mb-3 text-[15px] font-semibold text-rose-700 dark:text-rose-300">
           Huỷ kèo này?
         </h3>
         <form action={action} className="space-y-3">
@@ -175,8 +183,8 @@ export function CancelChallengeForm({ challengeId }: { challengeId: string }) {
           </div>
           <ErrorAlert state={state} />
         </form>
-      </CardBody>
-    </Card>
+      </div>
+    </div>
   );
 }
 
@@ -222,7 +230,7 @@ export function DeleteChallengeForm({ challengeId }: { challengeId: string }) {
       <SubmitButton
         variant="ghost"
         size="sm"
-        className="text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 hover:text-rose-700 dark:text-rose-300"
+        className="text-rose-600 hover:bg-rose-50 hover:text-rose-700 dark:text-rose-400 dark:hover:bg-rose-500/10 dark:hover:text-rose-300"
         pendingText="Đang xoá…"
       >
         <Trash2 className="size-4" />
@@ -251,8 +259,13 @@ export function SubmitResultForm({
 
   if (!open) {
     return (
-      <Button variant="accent" className="w-full" onClick={() => setOpen(true)}>
-        <Flag className="size-4" strokeWidth={2.5} />
+      <Button
+        variant="accent"
+        size="lg"
+        className="w-full"
+        onClick={() => setOpen(true)}
+      >
+        <Flag className="size-4" />
         Nhập kết quả
       </Button>
     );
@@ -261,8 +274,8 @@ export function SubmitResultForm({
   return (
     <Card>
       <CardBody>
-        <h3 className="mb-1 text-base font-bold text-ink-100">Nhập kết quả</h3>
-        <p className="mb-4 text-[13px] text-ink-500">
+        <h3 className="text-[16px] font-semibold text-ink-100">Nhập kết quả</h3>
+        <p className="mt-0.5 mb-4 text-[13px] text-ink-500">
           Đội kia sẽ phải xác nhận thì kết quả mới được tính.
         </p>
 
@@ -282,7 +295,7 @@ export function SubmitResultForm({
               required
             >
               <option value="" disabled>
-                — Chọn đội thắng —
+                Chọn đội thắng
               </option>
               <option value="A">Đội A</option>
               <option value="B">Đội B</option>
@@ -305,7 +318,7 @@ export function SubmitResultForm({
                   max={99}
                   inputMode="numeric"
                   placeholder={pointsTarget ? String(pointsTarget) : "0"}
-                  className="tabular text-center text-lg font-bold"
+                  className="tabular font-display h-14 text-center text-[24px] font-bold"
                 />
               </Field>
               <Field
@@ -322,7 +335,7 @@ export function SubmitResultForm({
                   max={99}
                   inputMode="numeric"
                   placeholder="0"
-                  className="tabular text-center text-lg font-bold"
+                  className="tabular font-display h-14 text-center text-[24px] font-bold"
                 />
               </Field>
             </div>
@@ -378,8 +391,8 @@ export function ConfirmResultActions({ challengeId }: { challengeId: string }) {
 
   if (disputing) {
     return (
-      <div className="mt-5 rounded-xl border border-rose-200 dark:border-rose-400/30 bg-rose-50 dark:bg-rose-500/10 p-4">
-        <h3 className="mb-3 text-sm font-bold text-rose-700 dark:text-rose-300">
+      <div className="rounded-xl border border-rose-200 bg-rose-50 p-4 sm:p-5 dark:border-rose-400/30 dark:bg-rose-500/10">
+        <h3 className="mb-3 text-[16px] font-semibold text-rose-700 dark:text-rose-300">
           Không đồng ý kết quả
         </h3>
         <form action={disputeAction} className="space-y-3">
@@ -411,33 +424,46 @@ export function ConfirmResultActions({ challengeId }: { challengeId: string }) {
   }
 
   return (
-    <div className="mt-5 space-y-3">
-      <Alert tone="violet">
-        Đội kia vừa báo kết quả. Kiểm tra lại rồi xác nhận giúp nhé — xác nhận
-        xong mới tính vào bảng xếp hạng và sổ nợ.
-      </Alert>
-      <div className="flex flex-col gap-2 sm:flex-row">
-        <form action={confirmAction} className="flex-1">
-          <input type="hidden" name="challengeId" value={challengeId} />
-          <SubmitButton
-            variant="accent"
-            className="w-full"
-            icon={<Check className="size-4" strokeWidth={2.5} />}
-            pendingText="Đang xác nhận…"
+    <Card>
+      <CardBody>
+        <div className="mb-4 flex items-start gap-3">
+          <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-gold-50 text-gold-700 dark:bg-gold-400/10 dark:text-gold-300">
+            <CheckCheck className="size-[18px]" aria-hidden />
+          </span>
+          <div className="min-w-0">
+            <h3 className="text-[16px] font-semibold text-ink-100">
+              Xác nhận kết quả
+            </h3>
+            <p className="mt-0.5 text-[13.5px] leading-relaxed text-ink-500">
+              Đội kia vừa báo kết quả ở bảng tỉ số phía trên. Kiểm tra lại rồi
+              xác nhận giúp nhé: xác nhận xong mới tính vào bảng xếp hạng và sổ
+              nợ.
+            </p>
+          </div>
+        </div>
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <form action={confirmAction} className="flex-1">
+            <input type="hidden" name="challengeId" value={challengeId} />
+            <SubmitButton
+              variant="accent"
+              className="w-full"
+              icon={<Check className="size-4" />}
+              pendingText="Đang xác nhận…"
+            >
+              Đúng rồi
+            </SubmitButton>
+          </form>
+          <Button
+            variant="secondary"
+            className="flex-1"
+            onClick={() => setDisputing(true)}
           >
-            Đúng rồi
-          </SubmitButton>
-        </form>
-        <Button
-          variant="secondary"
-          className="flex-1"
-          onClick={() => setDisputing(true)}
-        >
-          <ShieldAlert className="size-4" />
-          Không đúng
-        </Button>
-      </div>
-      <ErrorAlert state={confirmState} />
-    </div>
+            <ShieldAlert className="size-4" />
+            Không đúng
+          </Button>
+        </div>
+        <ErrorAlert state={confirmState} />
+      </CardBody>
+    </Card>
   );
 }

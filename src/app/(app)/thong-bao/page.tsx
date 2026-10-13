@@ -1,4 +1,3 @@
-import { Bell, Check, CheckCheck } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -6,7 +5,30 @@ import {
   markAllNotificationsReadAction,
   markNotificationReadAction,
 } from "@/actions/notifications";
+import {
+  AlertTriangle,
+  Ban,
+  Bell,
+  CalendarClock,
+  CalendarDays,
+  CalendarX,
+  Check,
+  CheckCheck,
+  ClipboardPen,
+  Clock,
+  Handshake,
+  Lock,
+  LogOut,
+  Pencil,
+  ShieldCheck,
+  Smile,
+  Swords,
+  UserPlus,
+  Wallet,
+  X,
+} from "@/components/icons";
 import { Avatar, Card, EmptyState, PageIntro } from "@/components/ui";
+import { LinkButton } from "@/components/ui/button";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { requireProfile } from "@/lib/auth";
 import { gomThongBao, type NhomThongBao } from "@/lib/gom-thong-bao";
@@ -15,28 +37,62 @@ import { cn, timeAgo } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Thông báo" };
 
-/** Emoji gợi ý loại sự kiện — nhanh hơn đọc chữ. */
-const TYPE_ICON: Record<string, string> = {
-  challenge_invited: "⚔️",
-  challenge_accepted: "🤝",
-  challenge_locked: "🔒",
-  challenge_declined: "🙅",
-  challenge_cancelled: "❌",
-  challenge_left: "🚪",
-  result_submitted: "📝",
-  result_confirmed: "✅",
-  result_disputed: "⚠️",
-  result_auto_confirmed: "⏱️",
-  debt_marked_paid: "💸",
-  debt_paid_confirmed: "🎉",
-  debt_waived: "🕊️",
-  session_created: "📅",
-  session_cancelled: "🌧️",
-  session_reminder: "⏰",
-  session_joined: "🙋",
-  session_updated: "✏️",
-  challenge_updated: "✏️",
+/* ------------------------------------------------------------------ */
+/* Biểu tượng theo loại                                                */
+/* ------------------------------------------------------------------ */
+
+type Sac = "navy" | "vang" | "do";
+
+/** Ba biểu tượng lấy thẳng từ Phosphor (bộ chung chưa có), nét bold như bộ chung. */
+function BatTay({ className }: { className?: string }) {
+  return <Handshake weight="bold" aria-hidden className={className} />;
+}
+function LichHuy({ className }: { className?: string }) {
+  return <CalendarX weight="bold" aria-hidden className={className} />;
+}
+function ThemNguoi({ className }: { className?: string }) {
+  return <UserPlus weight="bold" aria-hidden className={className} />;
+}
+
+/*
+ * Mỗi loại sự kiện một biểu tượng trong ô vuông nhỏ, nhìn là biết chuyện
+ * gì mà chưa cần đọc. Sắc ô chỉ có ba: xám navy cho việc thường, vàng
+ * cho chuyện tiền / kết quả, đỏ nhạt cho việc bị huỷ hay có tranh cãi.
+ */
+const LOAI: Record<
+  string,
+  { Icon: (p: { className?: string }) => React.ReactElement; sac: Sac }
+> = {
+  challenge_invited: { Icon: Swords, sac: "navy" },
+  challenge_accepted: { Icon: BatTay, sac: "navy" },
+  challenge_locked: { Icon: Lock, sac: "navy" },
+  challenge_declined: { Icon: X, sac: "do" },
+  challenge_cancelled: { Icon: Ban, sac: "do" },
+  challenge_left: { Icon: LogOut, sac: "do" },
+  challenge_updated: { Icon: Pencil, sac: "navy" },
+  result_submitted: { Icon: ClipboardPen, sac: "navy" },
+  result_confirmed: { Icon: CheckCheck, sac: "vang" },
+  result_disputed: { Icon: AlertTriangle, sac: "do" },
+  result_auto_confirmed: { Icon: Clock, sac: "vang" },
+  debt_marked_paid: { Icon: Wallet, sac: "vang" },
+  debt_paid_confirmed: { Icon: ShieldCheck, sac: "vang" },
+  debt_waived: { Icon: Smile, sac: "vang" },
+  session_created: { Icon: CalendarDays, sac: "navy" },
+  session_cancelled: { Icon: LichHuy, sac: "do" },
+  session_reminder: { Icon: CalendarClock, sac: "navy" },
+  session_joined: { Icon: ThemNguoi, sac: "navy" },
+  session_updated: { Icon: Pencil, sac: "navy" },
 };
+
+const SAC_O: Record<Sac, string> = {
+  navy: "bg-ink-850 text-ink-300",
+  vang: "bg-gold-50 text-gold-700 dark:bg-gold-400/10 dark:text-gold-300",
+  do: "bg-rose-50 text-rose-700 dark:bg-rose-500/10 dark:text-rose-300",
+};
+
+/* ------------------------------------------------------------------ */
+/* Trang                                                               */
+/* ------------------------------------------------------------------ */
 
 export default async function NotificationsPage() {
   const profile = await requireProfile();
@@ -57,12 +113,13 @@ export default async function NotificationsPage() {
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <PageIntro
-        eyebrow="Hoạt động"
         title="Thông báo"
         lead={
           unread > 0
             ? `Bạn có ${unread} thông báo chưa đọc.`
-            : "Bạn đã đọc hết rồi."
+            : items.length > 0
+              ? "Bạn đã đọc hết rồi."
+              : undefined
         }
         action={
           unread > 0 ? (
@@ -82,9 +139,15 @@ export default async function NotificationsPage() {
 
       {items.length === 0 ? (
         <EmptyState
-          icon={<Bell className="size-5" />}
+          icon={<Bell className="size-6" />}
           title="Chưa có thông báo nào"
           description="Khi có người thách kèo, nhập kết quả hay báo trả nợ, bạn sẽ thấy ở đây."
+          action={
+            <LinkButton href="/keo" variant="secondary">
+              <Swords className="size-4" />
+              Xem các kèo
+            </LinkButton>
+          }
         />
       ) : (
         /*
@@ -94,33 +157,50 @@ export default async function NotificationsPage() {
           trước" — đọc mười dòng là mười lần tự tính xem cái nào mới hơn
           cái nào. Nhãn "Hôm nay / Hôm qua / Tuần này" làm việc đó một
           lần cho cả nhóm.
-        */
-        <div className="space-y-7">
-          {mang.map((m) => (
-            <section key={m.nhan} aria-labelledby={`moc-${m.nhan}`}>
-              <h2
-                id={`moc-${m.nhan}`}
-                className="mb-2.5 text-[11px] font-bold tracking-[0.14em] text-ink-500 uppercase"
-              >
-                {m.nhan}
-              </h2>
 
-              <Card className="divide-y divide-ink-800 overflow-hidden">
-                {m.nhom.map((nhom) => (
-                  <HangThongBao
-                    key={nhom.ids[0]}
-                    nhom={nhom}
-                    markOne={markOne}
-                  />
-                ))}
-              </Card>
-            </section>
-          ))}
+          id của tiêu đề mốc dùng chỉ số, không dùng nhãn: nhãn có dấu
+          cách ("Hôm nay"), mà `aria-labelledby` tách id theo dấu cách.
+        */
+        <div className="space-y-6">
+          {mang.map((m, i) => {
+            const chuaDoc = m.nhom.filter((n) => n.chuaDoc).length;
+            return (
+              <section key={m.nhan} aria-labelledby={`moc-${i}`}>
+                <div className="mb-3 flex items-baseline justify-between gap-3">
+                  <h2
+                    id={`moc-${i}`}
+                    className="text-[16px] font-semibold text-ink-100"
+                  >
+                    {m.nhan}
+                  </h2>
+                  {chuaDoc > 0 && (
+                    <span className="text-[12.5px] font-semibold text-ink-500">
+                      <span className="tabular">{chuaDoc}</span> chưa đọc
+                    </span>
+                  )}
+                </div>
+
+                <Card className="divide-y divide-ink-800 overflow-hidden">
+                  {m.nhom.map((nhom) => (
+                    <HangThongBao
+                      key={nhom.ids[0]}
+                      nhom={nhom}
+                      markOne={markOne}
+                    />
+                  ))}
+                </Card>
+              </section>
+            );
+          })}
         </div>
       )}
     </div>
   );
 }
+
+/* ------------------------------------------------------------------ */
+/* Một hàng                                                            */
+/* ------------------------------------------------------------------ */
 
 function HangThongBao({
   nhom,
@@ -131,6 +211,8 @@ function HangThongBao({
 }) {
   const nguoiDau = nhom.nguoi[0] ?? null;
   const conLai = nhom.nguoi.length - 1;
+  const loai = LOAI[nhom.type] ?? { Icon: Bell, sac: "navy" as const };
+  const Icon = loai.Icon;
 
   return (
     /*
@@ -148,16 +230,14 @@ function HangThongBao({
     */
     <div
       className={cn(
-        "relative flex items-start gap-3 p-4 transition-colors",
-        nhom.chuaDoc
-          ? "bg-gold-50/60 dark:bg-gold-400/10"
-          : "hover:bg-ink-850/60",
+        "relative flex items-start gap-3.5 px-4 py-3.5 transition-colors sm:px-5",
+        nhom.href && "hover:bg-ink-850/60",
       )}
     >
       {nhom.chuaDoc && (
         <span
           aria-hidden
-          className="absolute inset-y-0 left-0 w-[3px] bg-gold-400"
+          className="absolute inset-y-0 left-0 w-[3px] bg-gold-500"
         />
       )}
 
@@ -171,49 +251,41 @@ function HangThongBao({
         </Link>
       )}
 
+      {/* Ô biểu tượng theo loại, góc dưới là ảnh người gây ra việc */}
       <div className="relative shrink-0">
-        {nguoiDau ? (
+        <span
+          className={cn(
+            "grid size-10 place-items-center rounded-lg",
+            SAC_O[loai.sac],
+          )}
+        >
+          <Icon className="size-[18px]" />
+        </span>
+        {nguoiDau && (
           <Avatar
             name={nguoiDau.fullName}
             src={nguoiDau.avatarUrl}
             seed={nguoiDau.id}
-            size="md"
+            size="xs"
+            className="absolute -right-1.5 -bottom-1.5 size-5 text-[8px] ring-2 ring-ink-900"
           />
-        ) : (
-          <span className="grid size-10 place-items-center rounded-[11px] bg-ink-850 text-ink-500 ring-1 ring-ink-800">
-            <Bell className="size-4" aria-hidden />
-          </span>
         )}
-        <span
-          aria-hidden
-          className="absolute -right-1 -bottom-1 grid size-5 place-items-center rounded-full bg-ink-900 text-[10px] ring-1 ring-ink-800"
-        >
-          {TYPE_ICON[nhom.type] ?? "🔔"}
-        </span>
       </div>
 
       <div className="min-w-0 flex-1">
-        <div className="flex items-start justify-between gap-3">
-          <h3
-            className={cn(
-              "text-[14px] leading-snug",
-              nhom.chuaDoc
-                ? "font-bold text-ink-100"
-                : "font-medium text-ink-300",
-            )}
-          >
-            {nhom.title}
-          </h3>
-          <time
-            className="shrink-0 pt-0.5 text-[11px] whitespace-nowrap text-ink-500"
-            dateTime={nhom.createdAt.toISOString()}
-          >
-            {timeAgo(nhom.createdAt)}
-          </time>
-        </div>
+        <h3
+          className={cn(
+            "text-[14px] leading-snug",
+            nhom.chuaDoc
+              ? "font-bold text-ink-100"
+              : "font-medium text-ink-300",
+          )}
+        >
+          {nhom.title}
+        </h3>
 
         {nhom.message && (
-          <p className="mt-1 text-[13.5px] leading-relaxed text-ink-500">
+          <p className="mt-0.5 line-clamp-2 text-[13.5px] leading-relaxed text-ink-500">
             {nhom.message}
           </p>
         )}
@@ -227,25 +299,31 @@ function HangThongBao({
           phải cắt chuỗi, mà vế sau mỗi loại thông báo một khác — cắt sai
           một chỗ là ra câu vô nghĩa.
         */}
-        {conLai > 0 && (
-          <div className="mt-2 flex items-center gap-2">
-            <div className="flex -space-x-2">
-              {nhom.nguoi.slice(1, 5).map((p) => (
-                <Avatar
-                  key={p.id}
-                  name={p.fullName}
-                  src={p.avatarUrl}
-                  seed={p.id}
-                  size="xs"
-                  className="ring-2 ring-ink-900"
-                />
-              ))}
-            </div>
-            <span className="text-[12px] text-ink-500">
-              và {conLai} người nữa
-            </span>
-          </div>
-        )}
+        <div className="mt-1.5 flex items-center gap-2 text-[12.5px] text-ink-500">
+          <time dateTime={nhom.createdAt.toISOString()}>
+            {timeAgo(nhom.createdAt)}
+          </time>
+          {conLai > 0 && (
+            <>
+              <span aria-hidden className="text-ink-600">
+                ·
+              </span>
+              <span className="flex -space-x-1.5">
+                {nhom.nguoi.slice(1, 5).map((p) => (
+                  <Avatar
+                    key={p.id}
+                    name={p.fullName}
+                    src={p.avatarUrl}
+                    seed={p.id}
+                    size="xs"
+                    className="size-5 text-[8px] ring-2 ring-ink-900"
+                  />
+                ))}
+              </span>
+              <span>và {conLai} người nữa</span>
+            </>
+          )}
+        </div>
       </div>
 
       {nhom.chuaDoc && (
@@ -257,7 +335,7 @@ function HangThongBao({
             type="submit"
             aria-label="Đánh dấu đã đọc"
             title="Đánh dấu đã đọc"
-            className="grid size-8 place-items-center rounded-lg text-ink-500 transition-colors hover:bg-ink-850 hover:text-ink-100"
+            className="grid size-10 place-items-center rounded-lg text-ink-500 transition-[background-color,color,transform] hover:bg-ink-850 hover:text-ink-100 active:scale-95"
           >
             <Check className="size-4" />
           </button>

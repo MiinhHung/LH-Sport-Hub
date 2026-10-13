@@ -1,4 +1,4 @@
-import { Swords } from "lucide-react";
+import { Pencil, Swords } from "@/components/icons";
 import type { Metadata } from "next";
 
 import { ChallengeCard } from "@/components/challenge-card";
@@ -23,7 +23,7 @@ export default async function ProfilePage() {
   const me = board.find((e) => e.profile.id === profile.id) ?? null;
 
   return (
-    <div className="mx-auto max-w-3xl space-y-8">
+    <div className="mx-auto max-w-3xl space-y-6">
       {/*
         Dải đầu thay cho PageIntro. Tiêu đề "Hồ sơ của tôi" đã bỏ: trang
         của chính mình thì không cần một dòng chữ nhắc lại điều đó, mà
@@ -53,9 +53,15 @@ export default async function ProfilePage() {
               }
             : null
         }
+        hanhDong={
+          <LinkButton href="#sua-ho-so" variant="secondary" size="sm">
+            <Pencil className="size-3.5" aria-hidden />
+            Sửa hồ sơ
+          </LinkButton>
+        }
       />
 
-      {/* Lịch sử kèo — đưa LÊN TRƯỚC biểu mẫu. Mở hồ sơ ra thì người ta
+      {/* Lịch sử kèo, đưa LÊN TRƯỚC biểu mẫu. Mở hồ sơ ra thì người ta
           muốn xem mình đã đánh những gì, chứ sửa phòng ban là việc vài
           tháng mới làm một lần. */}
       <section aria-labelledby="lich-su">
@@ -74,13 +80,13 @@ export default async function ProfilePage() {
             Cách thứ nhất để trước vì nó dễ hơn cho người mới.
           */
           <EmptyState
-            icon={<Swords className="size-5" />}
+            icon={<Swords className="size-6" />}
             title="Bạn chưa tham gia kèo nào"
             description="Nhận một kèo đang tìm đối là có tên trên bảng ngay."
             action={
               <div className="flex flex-wrap items-center justify-center gap-2">
                 <LinkButton href="/keo" variant="accent">
-                  <Swords className="size-4" strokeWidth={2.5} />
+                  <Swords className="size-4" />
                   Xem kèo đang mở
                 </LinkButton>
                 <LinkButton href="/keo/tao" variant="secondary">
@@ -103,12 +109,18 @@ export default async function ProfilePage() {
         )}
       </section>
 
-      {/* Chỉnh sửa hồ sơ */}
-      <section aria-labelledby="sua-ho-so">
-        <SectionTitle>
-          <span id="sua-ho-so">Chỉnh sửa thông tin</span>
-        </SectionTitle>
+      {/* Chỉnh sửa hồ sơ. scroll-mt để nút "Sửa hồ sơ" ở đầu trang nhảy
+          tới không bị mép trên cắt mất tiêu đề. */}
+      <section aria-labelledby="sua-ho-so-tieu-de" id="sua-ho-so" className="scroll-mt-6">
         <Card>
+          <div className="border-b border-ink-800 px-4 py-4 sm:px-6">
+            <h2 id="sua-ho-so-tieu-de" className="text-[16px] font-semibold text-ink-100">
+              Chỉnh sửa thông tin
+            </h2>
+            <p className="mt-0.5 text-[12.5px] text-ink-500">
+              Tên, ảnh và trình độ hiện trên bảng xếp hạng và thẻ thành viên.
+            </p>
+          </div>
           <CardBody className="sm:p-6">
             <ProfileForm
               profile={{

@@ -135,7 +135,7 @@ export async function sendMessageAction(
         .update(conversations)
         .set({
           lastMessageAt: now,
-          lastMessagePreview: content ? preview(content) : "📷 Hình ảnh",
+          lastMessagePreview: content ? preview(content) : "Đã gửi một ảnh",
           lastSenderId: actor.id,
           // Người gửi thì hiển nhiên đã đọc tới đây.
           ...(conversation.userAId === actor.id

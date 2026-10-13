@@ -74,7 +74,7 @@ function translateAuthError(error: { message: string; code?: string; status?: nu
     error.status === 503 ||
     error.status === 504
   ) {
-    return "Máy chủ chưa phản hồi — có thể nó vừa ngủ dậy. Đợi khoảng một phút rồi thử lại.";
+    return "Máy chủ chưa phản hồi, có thể nó vừa ngủ dậy. Đợi khoảng một phút rồi thử lại.";
   }
 
   if (m.includes("password")) {
@@ -116,15 +116,26 @@ export async function signInAction(
 
     if (error) return failure(translateAuthError(error));
 
-    const next = formData.get("next");
-    if (typeof next === "string" && next.startsWith("/") && !next.startsWith("//")) {
-      target = next;
-    }
+    target = safeNext(formData.get("next"));
     return success();
   });
 
   if (result.status === "success") redirect(target);
   return result;
+}
+
+/** Đảm bảo URL chuyển hướng là đường dẫn nội bộ an toàn, chống Open Redirect. */
+function safeNext(next: unknown): string {
+  if (typeof next !== "string" || !next) return "/";
+  if (/[\\\s\u0000-\u001f]/.test(next)) return "/";
+  if (!next.startsWith("/") || next.startsWith("//")) return "/";
+  try {
+    const u = new URL(next, "http://localhost");
+    if (u.origin !== "http://localhost") return "/";
+    return u.pathname + u.search + u.hash;
+  } catch {
+    return "/";
+  }
 }
 
 export async function signUpAction(

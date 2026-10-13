@@ -1,5 +1,6 @@
 "use client";
 
+import { Pause, Play } from "lucide-react";
 import * as React from "react";
 
 /**
@@ -7,14 +8,14 @@ import * as React from "react";
  *
  * File nặng 13,5 MB. Gắn thẳng `src` vào thẻ video là mọi người mở trang
  * đều tải chừng ấy, kể cả người chỉ xem cái hero rồi bấm vào bảng tin.
- * Nên `src` được gắn muộn — khi khối còn cách khung nhìn một quãng, vừa đủ
- * để tải kịp trước lúc nhìn thấy.
+ * Nên `src` được gắn muộn, khi khối còn cách khung nhìn một quãng.
  *
- * Cũng DỪNG lại khi cuộn khỏi tầm nhìn. Video tự phát mà chạy ngầm dưới
- * chân trang là đốt pin điện thoại cho một thứ không ai xem.
+ * TRỢ NĂNG (WCAG 2.2.2): video tự phát dài hơn 5 giây phải có cách tạm
+ * dừng. Có nút Tạm dừng / Phát ở góc dưới. Ai bật "giảm chuyển động" thì
+ * video KHÔNG tự phát, chỉ hiện ảnh bìa cùng nút Phát.
  *
- * File không có luồng tiếng — đã kiểm tra trong header — nên tự phát là
- * hợp lệ và không làm ai giật mình.
+ * Cũng dừng khi cuộn khỏi tầm nhìn, khỏi đốt pin cho thứ không ai xem.
+ * File không có luồng tiếng nên tự phát (muted) là hợp lệ.
  */
 export function ShowcaseVideo({
   src,
@@ -28,29 +29,24 @@ export function ShowcaseVideo({
 }) {
   const ref = React.useRef<HTMLVideoElement>(null);
   const [nguon, setNguon] = React.useState<string | null>(null);
+  const [dangPhat, setDangPhat] = React.useState(false);
+  // Người dùng chủ động dừng (hoặc bật giảm chuyển động): đừng tự phát lại.
+  const nguoiDungDung = React.useRef(false);
 
-  /*
-   * GẮN `src` LÊN CHÍNH THẺ VIDEO, VÀ GỌI `load()`.
-   *
-   * Bản trước gắn muộn bằng cách chèn thêm một thẻ `<source>` vào trong
-   * thẻ video. Cách đó không chạy: trình duyệt chọn nguồn phát MỘT LẦN
-   * lúc dựng thẻ, thêm `<source>` sau đó thì nó không ngó tới nữa, trừ
-   * khi gọi `load()` để bắt chọn lại. Nên video nằm im ở khung ảnh bìa,
-   * còn `play()` thì bị từ chối và bị nuốt mất trong khối catch rỗng.
-   *
-   * Đổi `src` của chính thẻ video thì trình duyệt tự chạy lại việc chọn
-   * nguồn, nhưng vẫn gọi `load()` cho chắc rồi mới phát.
-   */
   React.useEffect(() => {
     const el = ref.current;
     if (!el || !nguon) return;
     el.load();
-    void el.play().catch(() => {});
+    if (!nguoiDungDung.current) void el.play().catch(() => {});
   }, [nguon]);
 
   React.useEffect(() => {
     const el = ref.current;
     if (!el) return;
+
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      nguoiDungDung.current = true;
+    }
 
     if (typeof IntersectionObserver === "undefined") {
       setNguon(src);
@@ -69,15 +65,13 @@ export function ShowcaseVideo({
     );
     loader.observe(el);
 
-    // Bộ theo dõi thứ hai, ngưỡng hẹp hơn: chạy khi thấy, dừng khi khuất.
+    // Chạy khi thấy, dừng khi khuất (trừ khi người dùng đã tự dừng).
     const player = new IntersectionObserver(
       ([e]) => {
         const v = ref.current;
         if (!v) return;
         if (e.isIntersecting) {
-          // play() trả về promise và sẽ bị từ chối nếu trình duyệt chặn —
-          // nuốt lỗi đi, vì không có gì để làm tiếp.
-          void v.play().catch(() => {});
+          if (!nguoiDungDung.current) void v.play().catch(() => {});
         } else {
           v.pause();
         }
@@ -92,19 +86,48 @@ export function ShowcaseVideo({
     };
   }, [src]);
 
+  const bam = () => {
+    const v = ref.current;
+    if (!v) return;
+    if (v.paused) {
+      nguoiDungDung.current = false;
+      if (!nguon) setNguon(src);
+      void v.play().catch(() => {});
+    } else {
+      nguoiDungDung.current = true;
+      v.pause();
+    }
+  };
+
   return (
-    <video
-      ref={ref}
-      // Không có tiếng nhưng vẫn để `muted`: thiếu nó là trình duyệt chặn
-      // tự phát, bất kể file có tiếng hay không.
-      muted
-      loop
-      playsInline
-      preload="none"
-      poster={poster}
-      aria-label={label}
-      src={nguon ?? undefined}
-      className="size-full object-cover"
-    />
+    <>
+      <video
+        ref={ref}
+        // Không có tiếng nhưng vẫn để `muted`: thiếu nó là trình duyệt chặn
+        // tự phát, bất kể file có tiếng hay không.
+        muted
+        loop
+        playsInline
+        preload="none"
+        poster={poster}
+        aria-label={label}
+        src={nguon ?? undefined}
+        onPlay={() => setDangPhat(true)}
+        onPause={() => setDangPhat(false)}
+        className="size-full object-cover"
+      />
+      <button
+        type="button"
+        onClick={bam}
+        aria-label={dangPhat ? "Tạm dừng video" : "Phát video"}
+        className="absolute right-3 bottom-3 grid size-11 place-items-center rounded-full bg-navy-900 text-white transition-[background-color,transform] duration-[var(--m-instant)] ease-[var(--m-ease)] hover:bg-navy-800 active:scale-[0.98]"
+      >
+        {dangPhat ? (
+          <Pause className="size-5" aria-hidden />
+        ) : (
+          <Play className="size-5" aria-hidden />
+        )}
+      </button>
+    </>
   );
 }

@@ -7,6 +7,7 @@ import { redirect } from "next/navigation";
 import { db } from "@/db";
 import {
   challengeParticipants,
+  challengeResults,
   challenges,
   playSessions,
   profiles,
@@ -323,65 +324,75 @@ export async function updateChallengeAction(
     }
     const input = parsed.data;
 
-    const challenge = await db.query.challenges.findFirst({
-      where: eq(challenges.id, input.challengeId),
-      with: { result: true },
-    });
-    if (!challenge) return failure("Không tìm thấy kèo này.");
+    const outcome = await db.transaction(async (tx) => {
+      const { challenge } = await loadLocked(tx, input.challengeId);
 
-    if (challenge.creatorId !== actor.id && !isModerator(actor)) {
-      return failure("Chỉ người tạo kèo mới sửa được.");
-    }
-
-    if (challenge.result) {
-      return failure(
-        "Kèo đã nhập kết quả thì không sửa được nữa — đổi tiền cược sau khi biết ai thắng là không sòng phẳng.",
-      );
-    }
-
-    if (challenge.status === "cancelled" || challenge.status === "declined") {
-      return failure("Kèo đã đóng thì không sửa được nữa.");
-    }
-
-    // Thể thức đọc từ database chứ không nhận từ biểu mẫu: một ô hidden
-    // sửa được bằng devtools, mà luật "kèo tự do thì không cần điểm"
-    // phải dựa trên thể thức thật.
-    const format = challenge.format as keyof typeof CHALLENGE_FORMATS;
-    if (format !== "free" && input.pointsTarget === null) {
-      return failure("Vui lòng nhập số điểm của kèo.", {
-        pointsTarget: "Vui lòng nhập số điểm của kèo.",
-      });
-    }
-    const pointsTarget = format === "free" ? null : input.pointsTarget;
-
-    if (input.sessionId && input.sessionId !== challenge.sessionId) {
-      const session = await db.query.playSessions.findFirst({
-        where: eq(playSessions.id, input.sessionId),
-        columns: { id: true, status: true },
-      });
-      if (!session || session.status !== "open") {
-        return failure("Buổi tập được chọn không còn mở.");
+      if (challenge.creatorId !== actor.id && !isModerator(actor)) {
+        return { error: "Chỉ người tạo kèo mới sửa được." };
       }
-    }
 
-    const cuocCu = formatStake(
-      challenge.stakeType as never,
-      challenge.stakeQty,
-      challenge.stakeNote,
-    );
-    const cuocMoi = formatStake(
-      input.stakeType as never,
-      input.stakeQty,
-      input.stakeNote,
-    );
+      const [existingResult] = await tx
+        .select({ id: challengeResults.id })
+        .from(challengeResults)
+        .where(eq(challengeResults.challengeId, input.challengeId));
 
-    const doiCuoc = cuocCu !== cuocMoi;
-    const doiDiem = challenge.pointsTarget !== pointsTarget;
-    const doiHan =
-      (challenge.playDeadline?.getTime() ?? null) !==
-      (input.playDeadline?.getTime() ?? null);
+      if (existingResult) {
+        return {
+          error:
+            "Kèo đã nhập kết quả thì không sửa được nữa: đổi tiền cược sau khi biết ai thắng là không sòng phẳng.",
+        };
+      }
 
-    await db.transaction(async (tx) => {
+      if (
+        challenge.status === "cancelled" ||
+        challenge.status === "declined" ||
+        challenge.status === "completed"
+      ) {
+        return { error: "Kèo đã đóng thì không sửa được nữa." };
+      }
+
+      const format = challenge.format as keyof typeof CHALLENGE_FORMATS;
+      if (format !== "free" && input.pointsTarget === null) {
+        return {
+          error: "Vui lòng nhập số điểm của kèo.",
+          fieldErrors: { pointsTarget: "Vui lòng nhập số điểm của kèo." },
+        };
+      }
+      const pointsTarget = format === "free" ? null : input.pointsTarget;
+
+      if (input.sessionId && input.sessionId !== challenge.sessionId) {
+        const session = await tx.query.playSessions.findFirst({
+          where: eq(playSessions.id, input.sessionId),
+          columns: { id: true, status: true },
+        });
+        if (!session || session.status !== "open") {
+          return { error: "Buổi tập được chọn không còn mở." };
+        }
+      }
+
+      const cuocCu = formatStake(
+        challenge.stakeType as never,
+        challenge.stakeQty,
+        challenge.stakeNote,
+      );
+      const cuocMoi = formatStake(
+        input.stakeType as never,
+        input.stakeQty,
+        input.stakeNote,
+      );
+
+      const doiCuoc = cuocCu !== cuocMoi;
+      const doiDiem = challenge.pointsTarget !== pointsTarget;
+      const doiHan =
+        (challenge.playDeadline?.getTime() ?? null) !==
+        (input.playDeadline?.getTime() ?? null);
+
+      if (challenge.status === "locked" && doiCuoc && !isModerator(actor)) {
+        return {
+          error: "Kèo đã đủ người và chốt sổ, không thể thay đổi cược.",
+        };
+      }
+
       await tx
         .update(challenges)
         .set({
@@ -449,7 +460,13 @@ export async function updateChallengeAction(
           byModerator: challenge.creatorId !== actor.id,
         },
       });
+
+      return {};
     });
+
+    if (outcome && "error" in outcome && outcome.error) {
+      return failure(outcome.error, outcome.fieldErrors);
+    }
 
     updatedId = input.challengeId;
     revalidateChallenge(input.challengeId);
@@ -486,23 +503,43 @@ export async function joinChallengeAction(
       const decision = canJoin(asLogic, asParticipants, actor.id, team);
       if (!decision.ok) return { error: decision.reason };
 
-      await tx.insert(challengeParticipants).values({
-        challengeId,
-        userId: actor.id,
-        team,
-        isCreator: false,
-        status: "accepted",
-      });
-
-      const nextParticipants: ParticipantLike[] = [
-        ...asParticipants,
-        {
+      await tx
+        .insert(challengeParticipants)
+        .values({
+          challengeId,
           userId: actor.id,
           team,
-          status: "accepted",
           isCreator: false,
-        },
-      ];
+          status: "accepted",
+        })
+        .onConflictDoUpdate({
+          target: [
+            challengeParticipants.challengeId,
+            challengeParticipants.userId,
+          ],
+          set: {
+            team,
+            status: "accepted",
+            leftAt: null,
+            joinedAt: new Date(),
+          },
+        });
+
+      const existingIdx = asParticipants.findIndex(
+        (p) => p.userId === actor.id,
+      );
+      const participantEntry: ParticipantLike = {
+        userId: actor.id,
+        team,
+        status: "accepted",
+        isCreator: false,
+      };
+      const nextParticipants: ParticipantLike[] =
+        existingIdx >= 0
+          ? asParticipants.map((p, i) =>
+              i === existingIdx ? participantEntry : p,
+            )
+          : [...asParticipants, participantEntry];
 
       const lockState = await syncLockState(tx, asLogic, nextParticipants);
 
@@ -547,7 +584,7 @@ export async function joinChallengeAction(
     revalidateChallenge(challengeId);
     return success(
       outcome.lockState === "locked"
-        ? "Đã nhận kèo — kèo đủ người rồi!"
+        ? "Đã nhận kèo. Kèo đủ người rồi!"
         : "Đã nhận kèo.",
     );
   });
@@ -670,7 +707,7 @@ export async function respondInviteAction(
     if (outcome.answer === "decline") return success("Đã từ chối kèo.");
     return success(
       outcome.lockState === "locked"
-        ? "Đã nhận kèo — kèo đủ người rồi!"
+        ? "Đã nhận kèo. Kèo đủ người rồi!"
         : "Đã nhận kèo.",
     );
   });
@@ -849,9 +886,9 @@ export async function deleteChallengeAction(
       return failure("Chỉ người tạo kèo mới xoá được.");
     }
 
-    if (challenge.result?.status === "confirmed") {
+    if (challenge.result) {
       return failure(
-        "Kèo đã chốt kết quả nên không xoá được — xoá sẽ mất luôn lịch sử thắng thua. Bạn chỉ có thể huỷ.",
+        "Kèo đã có kết quả (chờ duyệt hoặc đã chốt) nên không thể xoá.",
       );
     }
 

@@ -1,6 +1,13 @@
 "use client";
 
-import { ImagePlus, SendHorizontal, Smile, Trash2, X } from "lucide-react";
+import {
+  ImagePlus,
+  MessageCircle,
+  SendHorizontal,
+  Smile,
+  Trash2,
+  X,
+} from "@/components/icons";
 import Image from "next/image";
 import {
   useCallback,
@@ -22,7 +29,7 @@ import { XemAnh } from "@/components/xem-anh";
 import { idleState } from "@/actions/types";
 import type { ChatMessagePayload } from "@/lib/chat";
 import { LIMITS, UPLOAD } from "@/lib/constants";
-import { cn } from "@/lib/utils";
+import { cn, TIME_ZONE } from "@/lib/utils";
 
 /** Bao lâu hỏi lại tin mới một lần, khi tab đang mở. */
 const POLL_MS = 4000;
@@ -83,23 +90,26 @@ type Pending = ChatMessagePayload & { pending?: true; failed?: true };
 
 function dayLabel(iso: string) {
   const d = new Date(iso);
-  const today = new Date();
-  const yesterday = new Date();
-  yesterday.setDate(today.getDate() - 1);
-
-  const same = (a: Date, b: Date) => a.toDateString() === b.toDateString();
-  if (same(d, today)) return "Hôm nay";
-  if (same(d, yesterday)) return "Hôm qua";
-
-  return new Intl.DateTimeFormat("vi-VN", {
+  const now = new Date();
+  const fmt = new Intl.DateTimeFormat("vi-VN", {
+    timeZone: TIME_ZONE,
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
-  }).format(d);
+  });
+  const todayStr = fmt.format(now);
+  const dateStr = fmt.format(d);
+  if (dateStr === todayStr) return "Hôm nay";
+
+  const yest = new Date(now.getTime() - 86_400_000);
+  if (dateStr === fmt.format(yest)) return "Hôm qua";
+
+  return dateStr;
 }
 
 function clockLabel(iso: string) {
   return new Intl.DateTimeFormat("vi-VN", {
+    timeZone: TIME_ZONE,
     hour: "2-digit",
     minute: "2-digit",
     hour12: false,
@@ -184,8 +194,9 @@ export function ChatThread({
     let cancelled = false;
 
     async function poll() {
-      if (document.hidden || !lastRealAt) return;
-      const result = await fetchNewMessagesAction(conversationId, lastRealAt);
+      if (document.hidden) return;
+      const since = lastRealAt ?? new Date(0).toISOString();
+      const result = await fetchNewMessagesAction(conversationId, since);
       if (cancelled || !result.ok || result.messages.length === 0) return;
 
       setItems((current) => {
@@ -398,14 +409,23 @@ export function ChatThread({
           stickToBottom.current =
             el.scrollHeight - el.scrollTop - el.clientHeight < 120;
         }}
-        className="min-h-0 flex-1 overflow-y-auto px-1 py-6"
+        className="min-h-0 flex-1 overflow-y-auto px-4 py-5 sm:px-5"
       >
         {items.length === 0 && (
-          <p className="py-16 text-center text-[14px] text-ink-500">
-            Chưa có tin nhắn nào với {partnerName}.
-            <br />
-            Chào một câu đi.
-          </p>
+          <div className="flex flex-col items-center py-16 text-center">
+            <span
+              aria-hidden
+              className="grid size-12 place-items-center rounded-lg bg-gold-50 text-gold-700 ring-1 ring-gold-200 dark:bg-gold-400/10 dark:text-gold-300 dark:ring-gold-400/30"
+            >
+              <MessageCircle className="size-6" />
+            </span>
+            <p className="mt-4 text-[15px] font-semibold text-ink-200">
+              Chưa có tin nhắn nào với {partnerName}
+            </p>
+            <p className="mt-1 text-[13.5px] text-ink-500">
+              Chào một câu đi.
+            </p>
+          </div>
         )}
 
         <ol className="space-y-1.5">
@@ -416,12 +436,10 @@ export function ChatThread({
             return (
               <li key={m.id}>
                 {day && (
-                  <div className="flex items-center gap-4 py-6">
-                    <span className="h-px flex-1 bg-ink-800" />
-                    <span className="text-[10.5px] font-semibold tracking-[0.14em] text-ink-500 uppercase">
+                  <div className="flex justify-center py-4">
+                    <span className="rounded-full bg-ink-850 px-3 py-1 text-[12px] font-medium text-ink-500">
                       {day}
                     </span>
-                    <span className="h-px flex-1 bg-ink-800" />
                   </div>
                 )}
 
@@ -447,13 +465,13 @@ export function ChatThread({
                         NÀO xoá tin nhắn của chính mình — nút có đó mà
                         trong suốt vĩnh viễn.
                       */
-                      className="mb-5 grid size-7 shrink-0 place-items-center rounded-lg text-ink-500 opacity-0 transition-opacity group-hover:opacity-100 pointer-coarse:size-9 pointer-coarse:opacity-100 hover:bg-rose-50 hover:text-rose-600 focus-visible:opacity-100 dark:text-rose-400 dark:hover:bg-rose-500/10"
+                      className="mb-5 grid size-7 shrink-0 place-items-center rounded-lg text-ink-500 opacity-0 transition-[opacity,background-color,color] group-hover:opacity-100 pointer-coarse:size-9 pointer-coarse:opacity-100 hover:bg-rose-50 hover:text-rose-600 focus-visible:opacity-100 dark:hover:bg-rose-500/10 dark:hover:text-rose-400"
                     >
                       <Trash2 className="size-3.5" />
                     </button>
                   )}
 
-                  <div className="max-w-[78%] sm:max-w-[65%]">
+                  <div className="max-w-[80%] sm:max-w-[68%]">
                     {m.imageUrl &&
                       /*
                         Ảnh ĐANG GỬI thì không bấm xem được: lúc này
@@ -465,8 +483,7 @@ export function ChatThread({
                       (m.imageUrl.startsWith("blob:") ? (
                         <div
                           className={cn(
-                            "block overflow-hidden rounded-2xl ring-1 ring-ink-800 opacity-55",
-                            mine ? "rounded-br-md" : "rounded-bl-md",
+                            "block overflow-hidden rounded-xl opacity-55 ring-1 ring-ink-800",
                             m.content && "mb-1",
                           )}
                         >
@@ -489,8 +506,7 @@ export function ChatThread({
                           }
                           aria-label="Xem ảnh"
                           className={cn(
-                            "block cursor-zoom-in overflow-hidden rounded-2xl ring-1 ring-ink-800 transition-opacity",
-                            mine ? "rounded-br-md" : "rounded-bl-md",
+                            "block cursor-zoom-in overflow-hidden rounded-xl ring-1 ring-ink-800 transition-opacity hover:opacity-90",
                             m.content && "mb-1",
                           )}
                         >
@@ -508,15 +524,13 @@ export function ChatThread({
                     {m.content && (
                       <div
                         className={cn(
-                          "rounded-2xl px-4 py-2.5 text-[15px] leading-relaxed break-words whitespace-pre-wrap transition-opacity",
+                          "rounded-xl px-3.5 py-2 text-[15px] leading-relaxed break-words whitespace-pre-wrap transition-opacity",
                           mine
-                            ? "rounded-br-md bg-navy-900 text-white"
-                            : "rounded-bl-md bg-ink-850 text-ink-200",
+                            ? "bg-navy-900 text-white dark:bg-navy-700"
+                            : "bg-ink-850 text-ink-200",
                           m.pending && "opacity-55",
                           m.failed &&
-                            "bg-rose-100 dark:bg-rose-500/20 text-rose-800 dark:text-rose-200",
-                          m.imageUrl &&
-                            (mine ? "rounded-tr-md" : "rounded-tl-md"),
+                            "bg-rose-100 text-rose-800 dark:bg-rose-500/20 dark:text-rose-200",
                         )}
                       >
                         {m.content}
@@ -525,7 +539,10 @@ export function ChatThread({
 
                     <p
                       className={cn(
-                        "mt-1 px-1 text-[10.5px] text-ink-500",
+                        "tabular mt-1 px-1 text-[12px]",
+                        m.failed
+                          ? "font-semibold text-rose-600 dark:text-rose-400"
+                          : "text-ink-500",
                         mine ? "text-right" : "text-left",
                       )}
                     >
@@ -544,24 +561,24 @@ export function ChatThread({
         <div ref={bottomRef} />
       </div>
 
-      {/* Ô soạn tin */}
+      {/* Ô soạn tin — cùng dáng ô bình luận ở bảng tin */}
       <form
         onSubmit={send}
-        className="border-t border-ink-800 bg-ink-950/80 py-4 backdrop-blur-sm"
+        className="border-t border-ink-800 bg-ink-900 px-3 pt-3 pb-3 sm:px-4"
       >
         {attachment && (
-          <div className="relative mb-3 inline-block">
+          <div className="relative mb-2.5 ml-1 inline-block">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={attachment.url}
               alt="Ảnh sắp gửi"
-              className="h-24 w-auto rounded-xl object-cover ring-1 ring-ink-800"
+              className="h-24 w-auto rounded-lg object-cover ring-1 ring-ink-800"
             />
             <button
               type="button"
               onClick={clearAttachment}
               aria-label="Bỏ ảnh"
-              className="absolute -top-2 -right-2 grid size-6 place-items-center rounded-full bg-navy-900 text-white transition-colors hover:bg-navy-800"
+              className="absolute -top-2 -right-2 grid size-6 place-items-center rounded-full bg-navy-900 text-white ring-2 ring-ink-900 transition-colors hover:bg-navy-800 pointer-coarse:size-8"
             >
               <X className="size-3.5" strokeWidth={3} />
             </button>
@@ -569,17 +586,17 @@ export function ChatThread({
         )}
 
         {error && (
-          <p className="mb-2 text-[12px] font-medium text-rose-600 dark:text-rose-400">
+          <p className="mb-2 px-1 text-[12px] font-medium text-rose-600 dark:text-rose-400">
             {error}
           </p>
         )}
 
-        <div className="flex items-end gap-1.5">
+        <div className="flex items-end gap-1 rounded-xl border border-ink-700 bg-ink-900 p-1 transition-[border-color,box-shadow] focus-within:border-gold-500 focus-within:ring-2 focus-within:ring-gold-400/25 hover:border-ink-600">
           <button
             type="button"
             onClick={() => fileRef.current?.click()}
             aria-label="Gửi ảnh"
-            className="grid size-11 shrink-0 place-items-center rounded-2xl text-ink-500 transition-colors hover:bg-ink-850 hover:text-ink-100"
+            className="grid size-10 shrink-0 place-items-center rounded-lg text-ink-500 transition-colors hover:bg-ink-850 hover:text-ink-100"
           >
             <ImagePlus className="size-[18px]" />
           </button>
@@ -591,7 +608,7 @@ export function ChatThread({
               aria-label="Chèn biểu tượng cảm xúc"
               aria-expanded={emojiOpen}
               className={cn(
-                "grid size-11 shrink-0 place-items-center rounded-2xl transition-colors",
+                "grid size-10 shrink-0 place-items-center rounded-lg transition-colors",
                 emojiOpen
                   ? "bg-ink-850 text-ink-100"
                   : "text-ink-500 hover:bg-ink-850 hover:text-ink-100",
@@ -600,15 +617,16 @@ export function ChatThread({
               <Smile className="size-[18px]" />
             </button>
 
+            {/* Bảng emoji là nội dung để chèn vào tin, không phải biểu tượng giao diện. */}
             {emojiOpen && (
-              <div className="animate-rise absolute bottom-full left-0 z-20 mb-2 w-[17.5rem] rounded-2xl border border-ink-800 bg-ink-900 p-2 shadow-[var(--shadow-pop)]">
+              <div className="animate-rise absolute bottom-full left-0 z-20 mb-3 w-[17.5rem] rounded-xl border border-ink-800 bg-ink-900 p-2 shadow-[var(--shadow-pop)]">
                 <div className="grid grid-cols-8 gap-0.5">
                   {EMOJIS.map((emoji) => (
                     <button
                       key={emoji}
                       type="button"
                       onClick={() => insertEmoji(emoji)}
-                      className="grid size-8 place-items-center rounded-lg text-lg transition-transform duration-150 hover:scale-125 hover:bg-ink-850"
+                      className="grid size-8 place-items-center rounded-lg text-lg transition-[transform,background-color] duration-150 hover:scale-125 hover:bg-ink-850"
                     >
                       {emoji}
                     </button>
@@ -632,18 +650,22 @@ export function ChatThread({
             maxLength={LIMITS.commentContent}
             placeholder={`Nhắn cho ${partnerName}…`}
             aria-label="Nội dung tin nhắn"
-            className="max-h-32 min-h-11 flex-1 resize-none rounded-2xl border border-ink-700 bg-ink-900 px-4 py-2.5 text-[15px] text-ink-200 outline-none transition-all placeholder:text-ink-500 hover:border-ink-600 focus:border-gold-400 focus:ring-4 focus:ring-gold-400/15"
+            className="max-h-32 min-h-10 flex-1 resize-none bg-transparent px-1.5 py-[9px] text-[15px] text-ink-200 outline-none placeholder:text-ink-500"
           />
 
           <button
             type="submit"
             disabled={!canSend}
             aria-label="Gửi tin nhắn"
-            className="grid size-11 shrink-0 place-items-center rounded-2xl bg-navy-900 text-white transition-all hover:bg-navy-800 active:translate-y-px disabled:opacity-30"
+            className="grid size-10 shrink-0 place-items-center rounded-lg bg-navy-900 text-white transition-[background-color,opacity,transform] hover:bg-navy-800 active:scale-95 disabled:opacity-30 dark:bg-navy-700 dark:hover:bg-navy-600"
           >
             <SendHorizontal className="size-[18px]" />
           </button>
         </div>
+
+        <p className="mt-1.5 hidden px-1 text-[12px] text-ink-500 sm:block">
+          Enter để gửi · Shift+Enter để xuống dòng
+        </p>
 
         <input
           ref={fileRef}

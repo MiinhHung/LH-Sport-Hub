@@ -111,7 +111,7 @@ export function LuoiAnh({ media }: { media: AnhXemDuoc[] }) {
               alt={m.alt ?? "Ảnh trong bài viết"}
               fill
               sizes={single ? "(max-width: 768px) 100vw, 640px" : "320px"}
-              className="object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+              className="object-cover transition-transform duration-300 group-hover:scale-[1.02]"
             />
 
             {/* Ảnh thứ tư của bài có hơn bốn ảnh: phủ mờ và báo còn mấy tấm */}

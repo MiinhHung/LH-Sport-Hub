@@ -1,22 +1,25 @@
+import { SportIcon, StakeIcon } from "@/components/domain-icons";
 import {
   ArrowLeft,
   CalendarClock,
   Clock,
   MapPin,
   Pencil,
+  Plus,
   ShieldAlert,
+  Swords,
   Target,
   Trophy,
-} from "lucide-react";
+} from "@/components/icons";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { Avatar, Badge, Card, CardBody, Dot } from "@/components/ui";
+import { trangThaiKeo } from "@/components/challenge-card";
+import { Alert, Avatar, Badge, Card, CardBody, Well } from "@/components/ui";
 import { LinkButton } from "@/components/ui/button";
 import { isModerator, requireProfile } from "@/lib/auth";
 import {
-  CHALLENGE_STATUS_META,
   canCancel,
   canConfirmResult,
   canJoin,
@@ -28,8 +31,6 @@ import {
 } from "@/lib/challenge-logic";
 import {
   CHALLENGE_FORMATS,
-  SPORTS,
-  STAKES,
   formatStake,
   type ChallengeFormatKey,
   type SportKey,
@@ -68,9 +69,9 @@ export async function generateMetadata({
  * bám, và thứ quan trọng nhất của trang (ai đánh với ai, thắng thua ra
  * sao) bị chia ra ba khối rời nhau, phải cuộn qua lại mới ghép lại được.
  *
- * Giờ gộp làm một: hai đội quay mặt vào nhau, tỉ số nằm chính giữa, tiền
- * cược vắt ngang chân dải. Đọc một lần là xong — đó cũng đúng là cách
- * người ta đọc một bảng tỉ số thật.
+ * Giờ gộp làm một thẻ kiểu bảng tỉ số: dải navy ghi thể thức, hai đội
+ * quay mặt vào nhau, tỉ số nằm chính giữa, phần thưởng vắt ngang chân
+ * thẻ. Thông tin phụ (hạn đánh, buổi tập, người tạo) ra cột phải.
  *
  * Trên điện thoại thì xếp dọc A / tỉ số / B, và đường ngăn đổi từ dọc
  * sang ngang theo.
@@ -95,11 +96,16 @@ function CotDoi({
   myTeam: string | undefined;
   joinSlot?: React.ReactNode;
 }) {
+  // Đội B soi gương đội A từ sm trở lên: tên dạt về mép phải, hai đội
+  // quay mặt vào tỉ số ở giữa.
+  const guong = team === "B";
+
   return (
     <VaoSan
       phia={team === "A" ? "trai" : "phai"}
       className={cn(
-        "flex flex-col p-4 transition-colors sm:p-5",
+        "flex min-w-0 flex-col p-4 transition-colors sm:p-5",
+        guong && "sm:items-end sm:text-right",
         isWinner && "bg-gold-50 dark:bg-gold-400/10",
         isLoser && "opacity-60",
         !isWinner &&
@@ -108,10 +114,15 @@ function CotDoi({
           "bg-navy-50 dark:bg-navy-600/15",
       )}
     >
-      <div className="mb-3 flex items-center gap-2">
-        <span className="text-[11px] font-bold tracking-[0.12em] text-ink-500 uppercase">
+      <div
+        className={cn(
+          "mb-3.5 flex flex-wrap items-center gap-2",
+          guong && "sm:flex-row-reverse",
+        )}
+      >
+        <h3 className="font-display text-[17px] leading-none text-ink-100">
           Đội {team}
-        </span>
+        </h3>
         {isWinner && (
           <Badge tone="lime">
             <Trophy className="size-3" aria-hidden />
@@ -121,25 +132,33 @@ function CotDoi({
         {myTeam === team && !isWinner && <Badge tone="navy">Đội bạn</Badge>}
       </div>
 
-      <ul className="flex-1 space-y-2.5">
+      <ul className="w-full flex-1 space-y-2.5">
         {members.map((p) => (
-          <li key={p.userId} className="flex items-center gap-2.5">
+          <li
+            key={p.userId}
+            className={cn(
+              "flex items-center gap-2.5",
+              guong && "sm:flex-row-reverse",
+            )}
+          >
             <Avatar
               name={p.user.fullName}
               src={p.user.avatarUrl}
               seed={p.userId}
-              size="sm"
+              size="md"
               className={cn(p.status === "invited" && "opacity-50 grayscale")}
             />
             <div className="min-w-0 flex-1">
-              <p className="truncate text-[13.5px] font-semibold text-ink-200">
+              <p className="truncate text-[14px] font-semibold text-ink-100">
                 {p.user.fullName}
               </p>
               {p.status === "invited" && (
-                <p className="text-[11px] text-ink-500">Chưa trả lời</p>
+                <p className="text-[12px] text-gold-700 dark:text-gold-300">
+                  Chưa trả lời
+                </p>
               )}
               {p.isCreator && p.status !== "invited" && (
-                <p className="text-[11px] text-ink-500">Người tạo kèo</p>
+                <p className="text-[12px] text-ink-500">Người tạo kèo</p>
               )}
             </div>
           </li>
@@ -147,23 +166,32 @@ function CotDoi({
 
         {Array.from({ length: Math.max(0, capacity - members.length) }).map(
           (_, i) => (
-            <li key={i} className="flex items-center gap-2.5">
-              <span className="grid size-8 place-items-center rounded-[9px] border border-dashed border-ink-700 text-sm text-ink-500">
-                ?
+            <li
+              key={i}
+              className={cn(
+                "flex items-center gap-2.5",
+                guong && "sm:flex-row-reverse",
+              )}
+            >
+              <span
+                aria-hidden
+                className="grid size-10 shrink-0 place-items-center rounded-full border border-dashed border-ink-700 text-ink-500"
+              >
+                <Plus className="size-4" />
               </span>
-              <span className="text-[13.5px] text-ink-500">Còn trống</span>
+              <span className="text-[14px] text-ink-500">Còn trống</span>
             </li>
           ),
         )}
       </ul>
 
-      {joinSlot && <div className="mt-3.5">{joinSlot}</div>}
+      {joinSlot && <div className="mt-4 w-full">{joinSlot}</div>}
     </VaoSan>
   );
 }
 
 /**
- * Giữa sân: tỉ số nếu đã có, còn không thì "VS" và thể thức.
+ * Giữa sân: tỉ số nếu đã có, còn không thì "VS".
  *
  * DẤU PHÂN CÁCH LÀ MỘT VẠCH, KHÔNG PHẢI MỘT GẠCH NGANG. Bản trước dùng
  * ký tự en-dash giữa hai con số. Nó trông gần giống dấu trừ, nên "21 – 18"
@@ -176,8 +204,6 @@ function GiuaSan({
   scoreA,
   scoreB,
   winner,
-  trangThai,
-  nhanTheThuc,
   ghiChu,
   tuDong,
 }: {
@@ -185,49 +211,39 @@ function GiuaSan({
   scoreA: number | null | undefined;
   scoreB: number | null | undefined;
   winner: "A" | "B" | null;
-  trangThai: string | null;
-  nhanTheThuc: string;
   ghiChu: string | null;
   tuDong: boolean;
 }) {
   return (
-    <div className="flex flex-col items-center justify-center gap-1.5 border-y border-ink-800 px-5 py-6 text-center sm:border-x sm:border-y-0 sm:py-5">
-      {trangThai && (
-        <p className="text-[10.5px] font-bold tracking-[0.12em] text-ink-500 uppercase">
-          {trangThai}
-        </p>
-      )}
-
+    <div className="flex min-w-36 flex-col items-center justify-center gap-2 border-y border-ink-800 px-5 py-6 text-center sm:border-x sm:border-y-0">
       {hasScore ? (
-        <p className="tabular font-display flex items-center gap-3 text-[40px] leading-none font-bold text-ink-100 sm:text-[44px]">
+        <p className="tabular font-display flex items-center gap-4 text-[44px] leading-none text-ink-100 sm:text-[52px]">
           <span className={cn(winner === "B" && "text-ink-500")}>
             <SoTiSo diem={scoreA as number} />
           </span>
-          <span aria-hidden className="h-8 w-px bg-ink-700" />
+          <span aria-hidden className="h-9 w-px bg-ink-700" />
           <span className={cn(winner === "A" && "text-ink-500")}>
             <SoTiSo diem={scoreB as number} />
           </span>
         </p>
       ) : winner ? (
-        <p className="font-display text-2xl leading-tight font-bold text-ink-100">
+        <p className="font-display text-[26px] leading-tight text-ink-100">
           Đội {winner}
-          <br />
-          thắng
         </p>
       ) : (
-        <p className="font-display text-3xl leading-none font-bold text-ink-500">
+        <p className="font-display text-[32px] leading-none text-ink-600">
           VS
         </p>
       )}
 
-      <p className="text-[11.5px] font-semibold text-ink-500">
-        {hasScore && winner ? `Đội ${winner} thắng` : nhanTheThuc}
+      <p className="text-[12.5px] font-semibold text-ink-500">
+        {winner ? `Đội ${winner} thắng` : "Chưa có kết quả"}
       </p>
 
-      {tuDong && <p className="text-[11px] text-ink-500">Tự động xác nhận</p>}
+      {tuDong && <p className="text-[12px] text-ink-500">Tự động xác nhận</p>}
 
       {ghiChu && (
-        <p className="mt-1 max-w-[22ch] text-[12.5px] text-ink-500 italic">
+        <p className="mt-1 max-w-[24ch] text-[13px] leading-relaxed text-ink-400">
           “{ghiChu}”
         </p>
       )}
@@ -235,7 +251,7 @@ function GiuaSan({
   );
 }
 
-/** Một dòng thông tin trong hàng chân trang, ngăn nhau bằng nét mảnh. */
+/** Một dòng trong thẻ "Chi tiết kèo" ở cột phải. */
 function OThongTin({
   icon: Icon,
   nhan,
@@ -246,11 +262,13 @@ function OThongTin({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex items-center gap-3 px-4 py-3.5">
-      <Icon className="size-4 shrink-0 text-ink-500" aria-hidden />
-      <div className="min-w-0">
-        <dt className="text-[11px] font-semibold text-ink-500">{nhan}</dt>
-        <dd className="truncate text-[13.5px] font-semibold text-ink-200">
+    <div className="flex items-start gap-3 p-2">
+      <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-ink-850 text-ink-400">
+        <Icon className="size-4" aria-hidden />
+      </span>
+      <div className="min-w-0 flex-1 pt-px">
+        <dt className="text-[12.5px] text-ink-500">{nhan}</dt>
+        <dd className="mt-0.5 text-[14px] leading-snug font-semibold text-ink-100">
           {children}
         </dd>
       </div>
@@ -289,10 +307,9 @@ export default async function ChallengeDetailPage({
       )
     : { ok: false as const, reason: "" };
 
-  const statusMeta = CHALLENGE_STATUS_META[challenge.status];
+  const status = trangThaiKeo(challenge.status);
   const format = challenge.format as ChallengeFormatKey;
   const formatSpec = CHALLENGE_FORMATS[format];
-  const sport = SPORTS[challenge.sport as SportKey];
   const stakeKey = challenge.stakeType as StakeKey;
 
   const held = (team: "A" | "B") =>
@@ -344,8 +361,10 @@ export default async function ChallengeDetailPage({
         ? "Đang tranh chấp"
         : "Chờ xác nhận";
 
+  const coViecQuanLy = canEdit || leaveDec.ok || cancelDec.ok || canDelete;
+
   return (
-    <div className="mx-auto max-w-3xl space-y-5">
+    <div className="space-y-6">
       <Link
         href="/keo"
         className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-ink-500 transition-colors hover:text-ink-100"
@@ -355,230 +374,276 @@ export default async function ChallengeDetailPage({
       </Link>
 
       {/* Tiêu đề */}
-      <header>
+      <header className="animate-rise">
         <div className="flex flex-wrap items-center gap-1.5">
-          <Badge tone={statusMeta.tone}>
-            <Dot tone={statusMeta.tone} />
-            {statusMeta.label}
-          </Badge>
-          <Badge tone="slate">
-            {sport.icon} {formatSpec.label}
-          </Badge>
+          <Badge tone={status.tone}>{status.label}</Badge>
           {challenge.kind === "direct" && (
-            <Badge tone="violet">Thách đấu</Badge>
+            <Badge tone="navy">Thách đích danh</Badge>
           )}
         </div>
 
-        <h1 className="font-display mt-3 text-[28px] leading-[1.15] font-bold text-ink-100 sm:text-[34px]">
+        <h1 className="font-display mt-3 text-[28px] leading-[1.15] text-ink-100 sm:text-[32px]">
           {challenge.title}
         </h1>
 
         {challenge.description && (
-          <p className="mt-2.5 max-w-prose leading-relaxed text-ink-400">
+          <p className="mt-2.5 max-w-[60ch] text-[15px] leading-relaxed text-ink-300">
             {challenge.description}
           </p>
         )}
       </header>
 
-      {/* Lời mời đang chờ bạn. Đặt NGAY TRÊN dải đối đầu vì đây là việc
-          phải làm, không phải thông tin để đọc. */}
-      {respondDec.ok && (
-        <Card className="border-violet-200 bg-violet-50 dark:border-violet-400/30 dark:bg-violet-500/10">
-          <CardBody>
-            <h2 className="mb-1 text-base font-bold text-violet-800 dark:text-violet-200">
-              Bạn bị thách kèo này
-            </h2>
-            <p className="mb-4 text-[13.5px] text-violet-700 dark:text-violet-300/80">
-              Nhận hay né? Nhận rồi thì nhớ đánh, thua phải bao đấy.
-            </p>
-            <RespondInviteForm challengeId={challenge.id} />
-          </CardBody>
-        </Card>
-      )}
-
-      {/* Dải đối đầu: hai đội, tỉ số và tiền cược gộp làm một khối */}
-      <section
-        aria-label="Hai đội và kết quả"
-        className="overflow-hidden rounded-2xl border border-ink-800 bg-ink-900"
-      >
-        <div className="grid sm:grid-cols-[1fr_auto_1fr]">
-          <CotDoi
-            team="A"
-            members={teamA}
-            capacity={formatSpec.playersPerTeam}
-            isWinner={winner === "A"}
-            isLoser={winner === "B"}
-            myTeam={myTeam}
-            joinSlot={
-              joinA.ok ? (
-                <JoinChallengeForm challengeId={challenge.id} team="A" />
-              ) : undefined
-            }
-          />
-
-          <GiuaSan
-            hasScore={Boolean(challenge.result) && hasScore}
-            scoreA={challenge.result?.scoreA}
-            scoreB={challenge.result?.scoreB}
-            winner={
-              challenge.result
-                ? (challenge.result.winningTeam as "A" | "B")
-                : null
-            }
-            trangThai={nhanKetQua}
-            nhanTheThuc={
-              challenge.pointsTarget
-                ? `Đánh tới ${challenge.pointsTarget} điểm`
-                : formatSpec.label
-            }
-            ghiChu={challenge.result?.notes ?? null}
-            tuDong={Boolean(challenge.result?.autoConfirmed)}
-          />
-
-          <CotDoi
-            team="B"
-            members={teamB}
-            capacity={formatSpec.playersPerTeam}
-            isWinner={winner === "B"}
-            isLoser={winner === "A"}
-            myTeam={myTeam}
-            joinSlot={
-              joinB.ok ? (
-                <JoinChallengeForm challengeId={challenge.id} team="B" />
-              ) : undefined
-            }
-          />
-        </div>
-
-        {/* Tiền cược vắt ngang chân dải, không còn là một hộp riêng: nó
-            thuộc về trận này chứ không phải một mẩu tin rời. */}
-        <div className="flex items-center gap-3.5 border-t border-gold-200 bg-gold-50 px-4 py-3.5 dark:border-gold-400/25 dark:bg-gold-400/10">
-          <span className="text-2xl leading-none" aria-hidden>
-            {STAKES[stakeKey].icon}
-          </span>
-          <div className="min-w-0 flex-1">
-            <p className="text-[10.5px] font-bold tracking-[0.1em] text-gold-700 uppercase dark:text-gold-300">
-              Cả đội thua bao cả đội thắng
-            </p>
-            <p className="mt-0.5 text-[17px] leading-tight font-bold text-gold-700 dark:text-gold-300">
-              {formatStake(stakeKey, challenge.stakeQty, challenge.stakeNote)}
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* Phản đối kết quả: hộp riêng, vì đây là chuyện phải xử lý chứ
-          không phải một dòng thông tin trong bảng tỉ số. */}
-      {challenge.status === "disputed" && challenge.result?.disputeReason && (
-        <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 dark:border-rose-400/30 dark:bg-rose-500/10">
-          <p className="mb-1 flex items-center gap-1.5 text-[13px] font-bold text-rose-700 dark:text-rose-300">
-            <ShieldAlert className="size-4" aria-hidden />
-            Lý do phản đối
-          </p>
-          <p className="text-[13.5px] text-rose-800 dark:text-rose-200/80">
-            {challenge.result.disputeReason}
-          </p>
-        </div>
-      )}
-
-      {confirmDec.ok && challenge.result && (
-        <ConfirmResultActions challengeId={challenge.id} />
-      )}
-
-      {/* Nhập kết quả */}
-      {submitDec.ok && (
-        <SubmitResultForm
-          challengeId={challenge.id}
-          isFreeFormat={challenge.format === "free"}
-          pointsTarget={challenge.pointsTarget}
-        />
-      )}
-
-      {/*
-        Chi tiết kèo: một hàng ngăn bằng nét mảnh, không phải bốn cái hộp.
-
-        Bốn ô bo góc riêng cho bốn mẩu tin ngắn là thừa hẳn một tầng khối.
-        Mỗi ô chỉ chứa một nhãn và một dòng chữ, chẳng có thứ bậc nào để
-        một cái viền phải đi diễn đạt.
-      */}
-      <dl className="grid divide-y divide-ink-800 rounded-2xl border border-ink-800 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
-        {challenge.pointsTarget && (
-          <OThongTin icon={Target} nhan="Thể thức">
-            Đánh tới {challenge.pointsTarget} điểm
-          </OThongTin>
-        )}
-
-        {challenge.playDeadline && (
-          <OThongTin icon={Clock} nhan="Hạn đánh">
-            {formatDateTime(challenge.playDeadline)} ·{" "}
-            {timeUntil(challenge.playDeadline)}
-          </OThongTin>
-        )}
-
-        {challenge.session ? (
-          <OThongTin icon={MapPin} nhan="Buổi tập">
-            <Link
-              href={`/buoi-tap/${challenge.session.id}`}
-              className="text-link hover:underline"
-            >
-              {challenge.session.title}
-            </Link>
-          </OThongTin>
-        ) : (
-          <OThongTin icon={CalendarClock} nhan="Thời gian">
-            Đánh lúc nào cũng được
-          </OThongTin>
-        )}
-      </dl>
-
-      {challenge.status === "cancelled" && challenge.cancellationReason && (
-        <div className="rounded-2xl border border-ink-800 px-4 py-3.5">
-          <p className="text-[11px] font-semibold text-ink-500">Lý do huỷ</p>
-          <p className="mt-0.5 text-[13.5px] text-ink-300">
-            {challenge.cancellationReason}
-          </p>
-        </div>
-      )}
-
-      {/* Chân trang */}
-      <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-ink-800 pt-5">
-        <div className="flex items-center gap-2.5">
-          <Avatar
-            name={challenge.creator.fullName}
-            src={challenge.creator.avatarUrl}
-            seed={challenge.creator.id}
-            size="sm"
-          />
-          <div className="text-[12.5px]">
-            <p className="font-semibold text-ink-300">
-              {challenge.creator.fullName}
-            </p>
-            <p className="text-ink-500">
-              tạo {formatDateTime(challenge.createdAt)}
-            </p>
-          </div>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-1">
-          {/* Sửa đứng trước mấy việc phá: nó là việc vô hại nhất trong
-              nhóm, mà trước đây gõ nhầm tên kèo thì chỉ còn nước xoá đi
-              tạo lại, mất sạch người đã nhận. */}
-          {canEdit && (
-            <LinkButton
-              variant="ghost"
-              size="sm"
-              href={`/keo/${challenge.id}/sua`}
-              className="text-ink-500 hover:text-ink-100"
-            >
-              <Pencil className="size-4" />
-              Sửa kèo
-            </LinkButton>
+      <div className="grid grid-cols-[minmax(0,1fr)] items-start gap-8 lg:grid-cols-[minmax(0,1fr)_300px] xl:grid-cols-[minmax(0,1fr)_320px]">
+        <div className="min-w-0 space-y-6">
+          {/* Lời mời đang chờ bạn. Đặt NGAY TRÊN dải đối đầu vì đây là việc
+              phải làm, không phải thông tin để đọc. */}
+          {respondDec.ok && (
+            <Card>
+              <CardBody>
+                <div className="mb-4 flex items-start gap-3">
+                  <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-gold-50 text-gold-700 dark:bg-gold-400/10 dark:text-gold-300">
+                    <Swords className="size-[18px]" aria-hidden />
+                  </span>
+                  <div className="min-w-0">
+                    <h2 className="text-[16px] font-semibold text-ink-100">
+                      Bạn bị thách kèo này
+                    </h2>
+                    <p className="mt-0.5 text-[13.5px] leading-relaxed text-ink-500">
+                      Nhận hay né? Nhận rồi thì nhớ đánh, thua phải bao đấy.
+                    </p>
+                  </div>
+                </div>
+                <RespondInviteForm challengeId={challenge.id} />
+              </CardBody>
+            </Card>
           )}
-          {leaveDec.ok && <LeaveChallengeForm challengeId={challenge.id} />}
-          {cancelDec.ok && <CancelChallengeForm challengeId={challenge.id} />}
-          {canDelete && <DeleteChallengeForm challengeId={challenge.id} />}
+
+          {/* Bảng tỉ số: hai đội, tỉ số và phần thưởng gộp làm một thẻ */}
+          <section aria-label="Hai đội và kết quả">
+            <Card className="overflow-hidden">
+              <div className="flex items-center justify-between gap-3 bg-navy-900 px-4 py-2.5 text-[12.5px] font-semibold text-white sm:px-5">
+                <span className="flex min-w-0 items-center gap-1.5">
+                  <SportIcon
+                    sport={challenge.sport as SportKey}
+                    className="text-gold-300"
+                  />
+                  <span className="truncate">
+                    {formatSpec.label}
+                    {challenge.pointsTarget
+                      ? `, đánh tới ${challenge.pointsTarget} điểm`
+                      : ""}
+                  </span>
+                </span>
+                {nhanKetQua && (
+                  <span className="shrink-0 text-gold-300">{nhanKetQua}</span>
+                )}
+              </div>
+
+              <div className="grid grid-cols-[minmax(0,1fr)] sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
+                <CotDoi
+                  team="A"
+                  members={teamA}
+                  capacity={formatSpec.playersPerTeam}
+                  isWinner={winner === "A"}
+                  isLoser={winner === "B"}
+                  myTeam={myTeam}
+                  joinSlot={
+                    joinA.ok ? (
+                      <JoinChallengeForm challengeId={challenge.id} team="A" />
+                    ) : undefined
+                  }
+                />
+
+                <GiuaSan
+                  hasScore={Boolean(challenge.result) && hasScore}
+                  scoreA={challenge.result?.scoreA}
+                  scoreB={challenge.result?.scoreB}
+                  winner={
+                    challenge.result
+                      ? (challenge.result.winningTeam as "A" | "B")
+                      : null
+                  }
+                  ghiChu={challenge.result?.notes ?? null}
+                  tuDong={Boolean(challenge.result?.autoConfirmed)}
+                />
+
+                <CotDoi
+                  team="B"
+                  members={teamB}
+                  capacity={formatSpec.playersPerTeam}
+                  isWinner={winner === "B"}
+                  isLoser={winner === "A"}
+                  myTeam={myTeam}
+                  joinSlot={
+                    joinB.ok ? (
+                      <JoinChallengeForm challengeId={challenge.id} team="B" />
+                    ) : undefined
+                  }
+                />
+              </div>
+
+              {/* Phần thưởng vắt ngang chân thẻ, không còn là một hộp riêng:
+                  nó thuộc về trận này chứ không phải một mẩu tin rời. */}
+              <div className="flex items-center gap-3.5 border-t border-ink-800 bg-ink-850/60 px-4 py-3.5 sm:px-5">
+                <span className="grid size-11 shrink-0 place-items-center rounded-lg bg-gold-100 text-gold-700 dark:bg-gold-400/15 dark:text-gold-300">
+                  <StakeIcon stake={stakeKey} className="size-5" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[12.5px] font-semibold text-gold-700 dark:text-gold-300">
+                    Cả đội thua bao cả đội thắng
+                  </p>
+                  <p className="mt-0.5 text-[17px] leading-tight font-bold text-ink-100">
+                    {formatStake(
+                      stakeKey,
+                      challenge.stakeQty,
+                      challenge.stakeNote,
+                    )}
+                  </p>
+                </div>
+              </div>
+            </Card>
+          </section>
+
+          {/* Phản đối kết quả: hộp riêng, vì đây là chuyện phải xử lý chứ
+              không phải một dòng thông tin trong bảng tỉ số. */}
+          {challenge.status === "disputed" &&
+            challenge.result?.disputeReason && (
+              <Alert tone="rose">
+                <p className="mb-1 flex items-center gap-1.5 font-semibold">
+                  <ShieldAlert className="size-4" aria-hidden />
+                  Lý do phản đối
+                </p>
+                <p>{challenge.result.disputeReason}</p>
+              </Alert>
+            )}
+
+          {confirmDec.ok && challenge.result && (
+            <ConfirmResultActions challengeId={challenge.id} />
+          )}
+
+          {/* Nhập kết quả */}
+          {submitDec.ok && (
+            <SubmitResultForm
+              challengeId={challenge.id}
+              isFreeFormat={challenge.format === "free"}
+              pointsTarget={challenge.pointsTarget}
+            />
+          )}
+
+          {challenge.status === "cancelled" &&
+            challenge.cancellationReason && (
+              <Well className="px-4 py-3.5">
+                <p className="text-[12.5px] font-semibold text-ink-500">
+                  Lý do huỷ
+                </p>
+                <p className="mt-0.5 text-[14px] text-ink-300">
+                  {challenge.cancellationReason}
+                </p>
+              </Well>
+            )}
         </div>
-      </footer>
+
+        {/* Cột phải: thông tin phụ và các việc quản lý */}
+        <aside className="space-y-6 lg:sticky lg:top-10">
+          <section aria-labelledby="chi-tiet-keo">
+            <Card className="overflow-hidden">
+              <h2
+                id="chi-tiet-keo"
+                className="px-4 pt-4 pb-1 text-[16px] font-semibold text-ink-100"
+              >
+                Chi tiết kèo
+              </h2>
+              <dl className="px-2 pb-2">
+                <OThongTin icon={Target} nhan="Thể thức">
+                  {challenge.pointsTarget
+                    ? `${formatSpec.label}, tới ${challenge.pointsTarget} điểm`
+                    : formatSpec.label}
+                </OThongTin>
+
+                {challenge.playDeadline && (
+                  <OThongTin icon={Clock} nhan="Hạn đánh">
+                    {formatDateTime(challenge.playDeadline)}
+                    <span className="block text-[12.5px] font-semibold text-gold-700 dark:text-gold-300">
+                      {timeUntil(challenge.playDeadline)}
+                    </span>
+                  </OThongTin>
+                )}
+
+                {challenge.session ? (
+                  <OThongTin icon={MapPin} nhan="Buổi tập">
+                    <Link
+                      href={`/buoi-tap/${challenge.session.id}`}
+                      className="text-link hover:underline"
+                    >
+                      {challenge.session.title}
+                    </Link>
+                  </OThongTin>
+                ) : (
+                  <OThongTin icon={CalendarClock} nhan="Thời gian">
+                    Đánh lúc nào cũng được
+                  </OThongTin>
+                )}
+
+                <div className="flex items-start gap-3 p-2">
+                  <Avatar
+                    name={challenge.creator.fullName}
+                    src={challenge.creator.avatarUrl}
+                    seed={challenge.creator.id}
+                    size="md"
+                    className="size-9"
+                  />
+                  <div className="min-w-0 flex-1 pt-px">
+                    <dt className="text-[12.5px] text-ink-500">Người tạo</dt>
+                    <dd className="mt-0.5 truncate text-[14px] leading-snug font-semibold text-ink-100">
+                      {challenge.creator.fullName}
+                    </dd>
+                    <dd className="text-[12.5px] text-ink-500">
+                      {formatDateTime(challenge.createdAt)}
+                    </dd>
+                  </div>
+                </div>
+              </dl>
+            </Card>
+          </section>
+
+          {coViecQuanLy && (
+            <section aria-labelledby="quan-ly-keo">
+              <Card className="p-4">
+                <h2
+                  id="quan-ly-keo"
+                  className="mb-2 text-[16px] font-semibold text-ink-100"
+                >
+                  Quản lý
+                </h2>
+                <div className="-mx-1.5 flex flex-wrap items-center gap-1">
+                  {/* Sửa đứng trước mấy việc phá: nó là việc vô hại nhất
+                      trong nhóm, mà trước đây gõ nhầm tên kèo thì chỉ còn
+                      nước xoá đi tạo lại, mất sạch người đã nhận. */}
+                  {canEdit && (
+                    <LinkButton
+                      variant="ghost"
+                      size="sm"
+                      href={`/keo/${challenge.id}/sua`}
+                    >
+                      <Pencil className="size-4" />
+                      Sửa kèo
+                    </LinkButton>
+                  )}
+                  {leaveDec.ok && (
+                    <LeaveChallengeForm challengeId={challenge.id} />
+                  )}
+                  {cancelDec.ok && (
+                    <CancelChallengeForm challengeId={challenge.id} />
+                  )}
+                  {canDelete && (
+                    <DeleteChallengeForm challengeId={challenge.id} />
+                  )}
+                </div>
+              </Card>
+            </section>
+          )}
+        </aside>
+      </div>
     </div>
   );
 }

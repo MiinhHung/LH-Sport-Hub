@@ -1,7 +1,16 @@
 "use client";
 
-import { animate, motion, useMotionValue, useTransform } from "motion/react";
+import {
+  animate,
+  motion,
+  useMotionValue,
+  useReducedMotion,
+  useTransform,
+} from "motion/react";
 import * as React from "react";
+
+import { cn } from "@/lib/utils";
+import { EASE_OUT, EASE_SNAP, MS, REVEAL_OFFSET, SEC, SPRING } from "./motion";
 
 /**
  * Đố vui cuối trang chủ: phát cầu để điền ngày thành lập công ty.
@@ -110,10 +119,15 @@ function QuaCau({
   so,
   size,
   ink,
+  cork = "#dcae42",
+  corkInk = "#00112e",
 }: {
   so: number | null;
   size: number;
   ink: string;
+  /** Màu đế bần và màu số trên đế. Mặc định là bản nền trắng. */
+  cork?: string;
+  corkInk?: string;
 }) {
   return (
     <svg width={size} height={size} viewBox="0 0 40 40" aria-hidden>
@@ -148,7 +162,7 @@ function QuaCau({
         cx={20}
         cy={28}
         r={10.5}
-        fill="#dcae42"
+        fill={cork}
         stroke={ink}
         strokeWidth={1.4}
       />
@@ -159,7 +173,7 @@ function QuaCau({
         dominantBaseline="central"
         fontSize={14}
         fontWeight={800}
-        fill="#00112e"
+        fill={corkInk}
       >
         {so ?? ""}
       </text>
@@ -251,14 +265,23 @@ export function DoVui({
   muted,
   gold,
   line,
+  cork,
+  corkInk,
+  radius = "rounded-xl",
 }: {
   dapAn?: string;
   ink: string;
   muted: string;
   gold: string;
   line: string;
+  /** Màu đế bần của quả cầu và màu số trên đế (mặc định: bản nền trắng). */
+  cork?: string;
+  corkInk?: string;
+  /** Bo góc của ô đáp án và sân. */
+  radius?: string;
 }) {
   const soO = dapAn.length;
+  const reduce = useReducedMotion();
 
   const [daNhap, setDaNhap] = React.useState<string[]>([]);
   const [dangCam, setDangCam] = React.useState<number | null>(null);
@@ -380,7 +403,7 @@ export function DoVui({
       tienDo.jump(0);
       bayHien.set(1);
 
-      await animate(tienDo, 1, { duration: 0.78, ease: "linear" });
+      await animate(tienDo, 1, { duration: SEC.flight, ease: "linear" });
 
       bayHien.set(0);
       setDaNhap((cu) => [...cu, String(so)]);
@@ -433,15 +456,13 @@ export function DoVui({
     // bản trước viết `.then` rồi đo ra vợt ngả về -56 độ và đứng im
     // luôn — nhánh đó không bao giờ chạy, cú vung mất hẳn.
     await animate(gocVot, GOC_CHUAN_BI - 18, {
-      duration: 0.11,
-      ease: [0.33, 1, 0.68, 1],
+      duration: SEC.snap,
+      ease: EASE_SNAP,
     }).finished;
 
     void animate(gocVot, GOC_KET, {
       type: "spring",
-      stiffness: 190,
-      damping: 16,
-      mass: 1,
+      ...SPRING.swing,
       onUpdate: (g) => {
         if (!daThaCau && g >= GOC_CHAM) {
           daThaCau = true;
@@ -453,11 +474,9 @@ export function DoVui({
     thuTayRef.current = window.setTimeout(() => {
       void animate(gocVot, GOC_CHUAN_BI, {
         type: "spring",
-        stiffness: 90,
-        damping: 18,
-        mass: 1,
+        ...SPRING.recover,
       });
-    }, 300);
+    }, MS.fast);
   }, [bay, dangBay, dangCam, gocVot, xong]);
 
   React.useEffect(() => {
@@ -493,8 +512,7 @@ export function DoVui({
     } else {
       void animate(gocVot, GOC_CHUAN_BI, {
         type: "spring",
-        stiffness: 260,
-        damping: 18,
+        ...SPRING.reset,
       });
     }
   };
@@ -502,15 +520,12 @@ export function DoVui({
   const loiNhac =
     dangCam === null
       ? "Bấm một quả cầu ở dưới sân để cầm lên."
-      : "Kéo xuống lấy đà rồi thả — hoặc bấm thẳng vào quả cầu trên tay.";
+      : "Kéo xuống lấy đà rồi thả, hoặc bấm thẳng vào quả cầu trên tay.";
 
   return (
     <div
       ref={khungRef}
       className="relative mx-auto max-w-2xl"
-      // Giữ con trỏ thật trong khu này: chỗ kéo thả cần bàn tay nắm/mở
-      // để nói rõ là kéo được, mà quả cầu vẽ tay thì không nói được.
-      data-con-tro-that
     >
       {/* Ô đáp án */}
       <div
@@ -541,7 +556,10 @@ export function DoVui({
                       ref={(el) => {
                         oRefs.current[i] = el;
                       }}
-                      className="font-display relative grid size-11 place-items-center rounded-xl border-2 text-[20px] font-bold transition-colors duration-200 sm:size-12 sm:text-[22px]"
+                      className={cn(
+                        "font-display relative grid size-11 place-items-center border-2 text-[20px] font-bold transition-colors duration-[var(--m-instant)] sm:size-12 sm:text-[22px]",
+                        radius,
+                      )}
                       style={{
                         borderColor:
                           ketQua === "sai"
@@ -553,23 +571,6 @@ export function DoVui({
                         background: dangCho ? `${gold}12` : "transparent",
                       }}
                     >
-                      {/* Ô đang chờ thở một nhịp vàng rất nhạt. Trước đây
-                          nó chỉ khác mấy ô kia ở màu viền — liếc nhanh
-                          thì không thấy cầu sắp rơi vào đâu. */}
-                      {dangCho && (
-                        <motion.span
-                          aria-hidden
-                          className="pointer-events-none absolute inset-0 rounded-[10px]"
-                          style={{ background: gold }}
-                          animate={{ opacity: [0.06, 0.16, 0.06] }}
-                          transition={{
-                            duration: 1.8,
-                            repeat: Infinity,
-                            ease: "easeInOut",
-                          }}
-                        />
-                      )}
-
                       {/* Chữ số rơi vào thì nảy một nhịp. `key` đổi theo
                           giá trị nên hoạt ảnh chạy lại đúng lúc điền. */}
                       {daNhap[i] != null && (
@@ -580,8 +581,7 @@ export function DoVui({
                           animate={{ scale: 1, opacity: 1 }}
                           transition={{
                             type: "spring",
-                            stiffness: 480,
-                            damping: 20,
+                            ...SPRING.pop,
                           }}
                         >
                           {daNhap[i]}
@@ -601,8 +601,8 @@ export function DoVui({
                 đoán sai thì mất luôn cả tám phát cầu rồi mới biết.
               */}
               <span
-                className="text-[10px] font-bold tracking-[0.14em] uppercase"
-                style={{ color: muted, opacity: 0.8 }}
+                className="text-[12px] font-semibold"
+                style={{ color: muted }}
               >
                 {nhom.nhan}
               </span>
@@ -630,7 +630,7 @@ export function DoVui({
           translateY: "-50%",
         }}
       >
-        <QuaCau so={dangCam} size={40} ink={ink} />
+        <QuaCau so={dangCam} size={40} ink={ink} cork={cork} corkInk={corkInk} />
       </motion.div>
 
       {/*
@@ -677,10 +677,8 @@ export function DoVui({
         */}
         <div
           aria-hidden
-          className="absolute inset-0 overflow-hidden rounded-3xl"
-          style={{
-            background: `linear-gradient(180deg, #fff 0%, ${ink}06 100%)`,
-          }}
+          className={cn("absolute inset-0 overflow-hidden", radius)}
+          style={{ background: `${ink}06` }}
         >
           {/* Mặt sân: hình thang, xa thì hẹp, gần thì rộng */}
           <svg
@@ -811,13 +809,13 @@ export function DoVui({
                 ? "Chưa cầm quả cầu nào"
                 : `Phát quả cầu số ${dangCam} vào ô thứ ${oDangCho + 1}`
             }
-            className="grid cursor-grab touch-none place-items-center rounded-full transition-opacity duration-200 active:cursor-grabbing"
+            className="grid cursor-grab touch-none place-items-center rounded-full transition-opacity duration-[var(--m-instant)] active:cursor-grabbing"
             // Tính thẳng ở đây chứ không dùng lớp `disabled:opacity-0`:
             // kiểu nội tuyến luôn thắng lớp tiện ích, nên để cả hai thì
             // quả cầu rỗng vẫn hiện trên tay lúc chưa nhặt gì.
             style={{ opacity: dangCam === null || dangBay ? 0 : 1 }}
           >
-            <QuaCau so={dangCam} size={44} ink={ink} />
+            <QuaCau so={dangCam} size={44} ink={ink} cork={cork} corkInk={corkInk} />
           </button>
 
           {/*
@@ -836,10 +834,12 @@ export function DoVui({
               aria-hidden
               className="pointer-events-none absolute top-full left-1/2 mt-1 flex flex-col items-center"
               initial={{ opacity: 0 }}
-              animate={{ opacity: 1, y: [0, 5, 0] }}
+              animate={{ opacity: 1, y: reduce ? 0 : [0, 5, 0] }}
               transition={{
-                opacity: { duration: 0.25 },
-                y: { duration: 1.4, repeat: Infinity, ease: "easeInOut" },
+                opacity: { duration: SEC.fast },
+                y: reduce
+                  ? { duration: 0 }
+                  : { duration: SEC.draw, repeat: 3, ease: "easeInOut" },
               }}
             >
               <svg width="14" height="20" viewBox="0 0 14 20">
@@ -893,22 +893,11 @@ export function DoVui({
                 translateY: "-50%",
                 rotate: cho.r,
               }}
-              animate={{
-                // Quả đang cầm trên tay thì mờ đi ở dưới sân, để thấy rõ
-                // là nó đã được nhặt lên.
-                opacity: dangChon ? 0.25 : 1,
-                y: dangChon ? 0 : [0, -3, 0],
-              }}
-              transition={{
-                opacity: { duration: 0.2 },
-                y: {
-                  duration: 2.6 + (n % 4) * 0.45,
-                  repeat: Infinity,
-                  repeatType: "mirror",
-                  ease: "easeInOut",
-                  delay: (n % 5) * 0.3,
-                },
-              }}
+              // Quả đang cầm trên tay thì mờ đi ở dưới sân, để thấy rõ là nó
+              // đã được nhặt lên. Không còn nhịp nhấp nhô vô hạn: chuyển động
+              // chỉ để phản hồi thao tác của người chơi.
+              animate={{ opacity: dangChon ? 0.25 : 1 }}
+              transition={{ opacity: { duration: SEC.instant } }}
               whileHover={{ scale: 1.12 }}
               whileTap={{ scale: 0.94 }}
             >
@@ -917,7 +906,7 @@ export function DoVui({
                 className="absolute top-full left-1/2 h-[5px] w-[26px] -translate-x-1/2 rounded-[50%] blur-[1.5px]"
                 style={{ background: `${ink}22` }}
               />
-              <QuaCau so={n} size={46} ink={ink} />
+              <QuaCau so={n} size={46} ink={ink} cork={cork} corkInk={corkInk} />
             </motion.button>
           );
         })}
@@ -927,15 +916,15 @@ export function DoVui({
       <div className="mt-4 min-h-[104px] text-center">
         {ketQua === "dung" && (
           <motion.div
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: REVEAL_OFFSET / 2 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: SEC.base, ease: EASE_OUT }}
           >
             <p
               className="font-display text-[24px] font-bold sm:text-[28px]"
               style={{ color: ink }}
             >
-              Chuẩn luôn! 🎉
+              Chuẩn luôn!
             </p>
             <p className="mt-2 text-[14.5px]" style={{ color: muted }}>
               Nhớ ngày thành lập công ty thế này thì chắc cũng nhớ luôn lịch
@@ -947,14 +936,14 @@ export function DoVui({
         {ketQua === "sai" && (
           <motion.div
             initial={{ x: 0 }}
-            animate={{ x: [0, -8, 8, -5, 5, 0] }}
-            transition={{ duration: 0.45 }}
+            animate={{ x: reduce ? 0 : [0, -8, 8, -5, 5, 0] }}
+            transition={{ duration: SEC.base }}
           >
             <p
               className="font-display text-[22px] font-bold sm:text-[25px]"
               style={{ color: ink }}
             >
-              Cầu ra ngoài rồi 😅
+              Cầu ra ngoài rồi
             </p>
             <p className="mt-2 text-[14.5px]" style={{ color: muted }}>
               Thử lại phát nữa xem.
@@ -966,7 +955,7 @@ export function DoVui({
           <button
             type="button"
             onClick={lamLai}
-            className="mt-4 text-[12.5px] font-bold tracking-[0.12em] uppercase underline-offset-4 hover:underline"
+            className="mt-4 inline-flex min-h-8 items-center px-2 text-[13.5px] font-semibold underline-offset-4 hover:underline"
             style={{ color: gold }}
           >
             Chơi lại

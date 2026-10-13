@@ -1,7 +1,8 @@
+import crypto from "node:crypto";
 import { and, eq, gte, isNull, lt, lte, sql } from "drizzle-orm";
 import { NextResponse, type NextRequest } from "next/server";
 
-import { settleChallenge } from "@/actions/results";
+import { settleChallenge } from "@/lib/challenge-settle";
 import { db } from "@/db";
 import {
   challengeResults,
@@ -48,8 +49,14 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const header = request.headers.get("authorization");
-  if (header !== `Bearer ${secret}`) {
+  const header = request.headers.get("authorization") ?? "";
+  const expected = `Bearer ${secret}`;
+  const headerBuf = Buffer.from(header);
+  const expectedBuf = Buffer.from(expected);
+  if (
+    headerBuf.length !== expectedBuf.length ||
+    !crypto.timingSafeEqual(headerBuf, expectedBuf)
+  ) {
     return NextResponse.json({ error: "Không có quyền." }, { status: 401 });
   }
 

@@ -55,6 +55,7 @@ function laDiaChiNoiBo(ip: string): boolean {
     if (p[0] === 172 && p[1] >= 16 && p[1] <= 31) return true; // mạng riêng
     if (p[0] === 192 && p[1] === 168) return true; // mạng riêng
     if (p[0] === 100 && p[1] >= 64 && p[1] <= 127) return true; // CGNAT
+    if (p[0] === 198 && (p[1] === 18 || p[1] === 19)) return true; // Benchmarking
     if (p[0] >= 224) return true; // multicast và dải dành riêng
     return false;
   }
@@ -62,11 +63,26 @@ function laDiaChiNoiBo(ip: string): boolean {
   if (v === 6) {
     const s = ip.toLowerCase();
     if (s === "::" || s === "::1") return true;
-    if (s.startsWith("fe80")) return true; // link-local
+    if (s.startsWith("fe8") || s.startsWith("fe9") || s.startsWith("fea") || s.startsWith("feb")) return true; // link-local
     if (/^f[cd]/.test(s)) return true; // unique local
-    // ::ffff:a.b.c.d — IPv4 khoác áo IPv6, xét lại theo luật IPv4.
-    const v4 = s.match(/::ffff:(\d+\.\d+\.\d+\.\d+)$/);
-    if (v4) return laDiaChiNoiBo(v4[1]);
+    if (s.startsWith("ff")) return true; // multicast
+    if (s.startsWith("64:ff9b:") || s.includes(":64:ff9b:")) return true; // NAT64
+    if (s.startsWith("2002:")) return true; // 6to4
+    if (s.startsWith("2001:db8:")) return true; // documentation
+
+    // ::ffff:a.b.c.d — IPv4 dạng chấm thập phân
+    const v4Dotted = s.match(/::ffff:(\d+\.\d+\.\d+\.\d+)$/);
+    if (v4Dotted) return laDiaChiNoiBo(v4Dotted[1]);
+
+    // ::ffff:hhhh:hhhh — IPv4 dạng hex (ví dụ [::ffff:7f00:1] hoặc [::ffff:a9fe:a9fe])
+    const v4Hex = s.match(/(?:^|:)ffff:([0-9a-f]{1,4}):([0-9a-f]{1,4})$/);
+    if (v4Hex) {
+      const hi = parseInt(v4Hex[1], 16);
+      const lo = parseInt(v4Hex[2], 16);
+      const dec4 = `${(hi >> 8) & 255}.${hi & 255}.${(lo >> 8) & 255}.${lo & 255}`;
+      return laDiaChiNoiBo(dec4);
+    }
+
     return false;
   }
 
@@ -77,6 +93,10 @@ function laDiaChiNoiBo(ip: string): boolean {
 async function kiemTraAnToan(u: URL): Promise<void> {
   if (u.protocol !== "http:" && u.protocol !== "https:") {
     throw new AppError("Chỉ nhận đường dẫn http hoặc https.");
+  }
+
+  if (u.port && u.port !== "80" && u.port !== "443") {
+    throw new AppError("Chỉ chấp nhận cổng web tiêu chuẩn (80, 443).");
   }
 
   const host = u.hostname.replace(/^\[|\]$/g, "");

@@ -15,6 +15,7 @@ import {
   STAKE_KEYS,
 } from "@/lib/constants";
 import { parseMapUrl } from "@/lib/maps";
+import { parseZonedTime } from "@/lib/utils";
 
 /* ------------------------------------------------------------------ */
 /* Tien ich                                                            */
@@ -38,14 +39,14 @@ const optionalText = (max: number, label: string) =>
     .nullable()
     .default(null);
 
-/** Nhận chuỗi từ input datetime-local và đổi sang Date. */
-const dateTimeField = (label: string) =>
+/** Nhận chuỗi từ input datetime-local và đổi sang Date theo múi giờ VN. */
+export const dateTimeField = (label: string) =>
   z
     .string()
     .trim()
     .min(1, `${label} không được để trống.`)
     .transform((value, ctx) => {
-      const parsed = new Date(value);
+      const parsed = parseZonedTime(value);
       if (Number.isNaN(parsed.getTime())) {
         ctx.addIssue({ code: "custom", message: `${label} không hợp lệ.` });
         return z.NEVER;
@@ -53,13 +54,13 @@ const dateTimeField = (label: string) =>
       return parsed;
     });
 
-const optionalDateTimeField = (label: string) =>
+export const optionalDateTimeField = (label: string = "Thời gian") =>
   z
     .string()
     .trim()
     .transform((value, ctx) => {
       if (value === "") return null;
-      const parsed = new Date(value);
+      const parsed = parseZonedTime(value);
       if (Number.isNaN(parsed.getTime())) {
         ctx.addIssue({ code: "custom", message: `${label} không hợp lệ.` });
         return z.NEVER;

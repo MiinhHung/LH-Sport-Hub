@@ -200,7 +200,7 @@ export async function listMessages(
       eq(messages.conversationId, conversationId),
       isNull(messages.deletedAt),
     ),
-    orderBy: [asc(messages.createdAt)],
+    orderBy: [desc(messages.createdAt)],
     limit,
     columns: {
       id: true,
@@ -212,7 +212,7 @@ export async function listMessages(
       createdAt: true,
     },
   });
-  return rows;
+  return rows.reverse();
 }
 
 /** Chỉ lấy tin mới hơn mốc đã biết — dùng cho vòng lặp hỏi tin mới. */

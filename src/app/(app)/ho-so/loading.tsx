@@ -1,40 +1,36 @@
-import {
-  Card,
-  CardSkeleton,
-  PageIntroSkeleton,
-  Skeleton,
-} from "@/components/ui";
+import { Card, CardSkeleton, Skeleton } from "@/components/ui";
+import { DaiDauHoSoSkeleton } from "@/components/ho-so/dai-dau";
 
 export default function Loading() {
   return (
-    <div className="mx-auto max-w-3xl space-y-8">
-      <PageIntroSkeleton />
-
-      <div className="grid gap-2.5 sm:grid-cols-4">
-        {[0, 1, 2, 3].map((i) => (
-          <Card key={i} className="p-4">
-            <Skeleton className="h-3 w-14" />
-            <Skeleton className="mt-2 h-6 w-10" />
-          </Card>
-        ))}
-      </div>
-
-      <Card className="p-5">
-        <div className="space-y-4">
-          {[0, 1, 2].map((i) => (
-            <div key={i} className="space-y-2">
-              <Skeleton className="h-3 w-20" />
-              <Skeleton className="h-10 w-full rounded-xl" />
-            </div>
-          ))}
-        </div>
-      </Card>
+    <div className="mx-auto max-w-3xl space-y-6">
+      <DaiDauHoSoSkeleton hanhDong />
 
       <div className="space-y-3">
+        <Skeleton className="h-4 w-36" />
         {[0, 1].map((i) => (
           <CardSkeleton key={i} />
         ))}
       </div>
+
+      <Card>
+        <div className="border-b border-ink-800 px-4 py-4 sm:px-6">
+          <Skeleton className="h-4 w-36" />
+          <Skeleton className="mt-2 h-3 w-64 max-w-full" />
+        </div>
+        <div className="space-y-5 p-4 sm:p-6">
+          <div className="flex items-center gap-4">
+            <Skeleton className="size-16 shrink-0 rounded-full" />
+            <Skeleton className="h-9 w-28 rounded-lg" />
+          </div>
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="space-y-2">
+              <Skeleton className="h-3 w-20" />
+              <Skeleton className="h-10 w-full rounded-lg" />
+            </div>
+          ))}
+        </div>
+      </Card>
     </div>
   );
 }

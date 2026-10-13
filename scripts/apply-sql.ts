@@ -18,7 +18,7 @@ import path from "node:path";
 import { config } from "dotenv";
 import postgres from "postgres";
 
-config({ path: ".env.local" });
+config({ path: [".env.local", ".env"] });
 
 const SQL_DIR = "supabase";
 

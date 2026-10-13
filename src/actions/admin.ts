@@ -20,7 +20,7 @@ export async function setUserRoleAction(
     const userId = String(formData.get("userId") ?? "");
     const role = String(formData.get("role") ?? "") as RoleKey;
 
-    if (!userId || !(role in ROLES)) return failure("Yêu cầu không hợp lệ.");
+    if (!userId || !Object.hasOwn(ROLES, role)) return failure("Yêu cầu không hợp lệ.");
     if (userId === actor.id) {
       return failure("Không thể tự đổi vai trò của chính mình.");
     }
@@ -73,8 +73,11 @@ export async function setUserStatusAction(
     });
     if (!target) return failure("Không tìm thấy thành viên.");
 
-    // Moderator không được đụng vào admin.
-    if (target.role === "admin" && actor.role !== "admin") {
+    // Moderator không được đụng vào admin hoặc moderator khác. Chỉ admin mới quản trị được cấp quản trị.
+    if (
+      (target.role === "admin" || target.role === "moderator") &&
+      actor.role !== "admin"
+    ) {
       return failure("Bạn không có quyền với tài khoản này.");
     }
 

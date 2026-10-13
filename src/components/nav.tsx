@@ -1,147 +1,408 @@
 "use client";
 
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+
 import {
   Bell,
-  Home,
-  CalendarDays,
   BookOpen,
+  CalendarDays,
+  Home,
   MessagesSquare,
   Newspaper,
   Swords,
   Trophy,
-} from "lucide-react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import type { ReactNode } from "react";
-
-import {
-  MagneticIcon,
-  MagneticItem,
-  MagneticRow,
-  useMagnetic,
-} from "@/components/magnetic-nav";
+  Users,
+  type IconType,
+} from "@/components/icons";
 import { cn } from "@/lib/utils";
 
 type Item = {
   href: string;
   label: string;
   short: string;
-  icon: ReactNode;
+  icon: IconType;
   badge?: number;
   /** Đơn vị của con số trên chấm báo, cho máy đọc màn hình. */
   badgeDvi?: string;
 };
 
-function useItems(unread: number): Item[] {
-  return [
-    /*
-      TRỎ VÀO `/?xem=gioi-thieu`, KHÔNG PHẢI `/` TRƠN.
+const TRANG_CHU: Item = {
+  href: "/gioi-thieu",
+  label: "Trang chủ",
+  short: "Chủ",
+  icon: Home,
+};
+const BANG_TIN: Item = {
+  href: "/bang-tin",
+  label: "Bảng tin",
+  short: "Tin",
+  icon: Newspaper,
+};
+const KEO: Item = { href: "/keo", label: "Kèo", short: "Kèo", icon: Swords };
+const BUOI_TAP: Item = {
+  href: "/buoi-tap",
+  label: "Buổi tập",
+  short: "Buổi tập",
+  icon: CalendarDays,
+};
+const XEP_HANG: Item = {
+  href: "/bang-phong-than",
+  label: "Xếp hạng",
+  short: "Hạng",
+  icon: Trophy,
+};
+const CAM_NANG: Item = {
+  href: "/cam-nang",
+  label: "Cẩm nang",
+  short: "Cẩm nang",
+  icon: BookOpen,
+};
+const THANH_VIEN: Item = {
+  href: "/thanh-vien",
+  label: "Thành viên",
+  short: "Thành viên",
+  icon: Users,
+};
 
-      Từ lúc "/" tự chuyển sang Bảng tin cho người đã đăng nhập, một
-      nút ghi "Trang chủ" mà trỏ vào "/" sẽ lặng lẽ nhảy sang Bảng tin
-      — bấm vào thấy mình ở chỗ khác mà không hiểu vì sao, và nút cũng
-      không bao giờ sáng lên vì đường dẫn không khớp.
+function tinNhan(unread: number): Item {
+  return {
+    href: "/tin-nhan",
+    label: "Tin nhắn",
+    short: "Nhắn",
+    icon: MessagesSquare,
+    badge: unread,
+    badgeDvi: "cuộc trò chuyện",
+  };
+}
 
-      Đổi luôn nhãn thành "Giới thiệu" cho đúng thứ nó mở ra. Gọi là
-      "Trang chủ" thì sai từ lâu rồi: với người trong team, nhà là Bảng
-      tin chứ không phải trang bán hàng cho người lạ.
-    */
-    {
-      href: "/?xem=gioi-thieu",
-      label: "Giới thiệu",
-      short: "Giới thiệu",
-      icon: <Home className="size-[18px]" strokeWidth={2} />,
-    },
-    {
-      href: "/bang-tin",
-      label: "Bảng tin",
-      short: "Tin",
-      icon: <Newspaper className="size-[18px]" strokeWidth={2} />,
-    },
-    {
-      href: "/keo",
-      label: "Kèo",
-      short: "Kèo",
-      icon: <Swords className="size-[18px]" strokeWidth={2} />,
-    },
-    {
-      href: "/buoi-tap",
-      label: "Buổi tập",
-      short: "Buổi tập",
-      icon: <CalendarDays className="size-[18px]" strokeWidth={2} />,
-    },
-    {
-      href: "/cam-nang",
-      label: "Cẩm nang",
-      short: "Cẩm nang",
-      icon: <BookOpen className="size-[18px]" strokeWidth={2} />,
-    },
-    {
-      href: "/bang-phong-than",
-      label: "Xếp hạng",
-      short: "Hạng",
-      icon: <Trophy className="size-[18px]" strokeWidth={2} />,
-    },
-    {
-      href: "/thong-bao",
-      label: "Thông báo",
-      short: "Báo",
-      icon: <Bell className="size-[18px]" strokeWidth={2} />,
-      badge: unread,
-      badgeDvi: "thông báo",
-    },
-  ];
+function thongBao(unread: number): Item {
+  return {
+    href: "/thong-bao",
+    label: "Thông báo",
+    short: "Báo",
+    icon: Bell,
+    badge: unread,
+    badgeDvi: "thông báo",
+  };
 }
 
 function isActive(pathname: string, href: string) {
-  // Cắt phần truy vấn: mục "Giới thiệu" trỏ vào "/?xem=gioi-thieu", mà
-  // `usePathname` chỉ trả về "/" nên so cả chuỗi sẽ không bao giờ khớp.
   const duong = href.split("?")[0];
-
-  // "/" phải so khớp tuyệt đối, nếu không mọi đường dẫn đều tính là đang ở trang chủ.
-  if (duong === "/") return pathname === "/";
+  if (duong === "/") return pathname === "/" || pathname === "/gioi-thieu";
+  if (duong === "/gioi-thieu") return pathname === "/gioi-thieu" || pathname === "/";
   return pathname === duong || pathname.startsWith(`${duong}/`);
 }
 
 /**
- * `dvi` là đơn vị của con số — "thông báo" hay "cuộc trò chuyện".
- *
- * Trước đây viết cứng "thông báo chưa đọc", đúng khi chấm này chỉ dùng
- * cho chuông. Giờ Tin nhắn cũng có chấm, mà máy đọc màn hình đọc lên
- * thành "3 thông báo chưa đọc" khi thật ra là 3 cuộc trò chuyện.
+ * `dvi` là đơn vị của con số — "thông báo" hay "cuộc trò chuyện" — để máy
+ * đọc màn hình không đọc "3 thông báo chưa đọc" cho 3 cuộc trò chuyện.
  */
-function Counter({ value, dvi }: { value: number; dvi: string }) {
+function Counter({
+  value,
+  dvi,
+  className,
+}: {
+  value: number;
+  dvi: string;
+  className?: string;
+}) {
   return (
     <span
       aria-label={`${value} ${dvi} chưa đọc`}
-      className="absolute -top-1.5 -right-2 grid min-w-[17px] place-items-center rounded-full bg-rose-600 px-1 text-[10px] leading-[17px] font-bold text-white ring-2 ring-ink-900"
+      className={cn(
+        "tabular grid h-[18px] min-w-[18px] place-items-center rounded-full bg-rose-600 px-1 text-[10.5px] leading-none font-bold text-white",
+        className,
+      )}
     >
       {value > 9 ? "9+" : value}
     </span>
   );
 }
 
-/**
- * Thanh dưới cùng — dùng trên điện thoại.
+/*
+ * KHÔNG TẢI TRƯỚC TOÀN BỘ THANH ĐIỀU HƯỚNG.
  *
+ * Đo trên bản build: mỗi lần Next tự tải trước một đường dẫn là một yêu
+ * cầu đầy đủ — qua proxy, xác minh phiên với Supabase, dựng cả trang ở máy
+ * chủ. Thanh điều hướng có cả chục link, nên mở một trang kéo theo chín
+ * trang nữa mà người dùng chưa hề bấm vào.
+ *
+ * `prefetch={false}` không tắt hẳn: Next vẫn tải trước khi con trỏ rê vào
+ * link, nghĩa là vẫn nhanh đúng lúc cần.
+ */
+
+/* ------------------------------------------------------------------ */
+/* Thanh bên — màn rộng                                                */
+/* ------------------------------------------------------------------ */
+
+function SideLink({ item, active }: { item: Item; active: boolean }) {
+  const Icon = item.icon;
+  return (
+    <Link
+      href={item.href}
+      prefetch={false}
+      aria-current={active ? "page" : undefined}
+      className={cn(
+        "group relative flex h-10 items-center gap-3 rounded-lg px-3 text-[14px] transition-colors duration-150",
+        // Vạch vàng bên trái cho mục đang chọn, chữ navy đậm, không nền màu.
+        "before:absolute before:inset-y-2 before:left-0 before:w-0.5 before:rounded-full before:transition-opacity",
+        active
+          ? "bg-ink-850 font-semibold text-ink-100 before:bg-gold-500 before:opacity-100"
+          : "font-medium text-ink-400 before:opacity-0 hover:bg-ink-850 hover:text-ink-100",
+      )}
+    >
+      <Icon
+        weight="bold"
+        className={cn(
+          "size-[18px] shrink-0 transition-colors",
+          active ? "text-ink-100" : "text-ink-500 group-hover:text-ink-200",
+        )}
+      />
+      <span className="flex-1 truncate">{item.label}</span>
+      {item.badge ? (
+        <Counter value={item.badge} dvi={item.badgeDvi ?? "thông báo"} />
+      ) : null}
+    </Link>
+  );
+}
+
+/**
+ * Điều hướng chính trên màn rộng: một cột dọc CÓ CHỮ.
+ *
+ * Bản trước là dãy bảy biểu tượng trơn trên thanh trên, phóng to theo con
+ * trỏ kiểu dock macOS. Đẹp mắt lúc rê chuột, nhưng người mới phải rê qua
+ * từng cái mới biết cái nào là gì — "kèo" và "xếp hạng" không có hình
+ * nào nói được. Cột dọc có chỗ cho chữ, cho số chưa đọc, và cho thêm mục
+ * sau này mà không phải đo lại bề ngang header.
+ */
+export function SideNav({
+  unread,
+  unreadMessages,
+}: {
+  unread: number;
+  unreadMessages: number;
+}) {
+  const pathname = usePathname();
+
+  const nhom: { ten: string; items: Item[] }[] = [
+    { ten: "Sân chơi", items: [BANG_TIN, KEO, BUOI_TAP, XEP_HANG] },
+    {
+      ten: "Cá nhân",
+      items: [tinNhan(unreadMessages), thongBao(unread), THANH_VIEN, CAM_NANG],
+    },
+  ];
+
+  return (
+    <nav aria-label="Điều hướng chính" className="space-y-6">
+      {nhom.map((n) => (
+        <div key={n.ten}>
+          <p className="px-3 pb-2 text-[12px] font-semibold text-ink-500">
+            {n.ten}
+          </p>
+          <ul className="space-y-0.5">
+            {n.items.map((item) => (
+              <li key={item.href}>
+                <SideLink item={item} active={isActive(pathname, item.href)} />
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </nav>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Thanh tren (Header) — man rong                                     */
+/* ------------------------------------------------------------------ */
+
+function HeaderLink({
+  item,
+  active,
+  variant = "default",
+}: {
+  item: Item;
+  active: boolean;
+  variant?: "default" | "landing" | "v2";
+}) {
+  return (
+    <Link
+      href={item.href}
+      prefetch={false}
+      aria-current={active ? "page" : undefined}
+      className={cn(
+        "relative flex h-10 items-center justify-center rounded-lg px-3 text-[14px] transition-colors xl:px-3.5",
+        variant !== "default" ? "duration-[var(--m-instant)] ease-[var(--m-ease)]" : "duration-150",
+        // Mục đang chọn: vạch vàng ở chân + chữ đậm, không nền màu.
+        "after:absolute after:inset-x-3 after:bottom-0 after:h-0.5 after:rounded-full after:transition-opacity xl:after:inset-x-3.5",
+        variant === "v2"
+          ? active
+            ? "font-semibold text-white after:bg-[var(--v2-green)] after:opacity-100"
+            : "font-medium text-white/75 after:opacity-0 hover:text-white"
+          : variant === "landing"
+          ? active
+            ? "font-semibold text-white after:bg-gold-300 after:opacity-100 group-data-[solid=true]/h:text-navy-900 group-data-[solid=true]/h:after:bg-gold-500"
+            : "font-medium text-white/80 after:opacity-0 hover:text-white group-data-[solid=true]/h:text-ink-400 group-data-[solid=true]/h:hover:bg-ink-850 group-data-[solid=true]/h:hover:text-navy-900"
+          : active
+            ? "font-semibold text-ink-100 after:bg-gold-500 after:opacity-100"
+            : "font-medium text-ink-400 after:opacity-0 hover:bg-ink-850 hover:text-ink-100",
+      )}
+    >
+      <span>{item.label}</span>
+      {item.badge ? (
+        <span
+          aria-hidden
+          className="ml-1.5 grid h-4 min-w-4 place-items-center rounded-full bg-rose-600 px-1 text-[10px] leading-none font-bold text-white"
+        >
+          {item.badge > 9 ? "9+" : item.badge}
+        </span>
+      ) : null}
+    </Link>
+  );
+}
+
+/**
+ * Thanh điều hướng trung tâm trên header: dạng danh sách thoáng đãng,
+ * mục active nổi bật dạng capsule mờ như mẫu thiết kế kridx.
+ */
+export function HeaderNav({
+  className,
+  variant = "default",
+}: {
+  className?: string;
+  variant?: "default" | "landing" | "v2";
+}) {
+  const pathname = usePathname();
+
+  const items: Item[] = [
+    TRANG_CHU,
+    BANG_TIN,
+    KEO,
+    BUOI_TAP,
+    XEP_HANG,
+    THANH_VIEN,
+    CAM_NANG,
+  ];
+
+  return (
+    <nav
+      aria-label="Điều hướng chính"
+      className={cn("flex items-center justify-center", className)}
+    >
+      <ul className="flex items-center gap-1 lg:gap-1.5 xl:gap-2">
+        {items.map((item) => (
+          <li key={item.href}>
+            <HeaderLink
+              item={item}
+              active={isActive(pathname, item.href)}
+              variant={variant}
+            />
+          </li>
+        ))}
+      </ul>
+    </nav>
+  );
+}
+
+/**
+ * Cụm nút thao tác nhanh trên Header: Tin nhắn & Thông báo (icon + badge).
+ * Đặt cạnh Avatar ở góc phải theo chuẩn UX của các ứng dụng hiện đại.
+ */
+export function HeaderQuickActions({
+  unread,
+  unreadMessages,
+  className,
+  variant = "default",
+}: {
+  unread: number;
+  unreadMessages: number;
+  className?: string;
+  variant?: "default" | "landing" | "v2";
+}) {
+  // Trang giới thiệu: trên hero (nền navy) icon trắng, qua hero icon navy.
+  const landing = variant !== "default";
+  const iconLanding =
+    "text-white/80 hover:bg-white/10 hover:text-white group-data-[solid=true]/h:text-ink-400 group-data-[solid=true]/h:hover:bg-ink-850 group-data-[solid=true]/h:hover:text-navy-900";
+  const pathname = usePathname();
+  const isTinNhanActive = isActive(pathname, "/tin-nhan");
+  const isThongBaoActive = isActive(pathname, "/thong-bao");
+
+  return (
+    <div className={cn("flex items-center gap-1", className)}>
+      {/* Nút Tin nhắn */}
+      <Link
+        href="/tin-nhan"
+        prefetch={false}
+        aria-label={
+          unreadMessages > 0
+            ? `Tin nhắn, ${unreadMessages} cuộc trò chuyện chưa đọc`
+            : "Tin nhắn"
+        }
+        aria-current={isTinNhanActive ? "page" : undefined}
+        title="Tin nhắn"
+        className={cn(
+          "relative grid size-10 place-items-center rounded-lg transition-colors",
+          landing
+            ? iconLanding
+            : isTinNhanActive
+              ? "bg-ink-850 text-ink-100"
+              : "text-ink-400 hover:bg-ink-850 hover:text-ink-100",
+        )}
+      >
+        <MessagesSquare weight="bold" className="size-[18px]" />
+        {unreadMessages > 0 ? (
+          <span
+            aria-hidden
+            className="absolute top-1 right-1 grid h-4 min-w-4 place-items-center rounded-full bg-rose-600 px-1 text-[10px] leading-none font-bold text-white ring-2 ring-ink-950 group-data-[solid=false]/h:ring-navy-900"
+          >
+            {unreadMessages > 9 ? "9+" : unreadMessages}
+          </span>
+        ) : null}
+      </Link>
+
+      {/* Nút Thông báo */}
+      <Link
+        href="/thong-bao"
+        prefetch={false}
+        aria-label={
+          unread > 0 ? `Thông báo, ${unread} thông báo chưa đọc` : "Thông báo"
+        }
+        aria-current={isThongBaoActive ? "page" : undefined}
+        title="Thông báo"
+        className={cn(
+          "relative grid size-10 place-items-center rounded-lg transition-colors",
+          landing
+            ? iconLanding
+            : isThongBaoActive
+              ? "bg-ink-850 text-ink-100"
+              : "text-ink-400 hover:bg-ink-850 hover:text-ink-100",
+        )}
+      >
+        <Bell weight="bold" className="size-[18px]" />
+        {unread > 0 ? (
+          <span
+            aria-hidden
+            className="absolute top-1 right-1 grid h-4 min-w-4 place-items-center rounded-full bg-rose-600 px-1 text-[10px] leading-none font-bold text-white ring-2 ring-ink-950 group-data-[solid=false]/h:ring-navy-900"
+          >
+            {unread > 9 ? "9+" : unread}
+          </span>
+        ) : null}
+      </Link>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Thanh dưới — điện thoại, máy tính bảng                              */
+/* ------------------------------------------------------------------ */
+
+/**
  * NĂM SUẤT, VÀ KHÔNG SUẤT NÀO ĐƯỢC PHÍ.
  *
- * Trước đây suất đầu dành cho "Trang chủ" tức trang giới thiệu — trang
- * viết để thuyết phục người CHƯA dùng app. Người trong team đã đăng nhập
- * gần như không bao giờ cần tới nó, mà lỡ chạm vào thì phải tải một quả
- * cầu 3D, một vòng quay ghim 2880px, một video và một trò đố vui. Bảng
- * tin thì đã có hai lối vào (nút "Tin" ở đây và logo ở thanh trên).
- *
- * Hệ quả của suất bị phí đó nằm ngay trong `layout.tsx`: Tin nhắn bị đẩy
- * lên thành một biểu tượng nhỏ ở góc thanh trên, kèm chú thích "thanh
- * dưới trên điện thoại đã đủ 5 mục". Giờ trả suất đó cho Tin nhắn —
- * nhắn riêng là việc người ta làm hằng ngày, trang giới thiệu thì không.
- *
- * Xếp hạng và Cẩm nang vẫn nằm ngoài thanh này, nhưng CẢ HAI phải có
- * trong menu tài khoản với `chiDienThoai: true` — thanh trên chỉ hiện từ
- * `md` nên không đỡ được chỗ này. Trước đây chú thích ở đây nói là "đã
- * có ở menu tài khoản" trong khi Cẩm nang thì chưa, và thế là nó mất lối
- * vào trên điện thoại suốt một thời gian dài.
+ * Xếp hạng, Cẩm nang, Thành viên nằm trong menu tài khoản với
+ * `chiDienThoai: true` — thanh bên chỉ hiện từ `lg` nên không đỡ được chỗ
+ * này. Thêm mục vào thanh bên mà không có ở đây thì phải thêm vào menu.
  */
 export function BottomNav({
   unread,
@@ -151,77 +412,61 @@ export function BottomNav({
   unreadMessages: number;
 }) {
   const pathname = usePathname();
-  const tatCa = useItems(unread);
-  const lay = (href: string) => tatCa.find((i) => i.href === href)!;
-
-  const items: Item[] = [
-    lay("/bang-tin"),
-    lay("/keo"),
-    lay("/buoi-tap"),
-    {
-      href: "/tin-nhan",
-      label: "Tin nhắn",
-      short: "Nhắn",
-      icon: <MessagesSquare className="size-[18px]" strokeWidth={2} />,
-      badge: unreadMessages,
-      badgeDvi: "cuộc trò chuyện",
-    },
-    lay("/thong-bao"),
+  const items = [
+    BANG_TIN,
+    KEO,
+    BUOI_TAP,
+    tinNhan(unreadMessages),
+    thongBao(unread),
   ];
 
   return (
     <nav
       aria-label="Điều hướng chính"
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-ink-800 bg-ink-900/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-md md:hidden"
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-ink-800 bg-ink-950 pb-[env(safe-area-inset-bottom)] lg:hidden"
     >
-      <ul className="mx-auto flex max-w-lg px-1">
+      <ul className="mx-auto flex max-w-lg">
         {items.map((item) => {
           const active = isActive(pathname, item.href);
+          const Icon = item.icon;
           return (
             <li key={item.href} className="flex-1">
               <Link
-                /*
-                KHÔNG TẢI TRƯỚC TOÀN BỘ THANH ĐIỀU HƯỚNG.
-
-                Đo trên bản build: mở MỘT trang sinh ra 18 lần gọi
-                `auth.getUser()`. Chỉ 2 lần là của trang đang mở; 16 lần
-                còn lại là Next tự tải trước tám đường dẫn trên thanh
-                điều hướng — và tám cái đó bị đếm hai lần vì thanh trên
-                lẫn thanh dưới cùng dựng một bộ link, một cái chỉ ẩn bằng
-                CSS chứ vẫn nằm trong cây.
-
-                Mỗi lần tải trước là một yêu cầu đầy đủ: qua proxy, xác
-                minh phiên với Supabase (5 truy vấn nội bộ cộng một vòng
-                mạng), rồi dựng cả trang ở máy chủ. Tức mở một trang kéo
-                theo chín trang nữa mà người dùng chưa hề bấm vào.
-
-                `prefetch={false}` KHÔNG tắt hẳn: Next vẫn tải trước khi
-                con trỏ rê vào link. Nghĩa là vẫn nhanh đúng lúc cần, chỉ
-                bỏ phần đoán mò tám trang một lúc.
-              */
                 prefetch={false}
                 href={item.href}
                 aria-current={active ? "page" : undefined}
-                className="flex flex-col items-center gap-1 py-2"
+                className="relative flex min-h-14 flex-col items-center justify-center gap-1 pt-2 pb-1.5"
               >
+                {/* Vạch vàng trên mép, chỉ mục đang mở */}
                 <span
+                  aria-hidden
                   className={cn(
-                    "relative grid h-7 w-12 place-items-center rounded-lg transition-all duration-200",
-                    active ? "bg-navy-900 text-gold-300" : "text-ink-500",
+                    "absolute inset-x-5 top-0 h-0.5 rounded-b-full bg-gold-500 transition-opacity",
+                    active ? "opacity-100" : "opacity-0",
                   )}
-                >
-                  {item.icon}
+                />
+                <span className="relative">
+                  <Icon
+                    weight="bold"
+                    className={cn(
+                      "size-[22px] transition-colors",
+                      active ? "text-ink-100" : "text-ink-500",
+                    )}
+                  />
                   {item.badge ? (
                     <Counter
                       value={item.badge}
                       dvi={item.badgeDvi ?? "thông báo"}
+                      className="absolute -top-1.5 -right-2.5 ring-2 ring-ink-950"
                     />
                   ) : null}
                 </span>
                 <span
                   className={cn(
-                    "text-[10.5px] leading-none font-semibold transition-colors",
-                    active ? "text-ink-100" : "text-ink-500",
+                    "text-[11px] leading-none transition-colors",
+                    active
+                      ? "font-bold text-ink-100"
+                      : "font-medium text-ink-500",
                   )}
                 >
                   {item.short}
@@ -231,147 +476,6 @@ export function BottomNav({
           );
         })}
       </ul>
-    </nav>
-  );
-}
-
-/**
- * Một mục của thanh trên, nở ra và nhấc lên khi con trỏ lại gần.
- *
- * Tách thành component riêng vì `useMagnetic` là hook — không gọi được
- * trong thân vòng lặp `map`.
- */
-function TopNavItem({ item, active }: { item: Item; active: boolean }) {
-  const { ref, scale, y, iconScale } = useMagnetic();
-
-  return (
-    <MagneticItem
-      ref={ref}
-      style={{ scale, y }}
-      // `origin-bottom` để mục nở lên trên chứ không đội vào mép dưới của
-      // thanh header và tràn ra ngoài.
-      className="origin-bottom"
-    >
-      <Link
-        href={item.href}
-        // Cùng lý do với thanh dưới — xem ghi chú dài ở trên.
-        prefetch={false}
-        aria-current={active ? "page" : undefined}
-        /*
-          `aria-label` LÀ THỨ DUY NHẤT CÒN NÓI TÊN MỤC NÀY.
-
-          Từ lúc thanh trên chỉ còn biểu tượng, không còn dòng chữ nào
-          trong cây tài liệu để máy đọc màn hình đọc lên. Bỏ dòng này đi
-          thì cả thanh điều hướng thành bảy liên kết không tên.
-
-          Không dùng `title` nữa: mẹo chỉ dẫn gốc của trình duyệt đợi
-          gần một giây mới hiện, mang kiểu dáng của hệ điều hành chứ
-          không phải của app, và không bao giờ hiện khi đi bằng bàn
-          phím. Có mẹo riêng ở dưới rồi, để cả hai thì rê chuột một lúc
-          sẽ thấy hai cái chồng nhau.
-        */
-        aria-label={item.label}
-        className={cn(
-          /* `min-w-10` + `px-2` chứ không `size-10`: khi chỉ có biểu
-             tượng thì ô vuông đúng 40px, còn lúc nhãn chữ hiện ra (máy
-             cảm ứng màn rộng) thì ô tự nở theo chữ thay vì cắt mất. */
-          "group relative flex h-10 min-w-10 items-center justify-center rounded-lg px-2 transition-colors duration-200",
-          active
-            ? "bg-ink-850 text-ink-100"
-            : "text-ink-500 hover:bg-ink-850/70 hover:text-ink-200",
-        )}
-      >
-        <MagneticIcon style={{ scale: iconScale }} className="relative block">
-          {item.icon}
-          {item.badge ? (
-            <Counter value={item.badge} dvi={item.badgeDvi ?? "thông báo"} />
-          ) : null}
-        </MagneticIcon>
-        {/*
-          Nhãn chữ giờ chỉ còn hiện trên máy KHÔNG RÊ CHUỘT ĐƯỢC.
-
-          Mẹo chỉ dẫn sống nhờ `:hover`. Máy tính bảng màn rộng (iPad
-          ngang là 1366px) không có trạng thái rê chuột, nên nếu cứ ẩn
-          nhãn thì ở đó bảy biểu tượng thành bảy câu đố — trước khi sửa
-          họ vẫn đọc được chữ. Giữ lại cho họ.
-
-          NGƯỠNG 1180px LÀ SỐ ĐO CŨ, VẪN CÒN ĐÚNG. Bảy mục kèm nhãn
-          chiếm 668px, phần còn lại của thanh (logo, chuông tin nhắn,
-          công tắc nền, ảnh đại diện) chiếm 293px, cộng lề thì cần
-          khoảng 1113px. Chọn 1180 vì header bị chặn ở max-w-6xl =
-          1152px: từ đó trở lên cửa sổ rộng thêm cũng không cho thêm
-          chỗ, nên mọi màn lớn là MỘT trường hợp duy nhất — đo trường
-          hợp đó thì vừa đủ, còn hở 20px. Thêm mục mới hoặc đặt nhãn
-          dài hơn thì phải đo lại.
-
-          `whitespace-nowrap` để nhãn không tự bẻ làm hai dòng kiểu
-          "Trang / chủ", trông như chữ dựng đứng.
-        */}
-        <span className="ml-2 hidden text-[13.5px] font-semibold whitespace-nowrap min-[1180px]:pointer-coarse:inline">
-          {item.label}
-        </span>
-
-        {/*
-          Mẹo chỉ dẫn: tên mục, thả xuống dưới biểu tượng.
-
-          `aria-hidden` vì `aria-label` ở trên đã mang đúng chuỗi này —
-          để cả hai thì máy đọc màn hình đọc tên mục hai lần.
-
-          Hiện cả khi đi bằng bàn phím (`group-focus-visible`), không chỉ
-          khi rê chuột: người dùng phím Tab cũng cần biết mình đang đứng
-          ở mục nào.
-
-          Thả XUỐNG chứ không bật lên: thanh header cao 64px và dính ở
-          đỉnh màn hình, không có chỗ phía trên. Header không cắt tràn
-          nên mẹo rơi ra ngoài được.
-        */}
-        <span
-          aria-hidden
-          className="pointer-events-none absolute top-full left-1/2 z-50 mt-2 -translate-x-1/2 scale-95 rounded-lg bg-navy-900 px-2.5 py-1 text-[11.5px] font-semibold whitespace-nowrap text-white opacity-0 shadow-[var(--shadow-card)] transition-[opacity,transform] duration-150 group-hover:scale-100 group-hover:opacity-100 group-focus-visible:scale-100 group-focus-visible:opacity-100 motion-reduce:transition-none"
-        >
-          {item.label}
-        </span>
-        {active && (
-          <span
-            aria-hidden
-            className="bg-gradient-gold absolute inset-x-2 -bottom-px h-[2.5px] rounded-full"
-          />
-        )}
-      </Link>
-    </MagneticItem>
-  );
-}
-
-/** Điều hướng ngang — dùng trên màn hình lớn. */
-export function TopNav({ unread }: { unread: number }) {
-  const pathname = usePathname();
-  const items = useItems(unread);
-
-  return (
-    <nav aria-label="Điều hướng chính" className="hidden md:block">
-      {/*
-        KHUNG VIÊN THUỐC KIỂU DOCK.
-
-        Nền chìm và viền mảnh gom bảy biểu tượng thành MỘT vật thể, thay
-        vì bảy ô rời trôi trên thanh header. Đó là thứ làm dock của macOS
-        ra dáng dock chứ không phải phép phóng to.
-
-        PHÓNG TO THÌ BỊ CHẶN BỞI CHIỀU CAO 64px CỦA HEADER. Dock thật nở
-        icon từ 40 lên 80px vì nó nằm ở mép dưới màn hình, phía trên là
-        khoảng trống vô hạn. Ở đây: khung 64px, viền đệm 4px trên dưới,
-        ô 40px — còn đúng 8px mỗi bên để nở. Nên mức phóng giữ nhỏ (xem
-        `useMagnetic`), đủ để tay thấy phản hồi mà không đội ra ngoài
-        header hay đè xuống nội dung.
-      */}
-      <MagneticRow className="flex items-center gap-0.5 rounded-2xl border border-ink-800 bg-ink-900/60 px-1.5 py-1">
-        {items.map((item) => (
-          <TopNavItem
-            key={item.href}
-            item={item}
-            active={isActive(pathname, item.href)}
-          />
-        ))}
-      </MagneticRow>
     </nav>
   );
 }

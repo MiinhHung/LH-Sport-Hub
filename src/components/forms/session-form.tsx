@@ -1,6 +1,7 @@
 "use client";
 
-import { MapPin } from "lucide-react";
+import { SportIcon } from "@/components/domain-icons";
+import { MapPin } from "@/components/icons";
 import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useMemo, useState } from "react";
 
@@ -30,7 +31,7 @@ export type BuoiDangSua = {
   notes: string | null;
 };
 
-/** Thứ 7 gần nhất, 07:00–09:00 — lịch mặc định của team. */
+/** Thứ 7 gần nhất, 07:00 đến 09:00, lịch mặc định của team. */
 function nextSaturday() {
   const start = new Date();
   start.setHours(7, 0, 0, 0);
@@ -60,7 +61,7 @@ function cong(moc: string, phut: number): string {
  * Biểu mẫu buổi tập, dùng cho cả "Tạo buổi tập" và "Sửa buổi tập".
  *
  * GIỜ KẾT THÚC TỰ TRƯỢT THEO GIỜ BẮT ĐẦU. Bản trước, dời buổi tập từ
- * 7h sang 8h thì giờ kết thúc vẫn nằm im ở 9h — buổi tập tự dưng rút từ
+ * 7h sang 8h thì giờ kết thúc vẫn nằm im ở 9h, buổi tập tự dưng rút từ
  * hai tiếng xuống một tiếng, mà không có gì báo. Giữ nguyên độ dài là
  * điều người ta muốn trong gần như mọi lần dời giờ; muốn đổi độ dài thì
  * sửa thẳng ô kết thúc, hoặc bấm một trong mấy nút khoảng thời gian.
@@ -154,7 +155,7 @@ export function SessionForm({ buoi }: { buoi?: BuoiDangSua }) {
                 active={sport === key}
                 onClick={() => setSport(key)}
               >
-                {SPORTS[key].icon} {SPORTS[key].label}
+                <SportIcon sport={key} /> {SPORTS[key].label}
               </Chip>
             ))}
           </div>
@@ -200,7 +201,7 @@ export function SessionForm({ buoi }: { buoi?: BuoiDangSua }) {
           />
         </Field>
 
-        <div className="space-y-3 rounded-xl border border-ink-800 bg-ink-850/50 p-3.5">
+        <div className="space-y-3 rounded-lg bg-ink-850 p-3.5">
           <label className="flex cursor-pointer items-center justify-between gap-3">
             <span>
               <span className="flex items-center gap-1.5 text-[13px] font-semibold text-ink-300">
@@ -210,7 +211,7 @@ export function SessionForm({ buoi }: { buoi?: BuoiDangSua }) {
                 />
                 Hiện Google Maps
               </span>
-              <span className="mt-0.5 block text-xs text-ink-500">
+              <span className="mt-0.5 block text-[12.5px] text-ink-500">
                 Bản đồ tự hiện theo địa chỉ ở trên.
               </span>
             </span>
@@ -225,13 +226,13 @@ export function SessionForm({ buoi }: { buoi?: BuoiDangSua }) {
             <span
               aria-hidden
               className={cn(
-                "relative h-6 w-11 shrink-0 rounded-full transition-colors duration-200",
-                showMap ? "bg-gold-500" : "bg-ink-700",
+                "relative h-6 w-11 shrink-0 rounded-full transition-colors duration-200 peer-focus-visible:ring-2 peer-focus-visible:ring-gold-400/40",
+                showMap ? "bg-gold-400" : "bg-ink-700",
               )}
             >
               <span
                 className={cn(
-                  "absolute top-0.5 left-0.5 size-5 rounded-full bg-white shadow-sm transition-transform duration-200",
+                  "absolute top-0.5 left-0.5 size-5 rounded-full bg-white transition-transform duration-200",
                   showMap && "translate-x-5",
                 )}
               />
@@ -252,7 +253,7 @@ export function SessionForm({ buoi }: { buoi?: BuoiDangSua }) {
                   />
                 </div>
               ) : (
-                <p className="rounded-lg border border-dashed border-ink-700 px-3 py-4 text-center text-xs text-ink-500">
+                <p className="rounded-lg border border-dashed border-ink-700 bg-ink-900 px-3 py-4 text-center text-[12.5px] text-ink-500">
                   Nhập địa điểm hoặc địa chỉ để xem trước bản đồ.
                 </p>
               )}
@@ -382,7 +383,7 @@ export function SessionForm({ buoi }: { buoi?: BuoiDangSua }) {
       </Khoi>
 
       {state.status === "error" && state.message && (
-        <Alert tone="rose" className="mb-4">
+        <Alert tone="rose" className="mb-6">
           {state.message}
         </Alert>
       )}

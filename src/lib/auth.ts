@@ -49,12 +49,21 @@ export const getCurrentProfile = cache(async (): Promise<Profile | null> => {
   });
 
   if (existing) {
-    // Cập nhật nhẹ, không chặn luồng nếu lỗi.
-    void db
-      .update(profiles)
-      .set({ lastActiveAt: new Date() })
-      .where(eq(profiles.id, user.id))
-      .catch(() => undefined);
+    // Chỉ cập nhật nếu lần hoạt động cuối cách hơn 5 phút, tránh spam UPDATE trên mỗi request/polling
+    const fiveMinutes = 5 * 60 * 1000;
+    const shouldUpdate =
+      !existing.lastActiveAt ||
+      Date.now() - existing.lastActiveAt.getTime() > fiveMinutes;
+
+    if (shouldUpdate) {
+      void db
+        .update(profiles)
+        .set({ lastActiveAt: new Date() })
+        .where(eq(profiles.id, user.id))
+        .catch((err) => {
+          console.error("[auth] cập nhật lastActiveAt thất bại:", err);
+        });
+    }
     return existing;
   }
 

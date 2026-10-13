@@ -2,6 +2,8 @@
 
 import * as React from "react";
 
+import { EASE_OUT_CSS, MS, REVEAL_MARGIN, REVEAL_OFFSET } from "./motion";
+
 /**
  * Hiện dần khi cuộn tới.
  *
@@ -46,6 +48,7 @@ export function Reveal({
     if (!el) return;
 
     if (typeof IntersectionObserver === "undefined") return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
     // Đã nằm trong tầm nhìn ngay lúc mount thì đừng giấu đi rồi hiện lại —
     // như vậy chỉ tạo ra một cái nháy vô nghĩa.
@@ -61,7 +64,7 @@ export function Reveal({
           io.disconnect();
         }
       },
-      { rootMargin: "0px 0px -12% 0px" },
+      { rootMargin: REVEAL_MARGIN },
     );
     io.observe(el);
 
@@ -77,8 +80,8 @@ export function Reveal({
       style={{
         ...style,
         opacity: hidden ? 0 : 1,
-        transform: hidden ? "translateY(22px)" : "none",
-        transition: `opacity 700ms cubic-bezier(0.16,1,0.3,1) ${delay}ms, transform 700ms cubic-bezier(0.16,1,0.3,1) ${delay}ms`,
+        transform: hidden ? `translateY(${REVEAL_OFFSET}px)` : "none",
+        transition: `opacity ${MS.slow}ms ${EASE_OUT_CSS} ${delay}ms, transform ${MS.slow}ms ${EASE_OUT_CSS} ${delay}ms`,
       }}
     >
       {children}

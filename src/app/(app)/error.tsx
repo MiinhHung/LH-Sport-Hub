@@ -1,6 +1,6 @@
 "use client";
 
-import { RotateCcw, TriangleAlert } from "lucide-react";
+import { RotateCcw, TriangleAlert } from "@/components/icons";
 import * as React from "react";
 
 import { Button, LinkButton } from "@/components/ui/button";
@@ -40,7 +40,7 @@ export default function AppError({
     <div className="mx-auto flex max-w-md flex-col items-center py-20 text-center">
       <span
         aria-hidden
-        className="grid size-14 place-items-center rounded-2xl border border-rose-200 bg-rose-50 text-rose-600 dark:border-rose-400/30 dark:bg-rose-500/10 dark:text-rose-300"
+        className="grid size-12 place-items-center rounded-xl border border-rose-200 bg-rose-50 text-rose-600 dark:border-rose-400/30 dark:bg-rose-500/10 dark:text-rose-300"
       >
         <TriangleAlert className="size-6" />
       </span>
@@ -49,7 +49,7 @@ export default function AppError({
         Trang này đang trục trặc
       </h1>
 
-      <p className="mt-2.5 text-[14.5px] leading-relaxed text-ink-400">
+      <p className="mt-2.5 text-[15px] leading-relaxed text-ink-400">
         Thử tải lại xem sao. Nếu vẫn vậy thì nhắn cho người quản trị, có khi máy
         chủ vừa ngủ dậy và cần thêm một phút.
       </p>
@@ -59,7 +59,7 @@ export default function AppError({
           <RotateCcw className="size-4" aria-hidden />
           Thử lại
         </Button>
-        <LinkButton href="/bang-tin" variant="secondary">
+        <LinkButton href="/bang-tin" variant="ghost">
           Về bảng tin
         </LinkButton>
       </div>

@@ -7,7 +7,7 @@ import {
   Minus,
   Plus,
   X,
-} from "lucide-react";
+} from "@/components/icons";
 import Image from "next/image";
 import * as React from "react";
 
@@ -84,7 +84,7 @@ export function XemAnh({
       aria-label="Xem ảnh"
       className={cn(
         "m-0 h-dvh max-h-none w-screen max-w-none bg-transparent p-0",
-        "backdrop:bg-navy-950/90 backdrop:backdrop-blur-[2px]",
+        "backdrop:bg-navy-950/90",
       )}
     >
       {/*
@@ -403,7 +403,7 @@ function Ruot({
     >
       {/* Thanh trên: số thứ tự, tải về, đóng. */}
       <div className="flex shrink-0 items-center justify-between gap-2 p-3">
-        <span className="rounded-full bg-navy-950/60 px-3 py-1.5 text-[13px] font-semibold tabular-nums text-white/90">
+        <span className="rounded-lg bg-navy-950/60 px-3 py-1.5 text-[13px] font-semibold tabular-nums text-white/90">
           {soAnh > 1 ? `${i + 1} / ${soAnh}` : "Ảnh"}
           {dangPhong && ` · ${Math.round(zoom.s * 100)}%`}
         </span>

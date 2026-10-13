@@ -13,7 +13,7 @@ import {
   Trophy,
   User,
   Users,
-} from "lucide-react";
+} from "@/components/icons";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import type { PanInfo, Variants } from "motion/react";
 import Link from "next/link";
@@ -118,7 +118,7 @@ const DONG: Variants = {
 /* ------------------------------------------------------------------ */
 
 const MUC =
-  "relative z-10 flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-ink-300 outline-none transition-colors focus-visible:text-ink-100";
+  "relative z-10 flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-ink-300 outline-none transition-colors focus-visible:text-ink-100";
 
 /** Chữ đổi thì chữ cũ bay lên, chữ mới trồi lên từ một lớp mờ. */
 function ChuTroi({ chu, it }: { chu: string; it: boolean }) {
@@ -193,7 +193,7 @@ function ChonNen({ theme, dat }: { theme: Theme; dat: (t: Theme) => void }) {
         {/* Con trượt chạy sau lưng hai nút */}
         <motion.span
           aria-hidden
-          className="absolute top-0.5 bottom-0.5 left-0.5 w-[calc(50%-0.125rem)] rounded-[7px] bg-gold-400"
+          className="absolute top-0.5 bottom-0.5 left-0.5 w-[calc(50%-0.125rem)] rounded-md bg-gold-400"
           animate={{ x: i === 0 ? 0 : "100%" }}
           transition={{ type: "spring", visualDuration: 0.26, bounce: 0.12 }}
         />
@@ -208,7 +208,7 @@ function ChonNen({ theme, dat }: { theme: Theme; dat: (t: Theme) => void }) {
             title={n.nhan}
             onClick={() => dat(n.gt)}
             className={cn(
-              "relative grid size-7 place-items-center rounded-[7px] outline-none transition-colors",
+              "relative grid size-7 place-items-center rounded-md outline-none transition-colors",
               n.gt === theme
                 ? "text-navy-900"
                 : "text-ink-500 hover:text-ink-200",
@@ -261,8 +261,8 @@ type LyDoMo = "dau" | "cuoi" | "chuot" | null;
 /**
  * Các điểm dừng của bàn phím — CHỈ NHỮNG CÁI ĐANG HIỆN.
  *
- * "Bảng phong thần" mang `md:hidden` vì ở màn rộng nó đã nằm sẵn trên
- * thanh điều hướng. Nhưng `display: none` thì phần tử vẫn còn trong
+ * "Bảng phong thần" mang `lg:hidden` vì ở màn rộng nó đã nằm sẵn trên
+ * thanh bên. Nhưng `display: none` thì phần tử vẫn còn trong
  * cây, nên bản đầu phím mũi tên vẫn dừng ở đó: người đi bằng bàn phím
  * bấm xuống một nhịp mà không thấy gì nhúc nhích, vệt sáng đứng im, rồi
  * phải bấm thêm một nhịp nữa. Đo được: mục đó trả về `offsetTop = 0`
@@ -292,11 +292,14 @@ export function UserMenu({
   fullName,
   avatarUrl,
   role,
+  full = false,
 }: {
   id: string;
   fullName: string;
   avatarUrl: string | null;
   role: RoleKey;
+  /** Nút mở kèm tên và vai trò — dùng ở chân thanh bên, nơi có chỗ. */
+  full?: boolean;
 }) {
   const [mo, setMo] = React.useState(false);
   const [vet, setVet] = React.useState<ViTri | null>(null);
@@ -561,7 +564,7 @@ export function UserMenu({
         <motion.span
           aria-hidden
           className={cn(
-            "absolute inset-x-1 top-0 z-0 rounded-xl",
+            "absolute inset-x-1 top-0 z-0 rounded-lg",
             vet?.nguy ? "bg-rose-50 dark:bg-rose-500/10" : "bg-ink-850",
           )}
           initial={false}
@@ -590,7 +593,7 @@ export function UserMenu({
             href: "/thanh-vien",
             nhan: "Thành viên",
             icon: Users,
-            chiDienThoai: false,
+            chiDienThoai: true,
           },
           {
             href: "/bang-phong-than",
@@ -621,15 +624,14 @@ export function UserMenu({
             Mở "/" trơn thì nó chuyển thẳng sang Bảng tin, nên phải kèm
             `?xem=gioi-thieu` — xem ghi chú ở `(marketing)/page.tsx`.
 
-            CHỈ HIỆN TRÊN ĐIỆN THOẠI. Thanh trên ở máy tính đã có mục
-            "Giới thiệu" trỏ cùng chỗ; để cả hai thì cùng một đích có
-            hai lối vào nằm cách nhau vài chục pixel.
+            Hiện ở mọi cỡ màn: thanh bên không có mục này, vì người trong
+            team gần như không cần quay lại trang viết cho người lạ.
           */
           {
-            href: "/?xem=gioi-thieu",
+            href: "/gioi-thieu",
             nhan: "Giới thiệu",
             icon: Sparkles,
-            chiDienThoai: true,
+            chiDienThoai: false,
           },
           ...(canSeeAdmin
             ? [
@@ -651,7 +653,7 @@ export function UserMenu({
               data-nhan={m.nhan}
               onPointerMove={khiReChuot}
               onClick={() => dong(false)}
-              className={cn(MUC, m.chiDienThoai && "md:hidden")}
+              className={cn(MUC, m.chiDienThoai && "lg:hidden")}
             >
               <m.icon className="size-4 shrink-0 text-ink-500" aria-hidden />
               {m.nhan}
@@ -691,7 +693,7 @@ export function UserMenu({
           animate="mo"
           exit="thoat"
           style={{ transformOrigin: "var(--goc-x, 100%) var(--goc-y, 0px)" }}
-          className="fixed z-[70] w-64 rounded-2xl border border-ink-800 bg-ink-900 p-1.5 shadow-[var(--shadow-pop)] outline-none"
+          className="fixed z-[70] w-64 rounded-xl border border-ink-800 bg-ink-900 p-1.5 shadow-[var(--shadow-pop)] outline-none"
         >
           {noiDung}
         </motion.div>
@@ -710,7 +712,7 @@ export function UserMenu({
           <motion.div
             key="phu"
             aria-hidden
-            className="fixed inset-0 z-[69] bg-navy-950/40 backdrop-blur-[2px]"
+            className="fixed inset-0 z-[69] bg-navy-950/50"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -731,7 +733,7 @@ export function UserMenu({
             dragElastic={{ top: 0.04, bottom: 0.9 }}
             dragMomentum={false}
             onDragEnd={khiThaKeo}
-            className="fixed inset-x-0 bottom-0 z-[70] rounded-t-3xl border-t border-ink-800 bg-ink-900 px-2 pt-2 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-[var(--shadow-pop)] outline-none"
+            className="fixed inset-x-0 bottom-0 z-[70] rounded-t-xl border-t border-ink-800 bg-ink-900 px-2 pt-2 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-[var(--shadow-pop)] outline-none"
           >
             <span
               aria-hidden
@@ -745,7 +747,7 @@ export function UserMenu({
   );
 
   return (
-    <div className="relative shrink-0">
+    <div className={cn("relative", full ? "w-full" : "shrink-0")}>
       <button
         ref={nutRef}
         type="button"
@@ -763,11 +765,22 @@ export function UserMenu({
           doiMo(true, e.key === "ArrowDown" ? "dau" : "cuoi");
         }}
         className={cn(
-          "flex items-center gap-1.5 rounded-xl p-1 pr-1.5 transition-colors",
+          "flex items-center gap-1.5 rounded-lg p-1 pr-1.5 text-left transition-colors",
+          full && "w-full gap-2.5 p-2",
           mo ? "bg-ink-850" : "hover:bg-ink-850",
         )}
       >
         <Avatar name={fullName} src={avatarUrl} seed={id} size="sm" />
+        {full && (
+          <span className="min-w-0 flex-1 leading-tight">
+            <span className="block truncate text-[13.5px] font-semibold text-ink-100">
+              {fullName}
+            </span>
+            <span className="mt-0.5 block truncate text-[12px] text-ink-500">
+              {ROLES[role].label}
+            </span>
+          </span>
+        )}
         <ChevronDown
           aria-hidden
           className={cn(

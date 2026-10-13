@@ -9,10 +9,10 @@ import {
   Swords,
   Trash2,
   UserCog,
-  type LucideIcon,
-} from "lucide-react";
+  type IconType,
+} from "@/components/icons";
 
-import { Avatar, Card } from "@/components/ui";
+import { Avatar } from "@/components/ui";
 import { cn, formatDate, formatDateTime, formatTime } from "@/lib/utils";
 
 /**
@@ -29,13 +29,16 @@ import { cn, formatDate, formatDateTime, formatTime } from "@/lib/utils";
  * còn ở `title` của dòng: khi cần tra cứu thì rê chuột vào là thấy.
  */
 
-type Mau = "gold" | "sky" | "violet" | "rose" | "emerald" | "slate";
+type Mau = "gold" | "navy" | "rose" | "emerald" | "slate";
 
+/*
+ * Sắc ô theo nhóm việc: xám navy cho việc thường (bài, buổi tập, quản trị),
+ * vàng cho kèo, đỏ nhạt cho xoá / khoá / báo sai, xanh lục cho việc đã
+ * được xác nhận. Đỏ và xanh lục chỉ dành cho trạng thái thật.
+ */
 const MAU: Record<Mau, string> = {
   gold: "bg-gold-50 text-gold-700 dark:bg-gold-400/10 dark:text-gold-300",
-  sky: "bg-sky-50 text-sky-700 dark:bg-sky-500/10 dark:text-sky-300",
-  violet:
-    "bg-violet-50 text-violet-700 dark:bg-violet-500/10 dark:text-violet-300",
+  navy: "bg-ink-850 text-ink-300",
   rose: "bg-rose-50 text-rose-700 dark:bg-rose-500/10 dark:text-rose-300",
   emerald:
     "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300",
@@ -46,11 +49,11 @@ const MAU: Record<Mau, string> = {
  * Câu mô tả viết ở ngôi thứ ba, nối ngay sau tên người làm:
  * "Minh Hùng · tạo một kèo mới".
  */
-const VIEC: Record<string, { chu: string; icon: LucideIcon; mau: Mau }> = {
+const VIEC: Record<string, { chu: string; icon: IconType; mau: Mau }> = {
   "admin.set_role": {
     chu: "đổi vai trò của một thành viên",
     icon: UserCog,
-    mau: "violet",
+    mau: "navy",
   },
   "admin.suspend": { chu: "khoá một tài khoản", icon: Ban, mau: "rose" },
   "admin.reactivate": {
@@ -103,18 +106,18 @@ const VIEC: Record<string, { chu: string; icon: LucideIcon; mau: Mau }> = {
   },
   "result.dispute": { chu: "báo sai kết quả", icon: Flag, mau: "rose" },
 
-  "post.create": { chu: "đăng một bài", icon: FileText, mau: "sky" },
+  "post.create": { chu: "đăng một bài", icon: FileText, mau: "navy" },
   "post.delete": { chu: "xoá một bài", icon: Trash2, mau: "rose" },
-  "post.pin": { chu: "ghim một bài", icon: FileText, mau: "sky" },
+  "post.pin": { chu: "ghim một bài", icon: FileText, mau: "navy" },
   "post.unpin": { chu: "bỏ ghim một bài", icon: FileText, mau: "slate" },
   "comment.delete": { chu: "xoá một bình luận", icon: Trash2, mau: "rose" },
 
-  "session.create": { chu: "tạo một buổi tập", icon: CalendarDays, mau: "sky" },
-  "session.update": { chu: "sửa một buổi tập", icon: Pencil, mau: "sky" },
+  "session.create": { chu: "tạo một buổi tập", icon: CalendarDays, mau: "navy" },
+  "session.update": { chu: "sửa một buổi tập", icon: Pencil, mau: "navy" },
   "session.attendance": {
     chu: "điểm danh buổi tập",
     icon: CalendarDays,
-    mau: "sky",
+    mau: "navy",
   },
   "session.cancel": {
     chu: "huỷ một buổi tập",
@@ -158,7 +161,7 @@ type Ban = { id: string; fullName: string; avatarUrl: string | null };
 type Dong = {
   khoa: string;
   chu: string;
-  icon: LucideIcon;
+  icon: IconType;
   mau: Mau;
   ten: string;
   nguoi: Ban | null;
@@ -268,71 +271,79 @@ export function NhatKy({
   const theoNgay = gom(logs, nguoiTheoId);
 
   return (
-    <div className="space-y-5">
-      {theoNgay.map(([nhan, dong]) => (
-        <section key={nhan} aria-labelledby={`ngay-${nhan}`}>
+    <div className="space-y-4 px-4 pt-2 pb-4">
+      {theoNgay.map(([nhan, dong], so) => (
+        // id theo chỉ số: nhãn có dấu cách ("Hôm nay") mà
+        // `aria-labelledby` tách id theo dấu cách.
+        <section key={nhan} aria-labelledby={`ngay-${so}`}>
           <h3
-            id={`ngay-${nhan}`}
-            className="mb-2 text-[11px] font-bold tracking-[0.14em] text-ink-500 uppercase"
+            id={`ngay-${so}`}
+            className="mb-2.5 text-[12.5px] font-semibold text-gold-700 dark:text-gold-300"
           >
             {nhan}
           </h3>
 
-          <Card className="divide-y divide-ink-800 overflow-hidden">
+          {/* Dòng thời gian: vạch dọc chạy qua tâm các ô biểu tượng. */}
+          <ol className="relative">
+            <span
+              aria-hidden
+              className="absolute top-2 bottom-2 left-[15px] w-px bg-ink-800"
+            />
             {dong.map((d, i) => (
-              <div
+              <li
                 key={`${d.khoa}-${i}`}
-                className="flex items-center gap-3 px-4 py-2.5"
+                className="relative flex gap-3 pb-3.5 last:pb-0"
                 title={d.action}
               >
-                <span
-                  aria-hidden
-                  className={cn(
-                    "grid size-7 shrink-0 place-items-center rounded-lg",
-                    MAU[d.mau],
+                {/* Ô biểu tượng theo nhóm việc; góc dưới là ảnh người
+                    làm. Người quản trị quét trang này theo NGƯỜI trước,
+                    theo việc sau, nên ảnh vẫn phải có mặt. */}
+                <span className="relative shrink-0">
+                  <span
+                    aria-hidden
+                    className={cn(
+                      "grid size-8 place-items-center rounded-lg ring-4 ring-ink-900",
+                      MAU[d.mau],
+                    )}
+                  >
+                    <d.icon className="size-4" />
+                  </span>
+                  {d.nguoi && (
+                    <Avatar
+                      name={d.nguoi.fullName}
+                      src={d.nguoi.avatarUrl}
+                      seed={d.nguoi.id}
+                      size="xs"
+                      className="absolute -right-1.5 -bottom-1.5 size-[18px] text-[7px] ring-2 ring-ink-900"
+                    />
                   )}
-                >
-                  <d.icon className="size-3.5" />
                 </span>
 
-                {/* Ảnh người làm: người quản trị quét trang này theo
-                    NGƯỜI trước, theo việc sau. Chỉ có tên chữ thì phải
-                    đọc từng dòng mới biết ai. */}
-                {d.nguoi ? (
-                  <Avatar
-                    name={d.nguoi.fullName}
-                    src={d.nguoi.avatarUrl}
-                    seed={d.nguoi.id}
-                    size="xs"
-                    className="shrink-0"
-                  />
-                ) : (
-                  <span className="size-6 shrink-0" aria-hidden />
-                )}
+                <div className="min-w-0 flex-1 pt-px">
+                  <p className="text-[13.5px] leading-snug text-ink-300">
+                    <span className="font-semibold text-ink-100">{d.ten}</span>{" "}
+                    {d.chu}
+                    {d.lan > 1 && (
+                      <span className="tabular ml-1.5 rounded-lg bg-ink-850 px-1.5 py-0.5 text-[11px] font-semibold text-ink-400">
+                        ×{d.lan}
+                      </span>
+                    )}
+                  </p>
 
-                <p className="min-w-0 flex-1 truncate text-[13.5px] text-ink-300">
-                  <span className="font-semibold text-ink-100">{d.ten}</span>{" "}
-                  {d.chu}
-                  {d.lan > 1 && (
-                    <span className="ml-1.5 rounded bg-ink-850 px-1.5 py-0.5 text-[11px] font-bold text-ink-400">
-                      ×{d.lan}
-                    </span>
-                  )}
-                </p>
-
-                {/* Giờ phút, không phải "2 ngày trước": ngày đã nằm ở
-                    tiêu đề nhóm rồi, nhắc lại ở từng dòng là thừa — mà
-                    giờ phút mới là thứ dựng lại được trình tự. */}
-                <time
-                  dateTime={d.luc.toISOString()}
-                  title={formatDateTime(d.luc)}
-                  className="shrink-0 text-[11.5px] whitespace-nowrap text-ink-500 tabular-nums"
-                >
-                  {formatTime(d.luc)}
-                </time>
-              </div>
+                  {/* Giờ phút, không phải "2 ngày trước": ngày đã nằm ở
+                      tiêu đề nhóm rồi, nhắc lại ở từng dòng là thừa — mà
+                      giờ phút mới là thứ dựng lại được trình tự. */}
+                  <time
+                    dateTime={d.luc.toISOString()}
+                    title={formatDateTime(d.luc)}
+                    className="tabular mt-0.5 block text-[12px] text-ink-500"
+                  >
+                    {formatTime(d.luc)}
+                  </time>
+                </div>
+              </li>
             ))}
-          </Card>
+          </ol>
         </section>
       ))}
     </div>

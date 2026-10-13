@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2 } from "lucide-react";
+import { Loader2 } from "@/components/icons";
 import type { ComponentProps, ReactNode } from "react";
 import { useFormStatus } from "react-dom";
 
@@ -17,6 +17,7 @@ export function SubmitButton({
   className,
   pendingText,
   icon,
+  disabled,
   ...props
 }: ComponentProps<"button"> & {
   variant?: ButtonVariant;
@@ -28,11 +29,11 @@ export function SubmitButton({
 
   return (
     <button
+      {...props}
       type="submit"
-      disabled={pending || props.disabled}
+      disabled={pending || Boolean(disabled)}
       aria-busy={pending}
       className={buttonClass(variant, size, className)}
-      {...props}
     >
       {pending ? (
         <>

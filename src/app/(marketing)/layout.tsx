@@ -1,19 +1,38 @@
+import { AppHeader } from "@/components/app-header";
+import { MOTION_CSS_VARS } from "@/components/landing/motion";
+import { getCurrentProfile } from "@/lib/auth";
+import { unreadConversationCount } from "@/lib/chat";
+import { unreadCount } from "@/lib/notifications";
+
 /**
- * Khung riêng cho trang giới thiệu công khai.
- *
- * Cố ý KHÔNG dùng khung của app: không thanh điều hướng, không thanh dưới,
- * không gọi `requireProfile`. Người chưa đăng nhập phải xem được trang này,
- * mà khung app thì luôn cần hồ sơ người dùng.
+ * Khung cho nhánh giới thiệu / marketing.
+ * Hiển thị AppHeader variant landing (tự đóng gói màu sáng, hai trạng thái theo cuộn), hỗ trợ cả khách vãng lai và thành viên đã đăng nhập. Có cuộn mượt Lenis.
  */
-export default function MarketingLayout({
+export default async function MarketingLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const profile = await getCurrentProfile();
+  const [unread, unreadMessages] = profile
+    ? await Promise.all([
+        unreadCount(profile.id),
+        unreadConversationCount(profile.id),
+      ])
+    : [0, 0];
+
   return (
-    // `theme-sang` ghim bảng màu về bản nền sáng cho cả nhánh này — trang
-    // giới thiệu có nền trắng viết cứng, mà lớp `.dark` thì đi theo người
-    // dùng từ trong app sang. Xem ghi chú trong globals.css.
-    <div className="theme-sang min-h-dvh bg-white">{children}</div>
+    <div
+      className="relative isolate min-h-dvh flex flex-col"
+      style={MOTION_CSS_VARS}
+    >
+      <AppHeader
+        profile={profile}
+        unread={unread}
+        unreadMessages={unreadMessages}
+        variant="landing"
+      />
+      <div className="theme-sang flex-1 bg-white">{children}</div>
+    </div>
   );
 }

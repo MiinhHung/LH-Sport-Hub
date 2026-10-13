@@ -1,6 +1,6 @@
 "use client";
 
-import { Link2, Loader2, X } from "lucide-react";
+import { Link2, Loader2, X } from "@/components/icons";
 import * as React from "react";
 
 import { xemTruocLinkAction, type KetQuaXemTruoc } from "@/actions/posts";
@@ -119,9 +119,9 @@ export function ODanLink({
           placeholder="Dán đường dẫn vào đây…"
           aria-label="Đường dẫn"
           className={cn(
-            "w-full rounded-xl border border-ink-700 bg-ink-850 py-2.5 pr-10 pl-9 text-[14px] text-ink-200 outline-none transition-all",
+            "w-full rounded-lg border border-ink-700 bg-ink-850 py-2.5 pr-10 pl-9 text-[15px] text-ink-200 outline-none transition-[border-color,box-shadow,background-color]",
             "placeholder:text-ink-500 hover:border-ink-600",
-            "focus:border-gold-400 focus:bg-ink-900 focus:ring-4 focus:ring-gold-400/15",
+            "focus:border-gold-500 focus:bg-ink-900 focus:ring-2 focus:ring-gold-400/25",
           )}
         />
         {dangDoc && (
@@ -135,7 +135,7 @@ export function ODanLink({
             type="button"
             onClick={xoa}
             aria-label="Bỏ đường dẫn"
-            className="absolute top-1/2 right-2 grid size-7 -translate-y-1/2 place-items-center rounded-full text-ink-500 transition-colors hover:bg-ink-800 hover:text-ink-200"
+            className="absolute top-1/2 right-2 grid size-8 -translate-y-1/2 place-items-center rounded-full text-ink-500 transition-colors hover:bg-ink-800 hover:text-ink-200"
           >
             <X className="size-4" />
           </button>
@@ -156,10 +156,10 @@ export function ODanLink({
             />
           )}
           <div className="min-w-0 flex-1 py-2.5 pr-3">
-            <p className="text-[10.5px] font-bold tracking-[0.1em] text-ink-500 uppercase">
+            <p className="text-[12.5px] font-medium text-ink-500">
               {doc.ten}
             </p>
-            <p className="mt-1 line-clamp-2 text-[14px] leading-snug font-bold text-ink-100">
+            <p className="mt-1 line-clamp-2 text-[14px] leading-snug font-semibold text-ink-100">
               {doc.tieuDe}
             </p>
             {doc.moTa && (
@@ -173,7 +173,7 @@ export function ODanLink({
 
       {!doc && !loi && !dangDoc && (
         <p className="text-[12.5px] text-ink-500">
-          Dán link bài viết, video hay tin giải đấu — thẻ xem trước hiện ra
+          Dán link bài viết, video hay tin giải đấu. Thẻ xem trước hiện ra
           ngay.
         </p>
       )}

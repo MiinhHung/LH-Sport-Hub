@@ -1,10 +1,11 @@
+import { SportIcon } from "@/components/domain-icons";
 import {
   AlertTriangle,
   CheckCheck,
+  ChevronRight,
   ClipboardPen,
   Swords,
-  Zap,
-} from "lucide-react";
+} from "@/components/icons";
 import type { Metadata } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
@@ -13,8 +14,8 @@ import { ChallengeCard } from "@/components/challenge-card";
 import { ChuaCoKeo } from "@/components/keo/chua-co-keo";
 import { CotPhaiKeo } from "@/components/keo/cot-phai";
 import { TeamFeed } from "@/components/team-feed";
-import { Card, PageIntro, SectionTitle } from "@/components/ui";
-import { FlowLink } from "@/components/ui/flow-button";
+import { Badge, Card, PageIntro } from "@/components/ui";
+import { LinkButton } from "@/components/ui/button";
 import { requireProfile } from "@/lib/auth";
 import { SPORTS, SPORT_KEYS, type SportKey } from "@/lib/constants";
 import { getMyTodos, listChallenges } from "@/lib/queries";
@@ -39,20 +40,13 @@ function buildHref(tab: string, sport: string | null) {
   return query ? `/keo?${query}` : "/keo";
 }
 
-const TODO_STYLES = {
-  violet:
-    "border-violet-200 dark:border-violet-400/30 bg-violet-50 dark:bg-violet-500/10 hover:bg-violet-100/70 dark:hover:bg-violet-500/20",
-  amber:
-    "border-amber-200 dark:border-amber-400/30 bg-amber-50 dark:bg-amber-500/10 hover:bg-amber-100/70 dark:hover:bg-amber-500/20",
-  sky: "border-sky-200 dark:border-sky-400/30 bg-sky-50 dark:bg-sky-500/10 hover:bg-sky-100/70 dark:hover:bg-sky-500/20",
-  rose: "border-rose-200 dark:border-rose-400/30 bg-rose-50 dark:bg-rose-500/10 hover:bg-rose-100/70 dark:hover:bg-rose-500/20",
-} as const;
-
-const TODO_ICON_STYLES = {
-  violet: "bg-violet-600",
-  amber: "bg-amber-600",
-  sky: "bg-sky-600",
-  rose: "bg-rose-600",
+/*
+ * Chỉ có hai màu theo đúng bảng nghĩa của DESIGN.md: vàng = việc đang chờ
+ * bạn làm, đỏ = tranh chấp.
+ */
+const TODO_TILES = {
+  gold: "bg-gold-50 text-gold-700 dark:bg-gold-400/10 dark:text-gold-300",
+  rose: "bg-rose-50 text-rose-700 dark:bg-rose-500/10 dark:text-rose-300",
 } as const;
 
 function TodoRow({
@@ -63,39 +57,65 @@ function TodoRow({
   detail,
 }: {
   href: string;
-  tone: keyof typeof TODO_STYLES;
+  tone: keyof typeof TODO_TILES;
   icon: ReactNode;
   label: string;
   detail: string;
 }) {
   return (
+    <li>
+      <Link
+        href={href}
+        className="group flex min-h-14 items-center gap-3 px-4 py-2.5 transition-colors hover:bg-ink-850"
+      >
+        <span
+          className={cn(
+            "grid size-9 shrink-0 place-items-center rounded-lg",
+            TODO_TILES[tone],
+          )}
+          aria-hidden
+        >
+          {icon}
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block truncate text-[14px] leading-snug font-semibold text-ink-100">
+            {label}
+          </span>
+          <span className="mt-0.5 block truncate text-[12.5px] text-ink-500">
+            {detail}
+          </span>
+        </span>
+        <ChevronRight
+          className="size-4 shrink-0 text-ink-500 transition-transform group-hover:translate-x-0.5"
+          aria-hidden
+        />
+      </Link>
+    </li>
+  );
+}
+
+/** Chip lọc dạng viên, cùng kiểu với các bộ lọc khác trong app. */
+function Pill({
+  href,
+  active,
+  children,
+}: {
+  href: string;
+  active: boolean;
+  children: ReactNode;
+}) {
+  return (
     <Link
       href={href}
+      aria-current={active ? "page" : undefined}
       className={cn(
-        "flex items-center gap-3 rounded-xl border px-3.5 py-3 transition-colors",
-        TODO_STYLES[tone],
+        "inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full border px-3.5 text-[13px] font-semibold whitespace-nowrap transition-colors",
+        active
+          ? "border-navy-900 bg-navy-900 text-white dark:border-ink-600 dark:bg-ink-700"
+          : "border-ink-800 text-ink-400 hover:border-ink-700 hover:text-ink-100",
       )}
     >
-      <span
-        className={cn(
-          "grid size-8 shrink-0 place-items-center rounded-lg text-white",
-          TODO_ICON_STYLES[tone],
-        )}
-        aria-hidden
-      >
-        {icon}
-      </span>
-      <span className="min-w-0 flex-1">
-        <span className="block text-[13px] font-bold text-ink-100">
-          {label}
-        </span>
-        <span className="block truncate text-[13px] text-ink-400">
-          {detail}
-        </span>
-      </span>
-      <span aria-hidden className="shrink-0 text-ink-500">
-        →
-      </span>
+      {children}
     </Link>
   );
 }
@@ -126,130 +146,118 @@ export default async function ChallengesPage({
     todos.disputed.length;
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <PageIntro
-        eyebrow="Thách đấu"
-        title="Kèo"
-        lead="Nơi mọi người thách đấu và giao kèo với nhau hehehe"
-        action={<FlowLink href="/keo/tao" text="Tạo kèo" />}
+        title="Kèo đấu"
+        lead="Sân chơi thách đấu nội bộ: tự tạo kèo, ghép đội 1v1 hoặc 2v2 và phân định thắng thua."
+        action={
+          <LinkButton href="/keo/tao" variant="accent">
+            <Swords className="size-4" />
+            <span>Tạo kèo mới</span>
+          </LinkButton>
+        }
       />
 
-      {/* Việc đang chờ chính người dùng xử lý */}
-      {todoCount > 0 && (
-        <section aria-labelledby="viec-cua-ban">
-          <SectionTitle>
-            <Zap className="size-4 text-gold-500" aria-hidden />
-            <span id="viec-cua-ban">Việc của bạn ({todoCount})</span>
-          </SectionTitle>
-          <div className="grid gap-2 sm:grid-cols-2">
-            {todos.invites.map((c) => (
-              <TodoRow
-                key={c.id}
-                href={`/keo/${c.id}`}
-                tone="violet"
-                icon={<Swords className="size-4" />}
-                label="Có người thách bạn"
-                detail={c.title}
-              />
-            ))}
-            {todos.needConfirm.map((c) => (
-              <TodoRow
-                key={c.id}
-                href={`/keo/${c.id}`}
-                tone="amber"
-                icon={<CheckCheck className="size-4" />}
-                label="Chờ bạn xác nhận kết quả"
-                detail={c.title}
-              />
-            ))}
-            {todos.needResult.map((c) => (
-              <TodoRow
-                key={c.id}
-                href={`/keo/${c.id}`}
-                tone="sky"
-                icon={<ClipboardPen className="size-4" />}
-                label="Đánh xong chưa? Nhập kết quả"
-                detail={c.title}
-              />
-            ))}
-            {todos.disputed.map((c) => (
-              <TodoRow
-                key={c.id}
-                href={`/keo/${c.id}`}
-                tone="rose"
-                icon={<AlertTriangle className="size-4" />}
-                label="Đang tranh chấp kết quả"
-                detail={c.title}
-              />
-            ))}
-          </div>
-        </section>
-      )}
+      <div className="grid grid-cols-[minmax(0,1fr)] items-start gap-8 lg:grid-cols-[minmax(0,1fr)_300px] xl:grid-cols-[minmax(0,1fr)_320px]">
+        <div className="min-w-0 space-y-6">
+          {/* Việc đang chờ chính người dùng xử lý: một thẻ, các dòng ngăn bằng đường kẻ */}
+          {todoCount > 0 && (
+            <section aria-labelledby="viec-cua-ban">
+              <Card className="overflow-hidden">
+                <div className="flex items-center gap-2 border-b border-ink-800 px-4 py-3">
+                  <h2
+                    id="viec-cua-ban"
+                    className="text-[16px] font-semibold text-ink-100"
+                  >
+                    Kèo của bạn cần xử lý
+                  </h2>
+                  <Badge tone="lime" className="tabular">
+                    {todoCount}
+                  </Badge>
+                </div>
+                <ul className="divide-y divide-ink-800">
+                  {todos.invites.map((c) => (
+                    <TodoRow
+                      key={c.id}
+                      href={`/keo/${c.id}`}
+                      tone="gold"
+                      icon={<Swords className="size-[18px]" />}
+                      label="Có người thách bạn"
+                      detail={c.title}
+                    />
+                  ))}
+                  {todos.needConfirm.map((c) => (
+                    <TodoRow
+                      key={c.id}
+                      href={`/keo/${c.id}`}
+                      tone="gold"
+                      icon={<CheckCheck className="size-[18px]" />}
+                      label="Chờ bạn xác nhận kết quả"
+                      detail={c.title}
+                    />
+                  ))}
+                  {todos.needResult.map((c) => (
+                    <TodoRow
+                      key={c.id}
+                      href={`/keo/${c.id}`}
+                      tone="gold"
+                      icon={<ClipboardPen className="size-[18px]" />}
+                      label="Đánh xong chưa? Nhập kết quả"
+                      detail={c.title}
+                    />
+                  ))}
+                  {todos.disputed.map((c) => (
+                    <TodoRow
+                      key={c.id}
+                      href={`/keo/${c.id}`}
+                      tone="rose"
+                      icon={<AlertTriangle className="size-[18px]" />}
+                      label="Đang tranh chấp kết quả"
+                      detail={c.title}
+                    />
+                  ))}
+                </ul>
+              </Card>
+            </section>
+          )}
 
-      {/* Bộ lọc — tab gạch chân trên một nét kẻ, kiểu mục lục tạp chí.
-          Trước đây là hai tầng pill chồng lên nhau, vừa chiếm chỗ vừa
-          khiến mắt không biết tầng nào quan trọng hơn. */}
-      <section
-        aria-label="Bộ lọc kèo"
-        className="flex flex-wrap items-end justify-between gap-x-6 gap-y-2 border-b border-ink-800"
-      >
-        <div className="no-scrollbar -mx-4 flex gap-6 overflow-x-auto px-4">
-          {TABS.map((t) => (
-            <Link
-              key={t.key}
-              href={buildHref(t.key, sport)}
-              aria-current={tab === t.key ? "page" : undefined}
-              className={cn(
-                "-mb-px border-b-2 pb-2.5 text-[14px] font-semibold whitespace-nowrap transition-colors duration-200",
-                tab === t.key
-                  ? "border-ink-100 text-ink-100"
-                  : "border-transparent text-ink-500 hover:border-ink-700 hover:text-ink-200",
-              )}
-            >
-              {t.label}
-            </Link>
-          ))}
-        </div>
-
-        <div className="no-scrollbar -mx-4 flex items-center gap-3 overflow-x-auto px-4 pb-2.5">
-          <Link
-            href={buildHref(tab, null)}
-            className={cn(
-              /* py-1.5: không có nó thì mấy liên kết này chỉ cao 17px —
-                 dưới mức 24px tối thiểu cho một vùng chạm. */
-              "py-1.5 text-[11px] font-semibold tracking-[0.12em] whitespace-nowrap uppercase transition-colors",
-              !sport
-                ? "text-gold-700 dark:text-gold-300"
-                : "text-ink-500 hover:text-ink-300",
-            )}
+          {/* Bộ lọc: trạng thái bên trái, môn bên phải. Dưới sm thì mỗi
+              nhóm một hàng, trượt ngang được nếu không đủ chỗ. */}
+          <section
+            aria-label="Bộ lọc kèo"
+            className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2.5"
           >
-            Tất cả
-          </Link>
-          {SPORT_KEYS.map((key) => (
-            <Link
-              key={key}
-              href={buildHref(tab, key)}
-              className={cn(
-                "py-1.5 text-[11px] font-semibold tracking-[0.12em] whitespace-nowrap uppercase transition-colors",
-                sport === key
-                  ? "text-gold-700 dark:text-gold-300"
-                  : "text-ink-500 hover:text-ink-300",
-              )}
+            <nav
+              aria-label="Lọc theo trạng thái"
+              className="no-scrollbar -mx-4 flex gap-1.5 overflow-x-auto px-4 sm:mx-0 sm:px-0"
             >
-              {SPORTS[key].icon} {SPORTS[key].label}
-            </Link>
-          ))}
-        </div>
-      </section>
+              {TABS.map((t) => (
+                <Pill
+                  key={t.key}
+                  href={buildHref(t.key, sport)}
+                  active={tab === t.key}
+                >
+                  {t.label}
+                </Pill>
+              ))}
+            </nav>
 
-      {/*
-        HAI CỘT, như bảng tin. Trang này trước đây là một cột giữa trang
-        rộng: chụp ở màn 1536 thì khoảng 85% chiều cao không có gì. Cột
-        phải trả lời hai câu người ta thật sự có khi đang nhìn danh sách
-        kèo — thách ai, và đánh ở buổi nào.
-      */}
-      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
-        <div className="min-w-0 space-y-8">
+            <nav
+              aria-label="Lọc theo môn"
+              className="no-scrollbar -mx-4 flex gap-1.5 overflow-x-auto px-4 sm:mx-0 sm:px-0"
+            >
+              <Pill href={buildHref(tab, null)} active={!sport}>
+                Mọi môn
+              </Pill>
+              {SPORT_KEYS.map((key) => (
+                <Pill key={key} href={buildHref(tab, key)} active={sport === key}>
+                  <SportIcon sport={key} />
+                  {SPORTS[key].label}
+                </Pill>
+              ))}
+            </nav>
+          </section>
+
           <section aria-label="Danh sách kèo">
             {challenges.length === 0 ? (
               <ChuaCoKeo
@@ -260,7 +268,7 @@ export default async function ChallengesPage({
                 }
                 moTa={
                   tab === "open"
-                    ? "Mở màn đi — tạo một kèo rồi xem ai dám nhận."
+                    ? "Mở màn đi: tạo một kèo rồi xem ai dám nhận."
                     : "Thử đổi bộ lọc phía trên xem sao."
                 }
                 choTaoKeo={tab === "open"}
@@ -270,12 +278,12 @@ export default async function ChallengesPage({
                 MỘT CỘT, không phải hai.
 
                 Lưới hai cột có nghĩa khi danh sách chiếm cả bề ngang
-                trang. Từ lúc có cột phải thì cột trái chỉ còn 776px,
-                chia đôi ra 382px mỗi thẻ — mà một thẻ kèo phải chứa hai
-                đội, chữ VS ở giữa, dải tiền cược và dãy avatar. Đã đo
-                đúng 382px, và nhìn thì thấy ngay là chật.
+                trang. Từ lúc có cột phải thì cột trái chỉ còn chừng
+                776px, chia đôi ra 382px mỗi thẻ — mà một thẻ kèo phải
+                chứa hai đội, chữ VS ở giữa, dải phần thưởng và dãy
+                avatar. Đã đo đúng 382px, và nhìn thì thấy ngay là chật.
               */
-              <div className="grid gap-3">
+              <div className="space-y-4">
                 {challenges.map((challenge, i) => (
                   <div
                     key={challenge.id}

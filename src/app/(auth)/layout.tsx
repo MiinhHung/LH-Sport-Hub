@@ -3,6 +3,14 @@ import Image from "next/image";
 import { AuthReveal } from "@/components/auth-reveal";
 import { GlassCard } from "@/components/auth/glass-card";
 import { HeroVideo } from "@/components/hero-video";
+import { BookOpen, Swords, Trophy } from "@/components/icons";
+
+/** Ba thứ app làm, kể bằng một danh sách dọc chứ không phải ba ô bằng nhau. */
+const DIEM = [
+  { icon: Swords, k: "Kèo 1v1 và 2v2", v: "Mở cho cả team hoặc thách đích danh" },
+  { icon: BookOpen, k: "Cẩm nang", v: "Luật, kỹ thuật, khởi động" },
+  { icon: Trophy, k: "Bảng phong thần", v: "Vua kèo, chuỗi thắng" },
+] as const;
 
 export default function AuthLayout({
   children,
@@ -17,9 +25,7 @@ export default function AuthLayout({
 
         {/* Phủ đậm: video chỉ còn là chuyển động mờ phía sau, chữ vẫn đọc
             được và mọi thương hiệu của YouTube đều bị che. */}
-        <div className="bg-gradient-navy absolute inset-0 opacity-[0.88]" />
-        <div className="absolute inset-0 bg-navy-950/25" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_50%_at_20%_15%,rgba(220,174,66,0.22),transparent_70%)]" />
+        <div className="absolute inset-0 bg-navy-950/90" />
 
         <div className="relative flex h-full flex-col justify-between p-12 xl:p-16">
           {/*
@@ -53,7 +59,7 @@ export default function AuthLayout({
               <span className="font-display text-xl leading-tight font-bold text-white">
                 Light Human
               </span>
-              <span className="text-[12px] font-semibold tracking-[0.18em] text-gold-300 uppercase">
+              <span className="text-[13px] font-semibold text-gold-300">
                 Sport Hub
               </span>
             </div>
@@ -63,7 +69,7 @@ export default function AuthLayout({
             <h2 className="font-display text-4xl leading-[1.12] font-bold text-white xl:text-[44px]">
               Thách nhau một kèo,
               <br />
-              thua thì <span className="text-gradient-gold">bao</span>.
+              thua thì <span className="text-gold-300">bao</span>.
             </h2>
             {/*
               Một câu, không phải một danh sách.
@@ -77,55 +83,41 @@ export default function AuthLayout({
               thật mà app này giải quyết. Câu cuối cố ý trùng ý với dòng
               trên trang giới thiệu, để hai nơi nghe ra cùng một giọng.
             */}
-            <p className="mt-5 text-[15px] leading-relaxed text-white/70">
-              Chốt kèo, lên lịch ra sân, ghi tỉ số sau mỗi trận — khỏi lục lại
+            <p className="mt-5 text-[15px] leading-relaxed text-white/75">
+              Chốt kèo, lên lịch ra sân, ghi tỉ số sau mỗi trận. Khỏi lục lại
               năm cái group chat.
             </p>
           </div>
 
-          <dl className="grid grid-cols-3 gap-6 border-t border-white/15 pt-8">
-            {[
-              { k: "Kèo 1v1 & 2v2", v: "Mở hoặc thách đích danh" },
-              { k: "Cẩm nang", v: "Luật, kỹ thuật, khởi động" },
-              { k: "Bảng phong thần", v: "Vua kèo, chuỗi thắng" },
-            ].map((item) => (
-              <div key={item.k}>
-                <dt className="text-[13px] font-bold text-gold-300">
-                  {item.k}
-                </dt>
-                <dd className="mt-1 text-xs leading-snug text-white/55">
-                  {item.v}
-                </dd>
-              </div>
+          <ul className="max-w-md space-y-4 border-t border-white/15 pt-8">
+            {DIEM.map(({ icon: Icon, k, v }) => (
+              <li key={k} className="flex items-center gap-3.5">
+                <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-white/[0.08] text-gold-300">
+                  <Icon className="size-5" />
+                </span>
+                <span>
+                  <span className="block text-[14px] font-semibold text-white">
+                    {k}
+                  </span>
+                  <span className="block text-[13px] text-white/70">{v}</span>
+                </span>
+              </li>
             ))}
-          </dl>
+          </ul>
         </div>
       </aside>
 
       {/*
         Bảng biểu mẫu.
 
-        NỀN TỐI, KHÔNG PHẢI NỀN SÁNG NHƯ TRƯỚC. Mặt kính mờ, vệt sáng chạy
-        viền và quầng vàng đều là hiệu ứng ÁNH SÁNG — chúng chỉ hiện ra khi
-        có nền tối để nổi lên. Đặt nguyên bộ đó lên nền ink-950 (vốn là màu
-        sáng nhất của hệ màu) thì lớp kính thành một ô xám và bốn vệt sáng
-        biến mất hoàn toàn. Đổi luôn cả cột cũng khiến hai nửa trang liền
-        một mạch, thay vì tối một bên sáng một bên như trước.
+        NỀN NAVY, KHÔNG THEO CHẾ ĐỘ SÁNG/TỐI, để hai nửa trang liền một
+        mạch. Bỏ hai quầng sáng mờ và mặt kính của bản trước: chỗ gõ mật
+        khẩu nên trông yên và chắc, không cần hiệu ứng ánh sáng.
       */}
       <main
         id="noi-dung"
         className="relative flex items-center justify-center overflow-hidden bg-navy-950 px-5 py-12 sm:px-8"
       >
-        {/* Hai quầng sáng nằm ngoài luồng, cho nền đỡ phẳng */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -top-1/4 left-1/2 h-[70vh] w-[110vh] -translate-x-1/2 rounded-b-full bg-gold-400/10 blur-[90px]"
-        />
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -bottom-1/3 left-1/2 h-[70vh] w-[90vh] -translate-x-1/2 rounded-t-full bg-navy-600/20 blur-[90px]"
-        />
-
         <AuthReveal>
           {/* Khoá thương hiệu cho màn hình nhỏ. Dùng bản nét sáng nền trong
               suốt: logo.png có nền TRẮNG ĐẶC, trước đây nó dựa vào
@@ -141,14 +133,14 @@ export default function AuthLayout({
               priority
               className="h-16 w-auto object-contain"
             />
-            <p className="mt-1.5 text-[14px] font-semibold tracking-[0.18em] text-gold-300 uppercase">
+            <p className="mt-1.5 text-[14px] font-semibold text-gold-300">
               Sport Hub
             </p>
           </div>
 
           <GlassCard>{children}</GlassCard>
 
-          <p className="mt-7 text-center text-xs leading-relaxed text-white/40">
+          <p className="mt-7 text-center text-[12.5px] leading-relaxed text-white/65">
             Dành riêng cho nhân viên Light Human
           </p>
         </AuthReveal>

@@ -1,6 +1,7 @@
 "use client";
 
-import { Info } from "lucide-react";
+import { SportIcon, StakeIcon } from "@/components/domain-icons";
+import { Check, Info } from "@/components/icons";
 import { useRouter } from "next/navigation";
 import { useActionState, useState } from "react";
 
@@ -174,7 +175,7 @@ export function ChallengeForm({
   const buoiDangChon = sessions.find((s) => s.id === sessionId) ?? null;
 
   return (
-    <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
+    <div className="grid grid-cols-[minmax(0,1fr)] items-start gap-8 lg:grid-cols-[minmax(0,1fr)_300px] xl:grid-cols-[minmax(0,1fr)_320px]">
       <form action={formAction} className="min-w-0">
         {sua && <input type="hidden" name="challengeId" value={keo.id} />}
 
@@ -193,7 +194,7 @@ export function ChallengeForm({
                     active={sport === key}
                     onClick={() => setSport(key)}
                   >
-                    {SPORTS[key].icon} {SPORTS[key].label}
+                    <SportIcon sport={key} /> {SPORTS[key].label}
                   </Chip>
                 ))}
               </div>
@@ -213,7 +214,7 @@ export function ChallengeForm({
                 ))}
               </div>
               {format === "free" && (
-                <p className="mt-1.5 text-xs text-ink-500">
+                <p className="mt-2 text-xs text-ink-500">
                   Tự do: không cần tỉ số, chỉ cần chốt ai thắng. Hợp với kèo bơi
                   hoặc kèo vui.
                 </p>
@@ -229,7 +230,7 @@ export function ChallengeForm({
                   className="text-left"
                 >
                   Kèo mở
-                  <span className="mt-0.5 block text-[11.5px] font-normal opacity-80">
+                  <span className="mt-0.5 block text-[12.5px] font-normal opacity-80">
                     Ai trong team cũng nhận được
                   </span>
                 </Chip>
@@ -239,7 +240,7 @@ export function ChallengeForm({
                   className="text-left"
                 >
                   Thách đích danh
-                  <span className="mt-0.5 block text-[11.5px] font-normal opacity-80">
+                  <span className="mt-0.5 block text-[12.5px] font-normal opacity-80">
                     Chỉ người bạn chọn
                   </span>
                 </Chip>
@@ -337,7 +338,7 @@ export function ChallengeForm({
         <Khoi
           so={so()}
           tieuDe="Thua thì bao gì"
-          moTa="Cả đội thua bao cả đội thắng. Không dùng tiền mặt — giữ cho vui."
+          moTa="Cả đội thua bao cả đội thắng. Không dùng tiền mặt, giữ cho vui."
         >
           <Field label="Phần thưởng" required error={err.stakeType}>
             <input type="hidden" name="stakeType" value={stakeType} />
@@ -348,7 +349,7 @@ export function ChallengeForm({
                   active={stakeType === key}
                   onClick={() => pickStake(key)}
                 >
-                  {STAKES[key].icon} {STAKES[key].label}
+                  <StakeIcon stake={key} /> {STAKES[key].label}
                 </Chip>
               ))}
             </div>
@@ -429,7 +430,7 @@ export function ChallengeForm({
                     setOpponents((o) => o.filter((x) => x !== e.target.value));
                   }}
                 >
-                  <option value="">— Chưa chọn —</option>
+                  <option value="">Chưa chọn</option>
                   {members.map((m) => (
                     <option key={m.id} value={m.id}>
                       {m.fullName}
@@ -441,7 +442,7 @@ export function ChallengeForm({
 
             {kind === "direct" && (
               <Field
-                label={`Đối thủ — chọn ${opponentsNeeded} người cho đội B`}
+                label={`Đối thủ: chọn ${opponentsNeeded} người cho đội B`}
                 required
                 error={err.opponentIds}
               >
@@ -453,7 +454,7 @@ export function ChallengeForm({
                     value={id}
                   />
                 ))}
-                <div className="max-h-64 space-y-1 overflow-y-auto rounded-xl border border-ink-700 bg-ink-900 p-1.5">
+                <div className="max-h-64 space-y-0.5 overflow-y-auto rounded-lg border border-ink-700 bg-ink-900 p-1.5">
                   {availableMembers.length === 0 && (
                     <p className="px-2 py-3 text-sm text-ink-500">
                       Chưa có thành viên nào khác.
@@ -468,7 +469,7 @@ export function ChallengeForm({
                         onClick={() => toggleOpponent(m.id)}
                         aria-pressed={picked}
                         className={cn(
-                          "flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left transition-colors",
+                          "flex min-h-10 w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left transition-colors",
                           picked
                             ? "bg-gold-50 font-semibold text-gold-700 dark:bg-gold-400/10 dark:text-gold-300"
                             : "text-ink-300 hover:bg-ink-850",
@@ -488,7 +489,7 @@ export function ChallengeForm({
                             </span>
                           )}
                         </span>
-                        {picked && <span className="text-xs">✓</span>}
+                        {picked && <Check className="size-4 shrink-0" aria-hidden />}
                       </button>
                     );
                   })}
@@ -518,7 +519,7 @@ export function ChallengeForm({
               value={sessionId}
               onChange={(e) => setSessionId(e.target.value)}
             >
-              <option value="">— Đánh lúc nào cũng được —</option>
+              <option value="">Đánh lúc nào cũng được</option>
               {sessions.map((s) => (
                 <option key={s.id} value={s.id}>
                   {s.title} · {formatDateTime(s.startsAt)} · {s.venueName}
@@ -544,10 +545,10 @@ export function ChallengeForm({
         </Khoi>
 
         {sua && (
-          <p className="mb-5 flex items-start gap-2 rounded-xl border border-ink-800 bg-ink-850/60 px-3.5 py-3 text-[12.5px] leading-relaxed text-ink-400">
-            <Info className="mt-px size-4 shrink-0 text-ink-500" aria-hidden />
+          <p className="mb-4 flex items-start gap-2.5 rounded-lg bg-ink-850 px-3.5 py-3 text-[13px] leading-relaxed text-ink-400">
+            <Info className="mt-0.5 size-4 shrink-0 text-ink-500" aria-hidden />
             <span>
-              Thể thức, kiểu kèo và danh sách người chơi không sửa ở đây được —
+              Thể thức, kiểu kèo và danh sách người chơi không sửa ở đây được:
               đổi mấy thứ đó là đổi hẳn cái kèo mà người khác đã đồng ý. Cần đổi
               thì huỷ kèo rồi tạo kèo mới.
             </span>
@@ -560,12 +561,17 @@ export function ChallengeForm({
           </Alert>
         )}
 
-        <div className="flex justify-end gap-2 border-t border-ink-800 pt-5">
-          <Button variant="ghost" type="button" onClick={() => router.back()}>
+        <div className="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:justify-end">
+          <Button
+            variant="ghost"
+            size="lg"
+            type="button"
+            onClick={() => router.back()}
+          >
             Thôi
           </Button>
           <SubmitButton
-            variant="accent"
+            variant="primary"
             size="lg"
             pendingText={sua ? "Đang lưu…" : "Đang tạo kèo…"}
           >
@@ -577,9 +583,12 @@ export function ChallengeForm({
       {/* Xem trước — chỉ từ lg. Dưới mức đó màn hình vừa đủ cho biểu mẫu,
           mà nhét thêm một thẻ nữa thì người ta phải cuộn qua nó mới tới
           được ô đầu tiên. */}
-      <div className="hidden lg:block lg:sticky lg:top-24">
-        <p className="mb-2.5 text-[11px] font-bold tracking-[0.14em] text-ink-500 uppercase">
-          Kèo của bạn sẽ trông như vầy
+      <aside
+        aria-label="Xem trước kèo"
+        className="hidden lg:sticky lg:top-10 lg:block"
+      >
+        <p className="mb-2.5 text-[12.5px] font-semibold text-ink-500">
+          Xem trước trên bảng kèo
         </p>
         <XemTruocKeo
           title={title}
@@ -602,7 +611,10 @@ export function ChallengeForm({
           buoiTap={buoiDangChon?.title ?? null}
           hanDanh={hanDanh}
         />
-      </div>
+        <p className="mt-3 px-1 text-[12.5px] leading-relaxed text-ink-500">
+          Thẻ cập nhật theo từng ô bạn điền.
+        </p>
+      </aside>
     </div>
   );
 }

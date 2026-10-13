@@ -1,8 +1,8 @@
-import { ArrowUpRight, Newspaper } from "lucide-react";
+import { ArrowUpRight, Newspaper } from "@/components/icons";
 import type { Metadata } from "next";
 
 import { MucLucCamNang } from "@/components/handbook/muc-luc";
-import { HeroVideo } from "@/components/hero-video";
+import { PageIntro } from "@/components/ui";
 import { requireProfile } from "@/lib/auth";
 import { ARTICLES, CATEGORIES } from "@/content/cam-nang";
 
@@ -12,34 +12,14 @@ export default async function HandbookPage() {
   await requireProfile();
 
   return (
-    <div className="space-y-8">
-      {/*
-        Dải bìa thu từ 340px xuống 190px.
-
-        Nó vẫn giữ được chất — video chạy nền, phủ navy, ánh vàng chéo
-        góc — nhưng không còn ăn gần hết màn hình đầu tiên. Đo trước khi
-        sửa: dải bìa 340px cộng thẻ bài nổi bật 480px đẩy bài THỨ HAI
-        xuống y=1072, tức phải cuộn qua hơn một màn mới thấy bài thứ hai
-        trong một mục có mười ba bài.
-      */}
-      <header className="relative -mx-4 h-[170px] overflow-hidden sm:mx-0 sm:h-[190px] sm:rounded-3xl">
-        <HeroVideo label="Cảnh thi đấu cầu lông" />
-        <div className="absolute inset-0 bg-gradient-to-r from-navy-950 via-navy-950/88 to-navy-900/65" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_70%_90%_at_88%_10%,rgba(220,174,66,0.18),transparent_65%)]" />
-
-        <div className="relative flex h-full max-w-2xl flex-col justify-end p-6 sm:p-8">
-          <p className="text-[11px] font-semibold tracking-[0.2em] text-gold-300 uppercase">
-            Cẩm nang
-          </p>
-          <h1 className="font-display mt-1.5 text-[26px] leading-[1.08] font-bold text-white sm:text-[32px]">
-            Đánh cho đúng, giữ cho bền
-          </h1>
-          <p className="mt-2 max-w-[52ch] text-[13.5px] leading-relaxed text-white/70">
-            Luật chơi, kỹ thuật, khởi động và trang bị — {ARTICLES.length} bài,
-            gom một chỗ để tra cho nhanh.
-          </p>
-        </div>
-      </header>
+    <div className="space-y-6">
+      {/* Đầu trang như mọi trang khác. Dải bìa có video chạy nền trước đây
+          ăn 190px chỉ để nói lại chữ "Cẩm nang"; bìa lớn giờ thuộc về bài
+          nổi bật, nơi nó dẫn vào một bài thật. */}
+      <PageIntro
+        title="Cẩm nang"
+        lead={`Luật chơi, kỹ thuật, khởi động và trang bị. ${ARTICLES.length} bài, gom một chỗ để tra cho nhanh.`}
+      />
 
       <MucLucCamNang articles={ARTICLES} categories={CATEGORIES} />
 
@@ -67,28 +47,25 @@ export default async function HandbookPage() {
         href="https://thethao247.vn/cau-long-c44/"
         target="_blank"
         rel="noopener noreferrer"
-        className="group flex items-center gap-3.5 rounded-2xl border border-ink-800 bg-ink-900 p-4 transition-colors hover:border-ink-700 hover:bg-ink-850"
+        className="group flex items-center gap-3.5 rounded-xl border border-ink-800 bg-ink-900 p-4 transition-colors hover:border-ink-700 hover:bg-ink-850"
       >
         <span
           aria-hidden
-          className="grid size-10 shrink-0 place-items-center rounded-xl bg-gold-50 text-gold-700 dark:bg-gold-400/10 dark:text-gold-300"
+          className="grid size-10 shrink-0 place-items-center rounded-lg bg-navy-900 text-gold-300"
         >
           <Newspaper className="size-5" />
         </span>
 
         <span className="min-w-0 flex-1">
-          <span className="block text-[15px] font-bold text-ink-100">
+          <span className="block text-[15px] font-semibold text-ink-100">
             Tin cầu lông mới nhất
           </span>
           <span className="mt-0.5 block truncate text-[13px] text-ink-500">
-            Giải đấu, kết quả, chuyển động — đọc trên thethao247.vn
+            Giải đấu, kết quả, chuyển động. Đọc trên thethao247.vn
           </span>
         </span>
 
-        <ArrowUpRight
-          className="size-5 shrink-0 text-ink-500 transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
-          aria-hidden
-        />
+        <ArrowUpRight className="size-5 shrink-0 text-ink-500 transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
       </a>
 
       <p className="border-t border-ink-800 pt-6 text-center text-[13px] text-ink-500">

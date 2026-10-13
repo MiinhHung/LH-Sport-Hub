@@ -1,6 +1,6 @@
 "use client";
 
-import { MessagesSquare, Search } from "lucide-react";
+import { MessagesSquare, Search } from "@/components/icons";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import * as React from "react";
@@ -81,16 +81,21 @@ export function CotHoiThoai({
         bề ngang màn hình.
       */
       className={cn(
-        "w-full flex-col border-ink-800 md:flex md:w-[300px] md:shrink-0 md:border-r lg:w-[340px]",
+        "w-full min-w-0 flex-col border-ink-800 md:flex md:w-[300px] md:shrink-0 md:border-r lg:w-[320px]",
         dangMoMotCuoc ? "hidden" : "flex",
       )}
     >
-      {/* pt-4 chu khong pt-1: do ra chi cach thanh tren 4px, dau tren
-          chu "nhắn" nhìn như dính vào mép thanh. */}
-      <div className="px-4 pt-4 pb-3 md:pr-4 md:pl-0">
-        <h1 className="font-display text-[26px] leading-tight font-bold text-ink-100">
-          Tin nhắn
-        </h1>
+      <div className="px-4 pt-5 pb-3 md:pt-4">
+        <div className="flex items-baseline justify-between gap-3">
+          <h1 className="font-display text-[24px] leading-tight font-bold text-ink-100 md:text-[20px]">
+            Tin nhắn
+          </h1>
+          {hoiThoai.length > 0 && (
+            <span className="text-[12.5px] font-medium text-ink-500">
+              <span className="tabular">{hoiThoai.length}</span> cuộc
+            </span>
+          )}
+        </div>
 
         {/*
           Ô tìm chỉ hiện khi đã có kha khá cuộc. Một đội 19 người thì
@@ -101,7 +106,7 @@ export function CotHoiThoai({
         {hoiThoai.length >= 6 && (
           <div className="relative mt-3">
             <Search
-              className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-ink-500"
+              className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-ink-500"
               aria-hidden
             />
             <input
@@ -109,7 +114,7 @@ export function CotHoiThoai({
               onChange={(e) => setTim(e.target.value)}
               placeholder="Tìm tên..."
               aria-label="Tìm theo tên"
-              className="h-10 w-full rounded-xl border border-ink-800 bg-ink-850 pr-3 pl-9 text-[14px] text-ink-200 outline-none placeholder:text-ink-500 focus:border-ink-700"
+              className="h-10 w-full rounded-lg border border-transparent bg-ink-850 pr-3 pl-9 text-[14px] text-ink-200 outline-none transition-[border-color,box-shadow] placeholder:text-ink-500 hover:border-ink-700 focus:border-gold-500 focus:ring-2 focus:ring-gold-400/25"
             />
           </div>
         )}
@@ -117,11 +122,11 @@ export function CotHoiThoai({
 
       {/* Nhắn nhanh cho người chưa từng nhắn */}
       {nguoiMoi.length > 0 && !tim && (
-        <div className="border-b border-ink-800 pb-3 md:pr-4">
-          <p className="px-4 pb-1.5 text-[10.5px] font-bold tracking-[0.14em] text-ink-500 uppercase md:px-0">
+        <div className="border-b border-ink-800 pb-2.5">
+          <p className="px-4 pb-1 text-[12.5px] font-semibold text-ink-500">
             Nhắn nhanh
           </p>
-          <div className="no-scrollbar flex gap-1 overflow-x-auto px-3 md:px-0">
+          <div className="no-scrollbar flex gap-0.5 overflow-x-auto px-2.5">
             {nguoiMoi.map((p) => (
               <StartChatTile key={p.id} person={p} />
             ))}
@@ -131,14 +136,25 @@ export function CotHoiThoai({
 
       {/* Danh sách cuộc trò chuyện */}
       {loc.length === 0 ? (
-        <div className="px-4 py-14 text-center md:px-0">
-          <MessagesSquare className="mx-auto size-6 text-ink-500" aria-hidden />
-          <p className="mt-3 text-[14px] font-semibold text-ink-300">
+        <div className="flex flex-col items-center px-6 py-14 text-center">
+          <span
+            aria-hidden
+            className="grid size-11 place-items-center rounded-lg bg-ink-850 text-ink-500"
+          >
+            {tim ? (
+              <Search className="size-5" />
+            ) : (
+              <MessagesSquare className="size-5" />
+            )}
+          </span>
+          <p className="mt-3 text-[14px] font-semibold text-ink-200">
             {tim ? "Không tìm thấy ai" : "Chưa có cuộc nào"}
           </p>
           {!tim && (
-            <p className="mt-1 text-[13px] text-ink-500">
-              Chọn một người ở trên để nhắn câu đầu tiên.
+            <p className="mt-1 max-w-[30ch] text-[13px] text-ink-500">
+              {nguoiMoi.length > 0
+                ? "Chọn một người ở trên để nhắn câu đầu tiên."
+                : "Mở hồ sơ một thành viên rồi bấm Nhắn tin."}
             </p>
           )}
         </div>
@@ -155,7 +171,7 @@ export function CotHoiThoai({
           Kẻ từ hàng thứ hai trở đi (`[&>li+li]`) để hàng đầu không có
           một vạch lửng lơ ngay dưới tiêu đề.
         */
-        <ul className="min-h-0 flex-1 overflow-y-auto [&>li+li]:border-t [&>li+li]:border-ink-800 md:pr-2 md:[&>li+li]:border-t-0">
+        <ul className="min-h-0 flex-1 overflow-y-auto [&>li+li]:border-t [&>li+li]:border-ink-800">
           {loc.map((c) => {
             const dangXem = duongDan === `/tin-nhan/${c.id}`;
             return (
@@ -164,9 +180,9 @@ export function CotHoiThoai({
                   href={`/tin-nhan/${c.id}`}
                   aria-current={dangXem ? "page" : undefined}
                   className={cn(
-                    "group flex items-center gap-3 rounded-xl px-3 py-3 transition-colors",
+                    "group relative flex items-center gap-3 px-4 py-3 transition-colors",
                     dangXem
-                      ? "bg-navy-50 dark:bg-navy-600/20"
+                      ? "bg-navy-50 shadow-[inset_3px_0_0_var(--color-gold-500)] dark:bg-navy-600/20"
                       : "hover:bg-ink-850",
                   )}
                 >
@@ -181,43 +197,53 @@ export function CotHoiThoai({
                       lastActiveAt={c.partner.lastActiveAt}
                       co="sm"
                     />
-                    {c.unread && (
-                      <span
-                        aria-label="Có tin chưa đọc"
-                        className="absolute -top-0.5 -right-0.5 size-3 rounded-full bg-gold-500 ring-2 ring-ink-900"
-                      />
-                    )}
                   </div>
 
                   <div className="min-w-0 flex-1">
                     <div className="flex items-baseline justify-between gap-2">
                       <p
                         className={cn(
-                          "truncate text-[14.5px]",
+                          "truncate text-[14px]",
                           c.unread
-                            ? "font-bold text-ink-100"
-                            : "font-semibold text-ink-200",
+                            ? "font-semibold text-ink-100"
+                            : "font-medium text-ink-200",
                         )}
                       >
                         {c.partner.fullName}
                       </p>
                       <time
-                        className="shrink-0 text-[11px] text-ink-500"
+                        className={cn(
+                          "shrink-0 text-[12px]",
+                          c.unread
+                            ? "font-semibold text-gold-700 dark:text-gold-300"
+                            : "text-ink-500",
+                        )}
                         dateTime={c.lastMessageAt}
                       >
                         {timeAgo(c.lastMessageAt)}
                       </time>
                     </div>
-                    <p
-                      className={cn(
-                        "mt-0.5 truncate text-[13px]",
-                        c.unread ? "font-medium text-ink-300" : "text-ink-500",
+                    <div className="mt-0.5 flex items-center gap-2">
+                      <p
+                        className={cn(
+                          "min-w-0 flex-1 truncate text-[13px]",
+                          c.unread
+                            ? "font-medium text-ink-300"
+                            : "text-ink-500",
+                        )}
+                      >
+                        {c.lastMessagePreview
+                          ? `${c.lastSenderId === viewerId ? "Bạn: " : ""}${c.lastMessagePreview}`
+                          : "Chưa có tin nhắn nào"}
+                      </p>
+                      {c.unread && (
+                        <span
+                          role="img"
+                          aria-label="Có tin chưa đọc"
+                          className="size-2.5 shrink-0 rounded-full bg-gold-500"
+                        />
                       )}
-                    >
-                      {c.lastMessagePreview
-                        ? `${c.lastSenderId === viewerId ? "Bạn: " : ""}${c.lastMessagePreview}`
-                        : "Chưa có tin nhắn nào"}
-                    </p>
+                    </div>
                   </div>
                 </Link>
               </li>

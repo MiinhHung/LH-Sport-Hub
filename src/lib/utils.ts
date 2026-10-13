@@ -9,7 +9,25 @@ export function cn(...inputs: ClassValue[]) {
 /* Ngay gio                                                            */
 /* ------------------------------------------------------------------ */
 
-const TIME_ZONE = process.env.NEXT_PUBLIC_TIME_ZONE || "Asia/Ho_Chi_Minh";
+export const TIME_ZONE =
+  process.env.NEXT_PUBLIC_TIME_ZONE || "Asia/Ho_Chi_Minh";
+
+/**
+ * Chuyển chuỗi datetime-local (ví dụ "2026-10-17T07:00") sang Date theo múi giờ Việt Nam (+07:00).
+ * Tránh lỗi server Vercel (chạy UTC) parse nhầm thành 07:00 UTC (14:00 VN).
+ */
+export function parseZonedTime(value: string): Date {
+  const v = value.trim();
+  if (!v) return new Date(NaN);
+  if (/Z|[+-]\d{2}(?::?\d{2})?$/i.test(v)) {
+    return new Date(v);
+  }
+  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2})?$/.test(v)) {
+    const withSec = v.length === 16 ? `${v}:00` : v;
+    return new Date(`${withSec}+07:00`);
+  }
+  return new Date(v);
+}
 
 const WEEKDAYS = [
   "Chủ nhật",
@@ -63,6 +81,25 @@ export function formatTime(date: Date | string | null): string {
   if (Number.isNaN(d.getTime())) return "—";
   const p = parts(d);
   return `${p.hour}:${p.minute}`;
+}
+
+/**
+ * Ba mẩu cho ô lịch nhỏ kiểu tờ lịch xé: { thu: "T7", ngay: "19", thang: "Th9" }.
+ * Theo múi giờ của team, không theo máy chủ.
+ */
+export function dateTile(date: Date | string): {
+  thu: string;
+  ngay: string;
+  thang: string;
+} {
+  const d = typeof date === "string" ? new Date(date) : date;
+  const p = parts(d);
+  const i = dayIndexInZone(d);
+  return {
+    thu: i === 0 ? "CN" : `T${i + 1}`,
+    ngay: p.day,
+    thang: `Th${Number(p.month)}`,
+  };
 }
 
 function dayIndexInZone(date: Date): number {
@@ -169,12 +206,15 @@ export function timeUntil(date: Date | string): string {
   return `còn ${day} ngày`;
 }
 
-/** Giá trị cho input type="datetime-local" (giờ địa phương). */
-export function toDateTimeLocalValue(date: Date): string {
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(
-    date.getDate(),
-  )}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+/** Giá trị cho input type="datetime-local" (theo múi giờ TIME_ZONE). */
+export function toDateTimeLocalValue(
+  date: Date | string | null | undefined,
+): string {
+  if (!date) return "";
+  const d = typeof date === "string" ? new Date(date) : date;
+  if (Number.isNaN(d.getTime())) return "";
+  const p = parts(d);
+  return `${p.year}-${p.month}-${p.day}T${p.hour}:${p.minute}`;
 }
 
 /* ------------------------------------------------------------------ */
@@ -220,10 +260,10 @@ export function avatarColor(seed: string): string {
     "bg-emerald-700",
     "bg-amber-700",
     "bg-rose-800",
-    "bg-indigo-700",
+    "bg-sky-800",
     "bg-stone-600",
     "bg-cyan-800",
-    "bg-violet-800",
+    "bg-gold-700",
   ];
   let hash = 0;
   for (let i = 0; i < seed.length; i++) {

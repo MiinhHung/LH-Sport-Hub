@@ -1,6 +1,6 @@
 "use client";
 
-import { Eye, EyeOff, type LucideIcon } from "lucide-react";
+import { Eye, EyeOff, Loader2, type IconType } from "@/components/icons";
 import * as React from "react";
 
 import { cn } from "@/lib/utils";
@@ -10,13 +10,11 @@ import { cn } from "@/lib/utils";
  *
  * PHẢI CÓ BẢN RIÊNG, KHÔNG DÙNG LẠI `Input` CHUNG. `Input` trong
  * `components/ui` dựng cho nền sáng: viền ink-700, nền ink-900, chữ
- * ink-200. Đặt nó lên mặt kính navy thì thành một ô trắng đục — vừa phá
- * lớp kính vừa mất hết hiệu ứng ở dưới. Đây không phải là nhân đôi mã
- * cho vui; hai bảng màu ngược nhau thì phải là hai thứ.
+ * ink-200. Đặt nó lên thẻ navy thì thành một ô trắng đục. Đây không phải
+ * là nhân đôi mã cho vui; hai bảng màu ngược nhau thì phải là hai thứ.
  *
- * Giữ lại của bản mẫu: biểu tượng bên trái đổi màu khi ô được chọn, và
- * nút hiện/ẩn mật khẩu. Bỏ `whileFocus` của bản mẫu vì thẻ `div` không
- * nhận tiêu điểm nên nó không bao giờ chạy.
+ * Giữ nút hiện/ẩn mật khẩu. Biểu tượng bên trái giờ là tuỳ chọn: hai biểu
+ * mẫu bỏ nó đi, nhãn phía trên đã nói ô này là gì.
  */
 
 export function AuthField({
@@ -38,7 +36,7 @@ export function AuthField({
     <div className="space-y-1.5">
       <label
         htmlFor={htmlFor}
-        className="block text-[13px] font-semibold text-white/75"
+        className="block text-[13.5px] font-semibold text-white"
       >
         {label}
         {required && (
@@ -51,9 +49,9 @@ export function AuthField({
       {children}
 
       {error ? (
-        <p className="text-xs font-medium text-rose-300">{error}</p>
+        <p className="text-[12.5px] font-medium text-rose-300">{error}</p>
       ) : hint ? (
-        <p className="text-xs text-white/45">{hint}</p>
+        <p className="text-[12.5px] text-white/70">{hint}</p>
       ) : null}
     </div>
   );
@@ -63,20 +61,15 @@ export function AuthInput({
   icon: Icon,
   className,
   ...props
-}: React.ComponentProps<"input"> & { icon: LucideIcon }) {
-  const [focus, setFocus] = React.useState(false);
+}: React.ComponentProps<"input"> & { icon?: IconType }) {
   const laMatKhau = props.type === "password";
   const [hien, setHien] = React.useState(false);
 
   return (
     <div className="relative flex items-center">
-      <Icon
-        aria-hidden
-        className={cn(
-          "pointer-events-none absolute left-3.5 size-4 transition-colors duration-300",
-          focus ? "text-gold-300" : "text-white/35",
-        )}
-      />
+      {Icon && (
+        <Icon className="pointer-events-none absolute left-3.5 size-4 text-white/60" />
+      )}
 
       <input
         {...props}
@@ -85,18 +78,11 @@ export function AuthInput({
         // Đổi kiểu ô chứ không đổi thuộc tính `type` của props, để bên gọi
         // vẫn khai báo `type="password"` một cách trung thực.
         type={laMatKhau ? (hien ? "text" : "password") : props.type}
-        onFocus={(e) => {
-          setFocus(true);
-          props.onFocus?.(e);
-        }}
-        onBlur={(e) => {
-          setFocus(false);
-          props.onBlur?.(e);
-        }}
         className={cn(
-          "h-11 w-full rounded-xl border border-white/10 bg-white/[0.06] pl-10 text-[15px] text-white outline-none transition-all duration-200",
-          "placeholder:text-white/30",
-          "hover:border-white/20 focus:border-gold-400/70 focus:bg-white/[0.1] focus:ring-4 focus:ring-gold-400/15",
+          "h-11 w-full rounded-lg border border-white/30 bg-navy-950/60 text-[15px] text-white outline-none transition-[border-color,box-shadow,background-color] duration-200",
+          "placeholder:text-white/55",
+          "hover:border-white/50 focus:border-gold-400 focus:ring-2 focus:ring-gold-400/30",
+          Icon ? "pl-10" : "pl-3.5",
           laMatKhau ? "pr-11" : "pr-3.5",
           className,
         )}
@@ -111,20 +97,16 @@ export function AuthInput({
           // gửi.
           tabIndex={-1}
           aria-label={hien ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
-          className="absolute right-3 text-white/40 transition-colors duration-200 hover:text-white"
+          className="absolute right-1.5 grid size-9 place-items-center rounded-lg text-white/70 transition-colors duration-200 hover:text-white"
         >
-          {hien ? (
-            <EyeOff className="size-4" aria-hidden />
-          ) : (
-            <Eye className="size-4" aria-hidden />
-          )}
+          {hien ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
         </button>
       )}
     </div>
   );
 }
 
-/** Nút gửi của biểu mẫu, bản cho nền tối. */
+/** Nút gửi của biểu mẫu: vàng đặc, chữ navy, viết thường như mọi nút trong app. */
 export function AuthSubmit({
   pending,
   pendingText,
@@ -139,18 +121,10 @@ export function AuthSubmit({
       type="submit"
       disabled={pending}
       aria-busy={pending}
-      className="group/nut relative mt-1 h-11 w-full overflow-hidden rounded-xl bg-gradient-to-r from-gold-300 via-gold-400 to-gold-300 text-[13px] font-bold tracking-[0.1em] text-navy-950 uppercase transition-transform duration-200 hover:-translate-y-px disabled:translate-y-0 disabled:opacity-70"
+      className="mt-2 flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-gold-400 text-[15px] font-semibold text-navy-900 outline-none transition-[background-color,transform] duration-200 hover:bg-gold-300 focus-visible:ring-2 focus-visible:ring-gold-300 active:translate-y-px disabled:cursor-wait disabled:opacity-80"
     >
-      {/* Vệt sáng quét ngang, chỉ chạy trong lúc đang gửi */}
-      {pending && (
-        <span
-          aria-hidden
-          className="absolute inset-0 -translate-x-full animate-[nut-quet_1.4s_ease-in-out_infinite] bg-gradient-to-r from-transparent via-white/60 to-transparent"
-        />
-      )}
-      <span className="relative flex items-center justify-center gap-2">
-        {pending ? pendingText : children}
-      </span>
+      {pending && <Loader2 className="size-4 animate-spin" />}
+      {pending ? pendingText : children}
     </button>
   );
 }

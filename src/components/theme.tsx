@@ -1,6 +1,6 @@
 "use client";
 
-import { Moon, Sun } from "lucide-react";
+import { Moon, Sun } from "@/components/icons";
 import * as React from "react";
 
 import { cn } from "@/lib/utils";
@@ -161,7 +161,7 @@ export function ThemeToggle({ className }: { className?: string }) {
       aria-pressed={toi}
       title={toi ? "Nền sáng" : "Nền tối"}
       className={cn(
-        "relative h-8 w-14 shrink-0 rounded-full border border-ink-800 bg-ink-850 transition-colors duration-300 hover:border-ink-700",
+        "relative h-8 w-14 shrink-0 rounded-full border border-ink-700 bg-ink-850 transition-colors duration-200 hover:border-ink-600",
         className,
       )}
     >
@@ -169,7 +169,7 @@ export function ThemeToggle({ className }: { className?: string }) {
       <span
         aria-hidden
         className={cn(
-          "absolute top-1/2 grid size-6 -translate-y-1/2 place-items-center rounded-full shadow-[var(--shadow-soft)] transition-[left,background-color] duration-300 ease-out",
+          "absolute top-1/2 grid size-6 -translate-y-1/2 place-items-center rounded-full transition-[left,background-color] duration-300 ease-out",
           // Ở nền tối, núm không được dùng navy: navy-800 và nền rãnh
           // ink-850 gần như cùng một màu, nhìn ra một cái rãnh trống
           // chứ không ra cái nút gạt. ink-700 sáng hơn rãnh một bậc.

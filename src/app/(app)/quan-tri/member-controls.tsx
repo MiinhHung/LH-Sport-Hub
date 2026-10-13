@@ -1,6 +1,6 @@
 "use client";
 
-import { Lock, Unlock } from "lucide-react";
+import { Lock, Unlock } from "@/components/icons";
 import { useActionState, useRef } from "react";
 
 import { setUserRoleAction, setUserStatusAction } from "@/actions/admin";
@@ -53,10 +53,10 @@ export function MemberControls({
   const dangMo = status === "active";
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-1.5">
       {hopThoai}
 
-      <div className="flex flex-wrap items-center justify-end gap-2">
+      <div className="flex flex-wrap items-center gap-2 sm:justify-end">
         {canAssignRoles && (
           <form action={roleAction} className="flex items-center gap-1.5">
             <input type="hidden" name="userId" value={userId} />
@@ -64,7 +64,7 @@ export function MemberControls({
               name="role"
               defaultValue={role}
               aria-label={`Vai trò của ${fullName}`}
-              className="h-9 w-auto py-1.5 text-[13px]"
+              className="h-10 w-auto bg-[right_0.6rem_center] py-0 pr-8 pl-3 text-[13px]"
             >
               {(Object.keys(ROLES) as RoleKey[]).map((key) => (
                 <option key={key} value={key}>
@@ -72,7 +72,7 @@ export function MemberControls({
                 </option>
               ))}
             </Select>
-            <SubmitButton variant="secondary" size="sm" pendingText="Đang lưu…">
+            <SubmitButton variant="secondary" pendingText="Đang lưu…">
               Đổi
             </SubmitButton>
           </form>
@@ -86,8 +86,9 @@ export function MemberControls({
           đó không vào được app nữa và cũng chẳng ai báo cho họ biết vì
           sao.
 
-          Giờ nút chỉ còn viền, và đi qua hộp thoại xác nhận — cùng loại
-          đang dùng cho xoá kèo, xoá buổi tập.
+          Giờ nút chỉ còn viền đỏ nhạt (đủ nói "việc nguy hiểm" mà không
+          hét lên), và đi qua hộp thoại xác nhận, cùng loại đang dùng
+          cho xoá kèo, xoá buổi tập.
         */}
         <form
           action={statusAction}
@@ -125,12 +126,11 @@ export function MemberControls({
           />
           <SubmitButton
             variant="secondary"
-            size="sm"
             pendingText="Đang xử lý…"
             className={
               dangMo
-                ? "text-rose-600 hover:border-rose-300 hover:bg-rose-50 dark:text-rose-400 dark:hover:border-rose-400/40 dark:hover:bg-rose-500/10"
-                : undefined
+                ? "border-rose-200 text-rose-700 hover:border-rose-300 hover:bg-rose-50 dark:border-rose-400/30 dark:text-rose-300 dark:hover:border-rose-400/50 dark:hover:bg-rose-500/10"
+                : "border-emerald-200 text-emerald-700 hover:border-emerald-300 hover:bg-emerald-50 dark:border-emerald-400/30 dark:text-emerald-300 dark:hover:border-emerald-400/50 dark:hover:bg-emerald-500/10"
             }
           >
             {dangMo ? (
@@ -149,7 +149,7 @@ export function MemberControls({
       </div>
 
       {error && (
-        <p className="text-right text-[12px] font-medium text-rose-600 dark:text-rose-400">
+        <p className="text-[12px] font-medium text-rose-600 sm:text-right dark:text-rose-400">
           {error}
         </p>
       )}

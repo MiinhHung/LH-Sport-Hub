@@ -24,16 +24,21 @@ import { listChatPartners, listConversations } from "@/lib/chat";
  * không biết mình cao bao nhiêu, nên rốt cuộc là cao bằng nội dung —
  * tức cả trang cuộn, ô soạn tin trôi mất.
  *
- * Số đo thật, lấy từ bản dựng:
+ * Số đo của khung app hiện tại (app/(app)/layout.tsx + nav.tsx):
  *
- *   thanh trên       64px
- *   thanh dưới       59px  (chỉ có dưới 768px)
- *   đệm của <main>   112px dưới / 64px dưới từ md
+ *   thanh trên       57px  (56 + viền, chỉ có dưới lg)
+ *   thanh dưới       56px  + vùng an toàn iOS (chỉ có dưới lg)
+ *   đệm của <main>   trên 24 / 32 từ sm / 40 từ lg
+ *                    dưới 112 / 64 từ lg
  *
- * Nên chiều cao là 100dvh trừ 64 trừ 59 trên điện thoại, và 100dvh trừ
- * 64 từ md trở lên. Phần đệm dưới của <main> bị triệt tiêu bằng margin
- * âm, nếu không thì khung dừng sớm và để lại một dải trống — đã đo: 71px
- * trên máy tính, 55px trên điện thoại.
+ * Dưới md: khung tràn sát mép, margin âm triệt tiêu hết đệm của <main>,
+ *   cao = 100dvh − 57 − 56 − vùng an toàn.
+ * md tới lg: khung thành một thẻ, chừa 16px trên và dưới,
+ *   cao = 100dvh − 57 − 56 − 32 − vùng an toàn.
+ * Từ lg: không còn thanh trên / dưới, chừa 24px hai đầu, cao = 100dvh − 48.
+ *
+ * Đổi chiều cao thanh nào ở khung app thì phải sửa số ở đây theo, nếu
+ * không ô soạn tin bị thanh dưới che hoặc trang có thanh cuộn thừa.
  *
  * `dvh` chứ không `vh`: trên iOS thanh địa chỉ co giãn khi cuộn, `vh`
  * giữ nguyên số cũ nên ô soạn tin bị thanh địa chỉ che mất.
@@ -54,7 +59,12 @@ export default async function MessagesLayout({
   const nguoiMoi = partners.filter((p) => !daNhan.has(p.id));
 
   return (
-    <div className="-mt-7 -mb-28 flex h-[calc(100dvh-7.7rem)] sm:-mt-9 md:-mb-16 md:h-[calc(100dvh-4rem)]">
+    <div
+      className={
+        "-mx-4 -mt-5 -mb-28 flex h-[calc(100dvh_-_113px_-_env(safe-area-inset-bottom))] overflow-hidden sm:-mx-6 sm:-mt-6 " +
+        "md:mx-0 md:mt-0 md:mb-0 md:h-[calc(100dvh_-_65px_-_4rem)] md:rounded-xl md:border md:border-ink-800 md:bg-ink-900"
+      }
+    >
       <CotHoiThoai
         viewerId={profile.id}
         nguoiMoi={nguoiMoi.map((p) => ({

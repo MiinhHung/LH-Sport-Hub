@@ -189,6 +189,12 @@ export function canCancel(
   if (challenge.status === "cancelled") {
     return no("Kèo đã bị huỷ rồi.");
   }
+  if (
+    ["pending_confirm", "disputed"].includes(challenge.status) &&
+    !isModerator
+  ) {
+    return no("Kèo đã có kết quả, chỉ ban quản trị mới huỷ được.");
+  }
   if (challenge.creatorId !== userId && !isModerator) {
     return no("Chỉ người tạo kèo hoặc ban quản trị mới huỷ được.");
   }
@@ -230,6 +236,9 @@ export function canConfirmResult(
 ): Decision {
   if (challenge.status !== "pending_confirm") {
     return no("Kèo không ở trạng thái chờ xác nhận.");
+  }
+  if (submittedBy === userId) {
+    return no("Bạn không thể tự xác nhận kết quả do chính mình nhập.");
   }
   if (isModerator) return ok;
 

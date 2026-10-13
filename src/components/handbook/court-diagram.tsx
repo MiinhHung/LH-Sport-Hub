@@ -40,7 +40,7 @@ export function CourtDiagram({
 
   return (
     <figure className={cn("my-7", className)}>
-      <div className="overflow-hidden rounded-2xl border border-ink-800 bg-ink-850/60 p-5 sm:p-7">
+      <div className="overflow-hidden rounded-xl border border-ink-800 bg-ink-850/60 p-5 sm:p-7">
         <svg
           viewBox={`-30 -30 ${W + 60} ${L + 60}`}
           className="mx-auto block h-auto w-full max-w-[290px]"
@@ -116,17 +116,17 @@ export function CourtDiagram({
             <line x1={MID} y1={NET + SHORT} x2={MID} y2={L} />
           </g>
 
-          {/* Lưới */}
+          {/* Lưới: ink-100 thay vì navy-900, để nền tối vẫn thấy lưới */}
           <line
             x1={-22}
             y1={NET}
             x2={W + 22}
             y2={NET}
-            stroke="var(--color-navy-900)"
+            stroke="var(--color-ink-100)"
             strokeWidth={9}
           />
-          <circle cx={-22} cy={NET} r={11} fill="var(--color-navy-900)" />
-          <circle cx={W + 22} cy={NET} r={11} fill="var(--color-navy-900)" />
+          <circle cx={-22} cy={NET} r={11} fill="var(--color-ink-100)" />
+          <circle cx={W + 22} cy={NET} r={11} fill="var(--color-ink-100)" />
         </svg>
       </div>
 
@@ -164,7 +164,7 @@ export function DoublesFormation({
 
   return (
     <figure className="my-7">
-      <div className="overflow-hidden rounded-2xl border border-ink-800 bg-ink-850/60 p-5 sm:p-7">
+      <div className="overflow-hidden rounded-xl border border-ink-800 bg-ink-850/60 p-5 sm:p-7">
         <svg
           viewBox={`-30 ${NET - 60} ${W + 60} ${L / 2 + 90}`}
           className="mx-auto block h-auto w-full max-w-[290px]"
@@ -184,7 +184,7 @@ export function DoublesFormation({
             y1={NET}
             x2={W + 22}
             y2={NET}
-            stroke="var(--color-navy-900)"
+            stroke="var(--color-ink-100)"
             strokeWidth={9}
           />
 

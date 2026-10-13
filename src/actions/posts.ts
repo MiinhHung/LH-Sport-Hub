@@ -204,7 +204,7 @@ export async function createPostAction(
             recipientId: m.id,
             actorId: actor.id,
             type: "post_mention" as const,
-            title: `📢 ${actor.fullName} có thông báo`,
+            title: `${actor.fullName} có thông báo mới`,
             message: excerpt(input.content, 120),
             href: "/bang-tin",
           })),
@@ -485,7 +485,7 @@ export async function toggleReactionAction(
             recipientId: post.authorId,
             actorId: actor.id,
             type: "post_reaction",
-            title: `${actor.fullName} đã thả ${REACTIONS[type as ReactionKey].icon} bài của bạn`,
+            title: `${actor.fullName} đã thả “${REACTIONS[type as ReactionKey].label}” vào bài của bạn`,
             message: excerpt(post.content),
             href: "/bang-tin",
           });

@@ -12,9 +12,10 @@ import { publicEnv } from "@/lib/env";
  */
 const PUBLIC_PATHS = [
   "/",
+  "/gioi-thieu",
   "/dang-nhap",
   "/dang-ky",
-  "/auth",
+  "/auth/callback",
   "/api/cron",
   // Ô thông báo ở trang chủ gọi vào đây. Phải công khai ở lớp này, nếu
   // không người chưa đăng nhập sẽ bị đá sang trang đăng nhập và nhận về

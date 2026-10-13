@@ -1,40 +1,20 @@
-import { CutReveal } from "@/components/ui/cut-reveal";
 import type { ComponentProps, ReactNode } from "react";
 
 import { avatarColor, cn, initials } from "@/lib/utils";
+import { Card } from "./card";
+export { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "./card";
+export { Button, LinkButton, buttonVariants } from "./button";
 
 /* ------------------------------------------------------------------ */
 /* Bề mặt                                                              */
 /* ------------------------------------------------------------------ */
-
-export function Card({
-  className,
-  interactive,
-  ...props
-}: ComponentProps<"div"> & { interactive?: boolean }) {
-  return (
-    <div
-      className={cn(
-        "rounded-2xl border border-ink-800 bg-ink-900 shadow-[var(--shadow-card)]",
-        // Liệt kê rõ thuộc tính thay vì transition-all: transition-all bắt
-        // trình duyệt theo dõi mọi thuộc tính đổi giá trị, kể cả những thứ
-        // buộc phải tính lại bố cục, nên rê chuột qua danh sách dài bị giật.
-        interactive &&
-          "transition-[transform,border-color,box-shadow] duration-300 ease-out will-change-transform hover:-translate-y-0.5 hover:border-ink-700 hover:shadow-[var(--shadow-lift)]",
-        className,
-      )}
-      {...props}
-    />
-  );
-}
 
 export function CardBody({ className, ...props }: ComponentProps<"div">) {
   return <div className={cn("p-4 sm:p-5", className)} {...props} />;
 }
 
 /**
- * Dòng thông tin phụ kiểu tạp chí: chữ hoa nhỏ, giãn cách, ngăn nhau bằng
- * dấu chấm giữa.
+ * Dòng thông tin phụ: chữ nhỏ, ngăn nhau bằng dấu chấm giữa.
  *
  * Dùng thay cho việc xếp một hàng badge. Bốn năm viên pill cạnh nhau tạo
  * thành mảng màu loang lổ, hút mắt khỏi tiêu đề và làm mọi thẻ trông
@@ -54,7 +34,7 @@ export function MetaLine({
   return (
     <p
       className={cn(
-        "flex flex-wrap items-center gap-x-2 gap-y-1 text-[10.5px] font-semibold tracking-[0.14em] text-ink-500 uppercase",
+        "flex flex-wrap items-center gap-x-2 gap-y-1 text-[12.5px] font-medium text-ink-500",
         className,
       )}
     >
@@ -76,7 +56,7 @@ export function MetaLine({
 export function Well({ className, ...props }: ComponentProps<"div">) {
   return (
     <div
-      className={cn("rounded-xl bg-ink-850 px-3.5 py-3", className)}
+      className={cn("rounded-lg bg-ink-850 px-3.5 py-3", className)}
       {...props}
     />
   );
@@ -87,8 +67,10 @@ export function Well({ className, ...props }: ComponentProps<"div">) {
 /* ------------------------------------------------------------------ */
 
 /**
- * Tiêu đề trang kiểu tạp chí: nhãn nhỏ chữ hoa giãn cách, tiêu đề serif
- * cỡ lớn, câu dẫn ngắn. Chữ và khoảng trắng làm việc thay cho viền và thẻ.
+ * Tiêu đề trang: tiêu đề đậm, một dòng dẫn, hành động nằm bên phải.
+ *
+ * `eyebrow` là nhãn phụ phía trên tiêu đề, chỉ dùng khi thật sự cần (xem
+ * DESIGN.md mục 5). Mặc định bỏ trống.
  */
 export function PageIntro({
   eyebrow,
@@ -97,42 +79,31 @@ export function PageIntro({
   action,
   className,
 }: {
-  eyebrow?: string;
+  eyebrow?: ReactNode;
   title: string;
   lead?: string;
   action?: ReactNode;
   className?: string;
 }) {
   return (
-    // Không tự chừa lề dưới: trang nào cũng đã bọc trong `space-y-8`, cộng
-    // thêm 40px nữa thành một khoảng trống chết giữa câu dẫn và nội dung.
-    <header className={cn("pb-1", className)}>
+    // Không tự chừa lề dưới: trang nào cũng đã bọc trong `space-y-*`.
+    <header className={cn("animate-rise", className)}>
       <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-4">
         <div className="min-w-0">
           {eyebrow && (
-            <p className="text-[11px] font-semibold tracking-[0.2em] text-gold-700 dark:text-gold-300 uppercase">
+            <p className="mb-1 text-[13px] font-semibold text-gold-700 dark:text-gold-300">
               {eyebrow}
             </p>
           )}
-          {/*
-            Tiêu đề trang trồi lên từng từ.
-
-            Đặt ở đây chứ không đi sửa từng trang: `PageIntro` là tiêu đề
-            chung của cả chục trang trong app, nên một chỗ này là đủ, mà
-            sau thêm trang mới cũng tự có.
-          */}
-          <CutReveal
-            as="h1"
-            text={title}
-            step={45}
-            className="font-display mt-2 block text-[34px] leading-[1.05] font-bold text-ink-100 sm:text-[46px]"
-          />
+          <h1 className="font-display text-[28px] leading-[1.15] text-ink-100 sm:text-[32px]">
+            {title}
+          </h1>
         </div>
         {action && <div className="shrink-0 pb-1">{action}</div>}
       </div>
 
       {lead && (
-        <p className="mt-4 max-w-[42ch] text-[15px] leading-relaxed text-ink-500">
+        <p className="mt-2 max-w-[60ch] text-[15px] leading-relaxed text-ink-500">
           {lead}
         </p>
       )}
@@ -153,7 +124,7 @@ export function SectionTitle({
     <div
       className={cn("mb-3 flex items-center justify-between gap-3", className)}
     >
-      <h2 className="flex items-center gap-2 text-[13px] font-semibold tracking-[0.02em] text-ink-400">
+      <h2 className="flex items-center gap-2 text-[16px] font-semibold text-ink-100">
         {children}
       </h2>
       {action}
@@ -169,48 +140,41 @@ export function SectionTitle({
  * Nền nhạt + chữ đậm cùng sắc. Bộ tone cũ (`bg-*-500/15` + `text-*-300`)
  * vốn dành cho nền tối, đặt lên nền sáng thì đọc không nổi.
  */
+const GOLD_TONE =
+  "bg-gold-50 dark:bg-gold-400/10 text-gold-700 dark:text-gold-300 border-gold-200 dark:border-gold-400/30";
+const NAVY_TONE =
+  "bg-navy-50 dark:bg-navy-600/15 text-navy-700 dark:text-navy-100 border-navy-100 dark:border-navy-600/35";
+
+/*
+ * Chỉ có 4 nghĩa màu (DESIGN.md mục 2): vàng = đang mở / cần chú ý, lục =
+ * thành công, đỏ = lỗi / tranh chấp, xám = trung tính. Navy dùng cho nhấn
+ * nhẹ. Các khoá cũ (amber, sky, violet) còn đó để dữ liệu cũ khỏi vỡ, nhưng
+ * trỏ về cùng một bảng màu.
+ */
 const TONES = {
-  lime: "bg-gold-50 dark:bg-gold-400/10 text-gold-700 dark:text-gold-300 border-gold-200 dark:border-gold-400/30",
+  lime: GOLD_TONE,
+  amber: GOLD_TONE,
   emerald:
     "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-400/30",
-  amber:
-    "bg-amber-50 dark:bg-amber-500/10 text-amber-800 dark:text-amber-300 border-amber-200 dark:border-amber-400/30",
   rose: "bg-rose-50 dark:bg-rose-500/10 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-400/30",
-  sky: "bg-sky-50 dark:bg-sky-500/10 text-sky-700 dark:text-sky-300 border-sky-200 dark:border-sky-400/30",
-  violet:
-    "bg-violet-50 dark:bg-violet-500/10 text-violet-700 dark:text-violet-300 border-violet-200 dark:border-violet-400/30",
+  sky: NAVY_TONE,
+  violet: NAVY_TONE,
   slate: "bg-ink-850 text-ink-400 border-ink-800",
   navy: "bg-navy-50 dark:bg-navy-600/15 text-ink-100 border-navy-100 dark:border-navy-600/35",
 } as const;
 
 export type Tone = keyof typeof TONES;
-
-export function Badge({
-  tone = "slate",
-  className,
-  ...props
-}: ComponentProps<"span"> & { tone?: Tone }) {
-  return (
-    <span
-      className={cn(
-        "inline-flex items-center gap-1 rounded-md border px-2 py-[3px] text-[11.5px] leading-[1.35] font-semibold whitespace-nowrap",
-        TONES[tone],
-        className,
-      )}
-      {...props}
-    />
-  );
-}
+export { Badge, badgeVariants, type BadgeProps } from "./badge";
 
 /** Chấm tròn nhỏ báo trạng thái, dùng kèm nhãn chữ. */
 export function Dot({ tone = "slate" }: { tone?: Tone }) {
   const dots: Record<Tone, string> = {
     lime: "bg-gold-500",
     emerald: "bg-emerald-500",
-    amber: "bg-amber-500",
+    amber: "bg-gold-500",
     rose: "bg-rose-500",
-    sky: "bg-sky-500",
-    violet: "bg-violet-500",
+    sky: "bg-navy-600",
+    violet: "bg-navy-600",
     slate: "bg-ink-600",
     navy: "bg-navy-700",
   };
@@ -227,7 +191,7 @@ export function Dot({ tone = "slate" }: { tone?: Tone }) {
 /* ------------------------------------------------------------------ */
 
 const fieldBase =
-  "w-full rounded-xl border border-ink-700 bg-ink-900 px-3.5 py-2.5 text-[15px] text-ink-200 shadow-[var(--shadow-soft)] outline-none transition-all duration-200 placeholder:text-ink-500 hover:border-ink-600 focus:border-gold-400 focus:ring-4 focus:ring-gold-400/15 disabled:cursor-not-allowed disabled:bg-ink-850 disabled:opacity-60";
+  "w-full rounded-lg border border-ink-700 bg-ink-900 px-3.5 py-2.5 text-[15px] text-ink-200 outline-none transition-[border-color,box-shadow,background-color] duration-200 placeholder:text-ink-500 hover:border-ink-600 focus:border-gold-500 focus:ring-2 focus:ring-gold-400/25 disabled:cursor-not-allowed disabled:bg-ink-850 disabled:opacity-60";
 
 export function Field({
   label,
@@ -250,7 +214,7 @@ export function Field({
     <div className={cn("space-y-1.5", className)}>
       <label
         htmlFor={htmlFor}
-        className="block text-[13px] font-semibold text-ink-300"
+        className="block text-[13px] font-semibold text-ink-200"
       >
         {label}
         {required && (
@@ -314,13 +278,13 @@ export function EmptyState({
   action?: ReactNode;
 }) {
   return (
-    <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-ink-700 bg-ink-900/60 px-6 py-14 text-center">
+    <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-ink-700 bg-ink-900/60 px-6 py-12 text-center">
       {icon && (
-        <div className="mb-4 grid size-12 place-items-center rounded-2xl bg-gold-50 dark:bg-gold-400/10 text-gold-700 dark:text-gold-300 ring-1 ring-gold-200">
+        <div className="mb-4 grid size-11 place-items-center rounded-lg bg-navy-50 text-navy-700 dark:bg-navy-600/15 dark:text-navy-100">
           {icon}
         </div>
       )}
-      <p className="text-[15px] font-semibold text-ink-200">{title}</p>
+      <p className="text-[15px] font-semibold text-ink-100">{title}</p>
       {description && (
         <p className="mt-1.5 max-w-sm text-sm text-ink-500">{description}</p>
       )}
@@ -341,7 +305,7 @@ export function Alert({
   return (
     <div
       className={cn(
-        "rounded-xl border px-3.5 py-3 text-sm leading-relaxed",
+        "rounded-lg border px-3.5 py-3 text-sm leading-relaxed",
         TONES[tone],
         className,
       )}
@@ -372,10 +336,10 @@ export function CardSkeleton() {
           <Skeleton className="h-5 w-20" />
         </div>
         <Skeleton className="h-5 w-3/4" />
-        <Skeleton className="h-12 w-full rounded-xl" />
+        <Skeleton className="h-12 w-full rounded-lg" />
         <div className="flex gap-2">
-          <Skeleton className="h-16 flex-1 rounded-xl" />
-          <Skeleton className="h-16 flex-1 rounded-xl" />
+          <Skeleton className="h-16 flex-1 rounded-lg" />
+          <Skeleton className="h-16 flex-1 rounded-lg" />
         </div>
       </div>
     </Card>
@@ -393,8 +357,7 @@ export function CardSkeleton() {
 export function PageIntroSkeleton({ lead = true }: { lead?: boolean }) {
   return (
     <div className="space-y-2.5">
-      <Skeleton className="h-3 w-24" />
-      <Skeleton className="h-9 w-56 max-w-full" />
+      <Skeleton className="h-8 w-56 max-w-full" />
       {lead && <Skeleton className="h-4 w-80 max-w-full" />}
     </div>
   );
@@ -457,7 +420,7 @@ export function Stat({
   return (
     <div
       className={cn(
-        "rounded-xl border border-ink-800 bg-ink-900 p-3.5 shadow-[var(--shadow-soft)]",
+        "rounded-xl border border-ink-800 bg-ink-900 p-3.5",
         className,
       )}
     >
@@ -472,11 +435,11 @@ export function Stat({
             {icon}
           </span>
         )}
-        <span className="truncate text-[11.5px] font-semibold tracking-wide text-ink-500 uppercase">
+        <span className="truncate text-[12.5px] font-medium text-ink-500">
           {label}
         </span>
       </div>
-      <p className="tabular mt-2 text-xl leading-none font-bold text-ink-100">
+      <p className="tabular font-display mt-2 text-[22px] leading-none text-ink-100">
         {value}
       </p>
       {sub && <p className="mt-1.5 truncate text-xs text-ink-500">{sub}</p>}
@@ -489,11 +452,11 @@ export function Stat({
 /* ------------------------------------------------------------------ */
 
 const AVATAR_SIZES = {
-  xs: "size-6 text-[10px] rounded-[7px]",
-  sm: "size-8 text-[11px] rounded-[9px]",
-  md: "size-10 text-sm rounded-[11px]",
-  lg: "size-16 text-lg rounded-2xl",
-  xl: "size-24 text-2xl rounded-3xl",
+  xs: "size-6 text-[10px] rounded-full",
+  sm: "size-8 text-[11px] rounded-full",
+  md: "size-10 text-sm rounded-full",
+  lg: "size-16 text-lg rounded-full",
+  xl: "size-24 text-2xl rounded-full",
 } as const;
 
 export function Avatar({
@@ -579,3 +542,5 @@ export function AvatarStack({
     </div>
   );
 }
+
+export { Reveal } from "./reveal";

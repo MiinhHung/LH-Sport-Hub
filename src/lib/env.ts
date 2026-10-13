@@ -15,7 +15,10 @@ function required(name: string, value: string | undefined): string {
 /** Dùng được ở cả client lẫn server. */
 export const publicEnv = {
   supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
-  supabaseAnonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "",
+  supabaseAnonKey:
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ??
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
+    "",
   siteUrl: process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
 };
 
@@ -23,7 +26,7 @@ export function requirePublicEnv() {
   return {
     supabaseUrl: required("NEXT_PUBLIC_SUPABASE_URL", publicEnv.supabaseUrl),
     supabaseAnonKey: required(
-      "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+      "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY (hoặc NEXT_PUBLIC_SUPABASE_ANON_KEY)",
       publicEnv.supabaseAnonKey,
     ),
     siteUrl: publicEnv.siteUrl,
@@ -43,7 +46,14 @@ export function allowedEmailDomains(): string[] {
 
 export function isEmailDomainAllowed(email: string): boolean {
   const domains = allowedEmailDomains();
-  if (domains.length === 0) return true;
+  // Khi chưa cấu hình ALLOWED_EMAIL_DOMAINS: cho phép tự do ở môi trường dev,
+  // nhưng tự động khoá (fail-closed) ở production để bảo vệ dữ liệu nội bộ.
+  if (domains.length === 0) {
+    const isProduction =
+      process.env.NODE_ENV === "production" ||
+      process.env.VERCEL_ENV === "production";
+    return !isProduction;
+  }
   const domain = email.trim().toLowerCase().split("@")[1];
   if (!domain) return false;
   return domains.includes(domain);

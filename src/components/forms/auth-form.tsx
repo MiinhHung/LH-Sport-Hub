@@ -1,6 +1,5 @@
 "use client";
 
-import { Lock, Mail, User } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useActionState } from "react";
@@ -15,7 +14,7 @@ import { AuthField, AuthInput, AuthSubmit } from "@/components/auth/dark-field";
  *
  * Phần logic không đổi: vẫn là server action, vẫn `useActionState` để nhận
  * lỗi từng trường và thông điệp chung từ máy chủ. Chỉ có lớp hiển thị
- * chuyển sang bảng màu nền tối cho hợp mặt kính bao ngoài.
+ * dùng bảng màu nền navy cho hợp thẻ bao ngoài.
  */
 
 /**
@@ -38,11 +37,11 @@ function goiYEmail(domainHint: string | null) {
 
 function Heading({ title, sub }: { title: string; sub?: string }) {
   return (
-    <div className="mb-6 text-center">
+    <div className="mb-6">
       <h1 className="font-display text-[26px] leading-tight font-bold text-white">
         {title}
       </h1>
-      {sub && <p className="mt-1.5 text-[13px] text-white/55">{sub}</p>}
+      {sub && <p className="mt-1.5 text-[14px] text-white/75">{sub}</p>}
     </div>
   );
 }
@@ -51,12 +50,12 @@ function Heading({ title, sub }: { title: string; sub?: string }) {
 function AuthAlert({ tone, children }: { tone: "loi" | "xong"; children: string }) {
   const mau =
     tone === "loi"
-      ? "border-rose-400/30 bg-rose-500/10 text-rose-200"
+      ? "border-rose-400/40 bg-rose-500/10 text-rose-200"
       : "border-emerald-400/30 bg-emerald-500/10 text-emerald-200";
   return (
     <div
       role="status"
-      className={`rounded-xl border px-3.5 py-2.5 text-[13px] leading-relaxed ${mau}`}
+      className={`rounded-lg border px-3.5 py-2.5 text-[13px] leading-relaxed ${mau}`}
     >
       {children}
     </div>
@@ -93,13 +92,13 @@ function ChanTrang({
   href: string;
 }) {
   return (
-    <p className="pt-1 text-center text-[13px] text-white/55">
+    <p className="mt-6! border-t border-white/10 pt-5 text-center text-[13.5px] text-white/75">
       {hoi}{" "}
-      <Link href={href} className="group/lk relative inline-block font-semibold">
-        <span className="relative z-10 text-white transition-colors duration-300 group-hover/lk:text-gold-300">
-          {chu}
-        </span>
-        <span className="absolute bottom-0 left-0 h-px w-0 bg-gold-300 transition-all duration-300 group-hover/lk:w-full" />
+      <Link
+        href={href}
+        className="font-semibold text-gold-300 underline-offset-4 transition-colors hover:text-gold-200 hover:underline"
+      >
+        {chu}
       </Link>
     </p>
   );
@@ -124,7 +123,6 @@ export function SignInForm({ domainHint }: { domainHint: string | null }) {
           error={state.errors?.email}
         >
           <AuthInput
-            icon={Mail}
             id="email"
             name="email"
             type="email"
@@ -142,7 +140,6 @@ export function SignInForm({ domainHint }: { domainHint: string | null }) {
           error={state.errors?.password}
         >
           <AuthInput
-            icon={Lock}
             id="password"
             name="password"
             type="password"
@@ -169,7 +166,7 @@ export function SignUpForm({ domainHint }: { domainHint: string | null }) {
 
   return (
     <>
-      <Heading title="Tạo tài khoản" />
+      <Heading title="Tạo tài khoản" sub="Chỉ cần họ tên, email và mật khẩu." />
 
       <form action={formAction} className="space-y-4">
         <AuthField
@@ -179,7 +176,6 @@ export function SignUpForm({ domainHint }: { domainHint: string | null }) {
           error={state.errors?.fullName}
         >
           <AuthInput
-            icon={User}
             id="fullName"
             name="fullName"
             autoComplete="name"
@@ -196,7 +192,6 @@ export function SignUpForm({ domainHint }: { domainHint: string | null }) {
           error={state.errors?.email}
         >
           <AuthInput
-            icon={Mail}
             id="email"
             name="email"
             type="email"
@@ -215,7 +210,6 @@ export function SignUpForm({ domainHint }: { domainHint: string | null }) {
           hint="Tối thiểu 8 ký tự."
         >
           <AuthInput
-            icon={Lock}
             id="password"
             name="password"
             type="password"

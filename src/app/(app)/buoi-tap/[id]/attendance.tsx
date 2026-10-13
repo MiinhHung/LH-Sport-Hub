@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, X } from "lucide-react";
+import { Check, X } from "@/components/icons";
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
 
@@ -30,11 +30,10 @@ function Choice({
       disabled={pending}
       aria-pressed={active}
       className={cn(
-        "flex flex-1 items-center justify-center gap-2 rounded-xl border px-4 py-3 text-sm font-bold transition-all duration-200 disabled:opacity-60",
-        active && tone === "gold" && "border-gold-300 bg-gold-100 dark:bg-gold-400/20 text-gold-700 dark:text-gold-300",
-        active && tone === "rose" && "border-rose-200 dark:border-rose-400/30 bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300",
-        !active &&
-          "border-ink-700 bg-ink-900 text-ink-400 hover:border-ink-600 hover:bg-ink-850 hover:text-ink-200 active:translate-y-px",
+        "flex h-11 flex-1 items-center justify-center gap-1.5 rounded-lg border px-3 text-[14px] font-semibold outline-none transition-[background-color,border-color,color,transform] duration-200 focus-visible:ring-2 focus-visible:ring-gold-400/40 active:scale-[0.98] disabled:opacity-60",
+        active && tone === "gold" && "border-gold-500 bg-gold-50 text-gold-700 dark:bg-gold-400/10 dark:text-gold-300",
+        active && tone === "rose" && "border-rose-400 bg-rose-50 text-rose-700 dark:bg-rose-500/10 dark:text-rose-300",
+        !active && "border-ink-700 bg-ink-900 text-ink-400 hover:border-ink-600 hover:text-ink-100",
       )}
     >
       {children}
@@ -42,6 +41,7 @@ function Choice({
   );
 }
 
+/** Hai nút chọn: đi hoặc không đi. Bên đang chọn có viền, chữ và dấu tích. */
 export function AttendanceButtons({
   sessionId,
   isGoing,
@@ -54,15 +54,19 @@ export function AttendanceButtons({
   const [state, action] = useActionState(setAttendanceAction, idleState);
 
   return (
-    <form action={action} className="space-y-2">
+    <form action={action} className="space-y-2.5">
       <input type="hidden" name="sessionId" value={sessionId} />
-      <div className="flex gap-2.5">
+      <div
+        role="group"
+        aria-label="Bạn có đi buổi này không"
+        className="flex gap-2"
+      >
         <Choice value="going" active={isGoing} tone="gold">
-          {isGoing && <Check className="size-4" strokeWidth={3} />}
+          {isGoing && <Check className="size-4" aria-hidden />}
           {isGoing ? "Bạn sẽ đi" : "Tôi đi"}
         </Choice>
         <Choice value="not_going" active={isNotGoing} tone="rose">
-          {isNotGoing && <X className="size-4" strokeWidth={3} />}
+          {isNotGoing && <X className="size-4" aria-hidden />}
           {isNotGoing ? "Bạn không đi" : "Không đi"}
         </Choice>
       </div>
