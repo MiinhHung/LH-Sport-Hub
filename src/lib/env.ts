@@ -46,14 +46,8 @@ export function allowedEmailDomains(): string[] {
 
 export function isEmailDomainAllowed(email: string): boolean {
   const domains = allowedEmailDomains();
-  // Khi chưa cấu hình ALLOWED_EMAIL_DOMAINS: cho phép tự do ở môi trường dev,
-  // nhưng tự động khoá (fail-closed) ở production để bảo vệ dữ liệu nội bộ.
-  if (domains.length === 0) {
-    const isProduction =
-      process.env.NODE_ENV === "production" ||
-      process.env.VERCEL_ENV === "production";
-    return !isProduction;
-  }
+  // Để trống ALLOWED_EMAIL_DOMAINS là mở cho mọi email (xem .env.example).
+  if (domains.length === 0) return true;
   const domain = email.trim().toLowerCase().split("@")[1];
   if (!domain) return false;
   return domains.includes(domain);
@@ -75,7 +69,6 @@ export const serverEnv = {
       process.env.SUPABASE_SERVICE_ROLE_KEY,
     );
   },
-  get cronSecret() {
-    return required("CRON_SECRET", process.env.CRON_SECRET);
-  },
+  // CRON_SECRET không đọc qua đây: /api/cron đọc thẳng process.env để tự
+  // trả 500 có lời giải thích khi thiếu, thay vì ném lỗi.
 };
