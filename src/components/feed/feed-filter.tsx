@@ -7,7 +7,9 @@ import {
 } from "@/components/icons";
 import { cn } from "@/lib/utils";
 
-export type FeedFilterKey = "all" | "keo" | "tim-nguoi" | "thong-bao";
+import type { FeedFilterKey } from "@/lib/feed";
+
+export type { FeedFilterKey };
 
 const FILTER_OPTIONS: {
   key: FeedFilterKey;

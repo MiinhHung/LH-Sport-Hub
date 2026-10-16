@@ -62,8 +62,8 @@ export interface SiteHeaderProps {
  */
 export function SiteHeader({
   profile,
-  unread = 3,
-  unreadMessages = 2,
+  unread = 0,
+  unreadMessages = 0,
   variant = "landing",
 }: SiteHeaderProps) {
   const pathname = usePathname();
@@ -124,9 +124,56 @@ export function SiteHeader({
     };
   }, [mobileOpen]);
 
+  /*
+   * MENU MOBILE LÀ HỘP THOẠI: mở ra thì đưa con trỏ bàn phím vào trong,
+   * Esc thì đóng, Tab không lọt ra trang phía sau, đóng xong trả con trỏ
+   * về đúng chỗ cũ (thường là nút hamburger).
+   */
+  const drawerRef = React.useRef<HTMLDivElement>(null);
+  React.useEffect(() => {
+    if (!mobileOpen) return;
+    const truocKhiMo = document.activeElement as HTMLElement | null;
+    const drawer = drawerRef.current;
+    drawer?.focus();
+
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        setMobileOpen(false);
+        return;
+      }
+      if (e.key !== "Tab" || !drawer) return;
+      const nutBam = drawer.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      );
+      if (nutBam.length === 0) return;
+      const dau = nutBam[0];
+      const cuoi = nutBam[nutBam.length - 1];
+      const dangO = document.activeElement;
+      if (e.shiftKey && (dangO === dau || dangO === drawer)) {
+        e.preventDefault();
+        cuoi.focus();
+      } else if (!e.shiftKey && dangO === cuoi) {
+        e.preventDefault();
+        dau.focus();
+      }
+    }
+
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      truocKhiMo?.focus?.();
+    };
+  }, [mobileOpen]);
+
   const isDarkNavy = true; // Header thể thao luôn giữ nhận diện navy đậm đồng nhất
 
   const goToHomeWithIntro = React.useCallback((e: React.MouseEvent) => {
+    // Ctrl/Cmd/Shift + bấm hoặc bấm chuột giữa là mở tab mới: để trình
+    // duyệt làm việc của nó, đừng chặn.
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) {
+      return;
+    }
     e.preventDefault();
     if (window.location.pathname === "/" || window.location.pathname === "/gioi-thieu") {
       window.location.reload();
@@ -372,7 +419,12 @@ export function SiteHeader({
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 28, stiffness: 300 }}
-              className="fixed inset-y-0 right-0 z-50 flex w-full max-w-xs flex-col border-l border-white/10 bg-navy-950/95 p-6 shadow-2xl backdrop-blur-2xl lg:hidden"
+              ref={drawerRef}
+              role="dialog"
+              aria-modal="true"
+              aria-label="Menu điều hướng"
+              tabIndex={-1}
+              className="fixed inset-y-0 right-0 z-50 flex outline-none w-full max-w-xs flex-col border-l border-white/10 bg-navy-950/95 p-6 shadow-2xl backdrop-blur-2xl lg:hidden"
             >
               <div className="flex items-center justify-between pb-6 border-b border-white/10">
                 <Link

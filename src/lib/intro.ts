@@ -25,6 +25,13 @@ export const INTRO_TIMING = {
   END: 3600,
   /** Thời lượng mờ đi khi bấm Bỏ qua. */
   SKIP: 260,
+  /**
+   * Chờ tối đa bao lâu (từ lúc trang hiện) trước khi bấm giờ màn mở đầu.
+   * Xem `data-intro-wait` trong INTRO_SCRIPT.
+   */
+  WAIT_MAX: 8000,
+  /** Đã hydrate mà ảnh/font vẫn chưa xong thì cũng chỉ chờ thêm chừng này. */
+  WAIT_AFTER_HYDRATE: 1500,
 } as const;
 
 /**
@@ -33,14 +40,29 @@ export const INTRO_TIMING = {
  * lại, vì Next chuyển trang phía máy khách, <head> không chạy lại script này.
  * Không bao giờ chiếu cho người bật giảm chuyển động, trừ khi mở bảng soi
  * pose bằng `?debug=1` (xem components/intro/intro-debug.tsx).
+ *
+ * `data-intro-wait`: CSS dừng mọi animation ở khung đầu (đồng hồ % đứng ở
+ * 0, như màn tải trang) cho tới khi IntroOverlay gỡ cờ này, lúc JavaScript,
+ * font và ảnh quả cầu hero đã sẵn sàng. Không chờ thì lần mở đầu tiên (chưa
+ * có cache) JavaScript tới SAU cú đập, đường bay vào hero không kịp dựng và
+ * quả cầu đáp lệch; F5 thì có cache nên lại khớp. JavaScript hỏng hẳn thì
+ * hẹn giờ ở đây tự gỡ sau WAIT_MAX.
+ *
+ * Đây là NƠI DUY NHẤT gắn `data-intro="play"`. IntroOverlay chỉ đọc cờ này,
+ * không tự gắn lại, nên chuyển trang phía máy khách không chiếu lại.
  */
 export const INTRO_SCRIPT = `
 try {
   var p = location.pathname;
-  if (p === '/' || p === '/gioi-thieu' || p === '/gioi-thieu/') {
-    document.documentElement.setAttribute('data-intro', 'play');
-    document.documentElement.removeAttribute('data-intro-done');
-    document.documentElement.removeAttribute('data-intro-skip');
+  var calm = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var dbg = /[?&]debug=1(&|$)/.test(location.search);
+  if ((p === '/' || p === '/gioi-thieu' || p === '/gioi-thieu/') && (!calm || dbg)) {
+    var h = document.documentElement;
+    h.setAttribute('data-intro', 'play');
+    h.setAttribute('data-intro-wait', '');
+    h.removeAttribute('data-intro-done');
+    h.removeAttribute('data-intro-skip');
+    setTimeout(function () { h.removeAttribute('data-intro-wait'); }, ${INTRO_TIMING.WAIT_MAX});
   }
 } catch (e) {}
 `.trim();

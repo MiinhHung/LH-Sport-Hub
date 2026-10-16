@@ -287,6 +287,14 @@ function veDiemDung(d: HTMLElement | undefined) {
   dich?.focus({ preventScroll: true });
 }
 
+const MAN_HEP = "(max-width: 639px)";
+function theoDoiManHep(bao: () => void) {
+  const mq = window.matchMedia(MAN_HEP);
+  mq.addEventListener("change", bao);
+  return () => mq.removeEventListener("change", bao);
+}
+const khongTheoDoi = () => () => {};
+
 export function UserMenu({
   id,
   fullName,
@@ -303,8 +311,12 @@ export function UserMenu({
 }) {
   const [mo, setMo] = React.useState(false);
   const [vet, setVet] = React.useState<ViTri | null>(null);
-  const [daGan, setDaGan] = React.useState(false);
-  const [hep, setHep] = React.useState(false);
+  const daGan = React.useSyncExternalStore(khongTheoDoi, () => true, () => false);
+  const hep = React.useSyncExternalStore(
+    theoDoiManHep,
+    () => window.matchMedia(MAN_HEP).matches,
+    () => false,
+  );
 
   const it = !!useReducedMotion();
   const { theme, dat } = useTheme();
@@ -325,16 +337,12 @@ export function UserMenu({
    * — đúng cái lỗi đã gặp ở thẻ kính trang đăng nhập. Nên lần dựng đầu
    * luôn coi là màn rộng, rồi chỉnh lại sau.
    */
+  // Đọc qua useSyncExternalStore: lần hydrate dùng giá trị phía server
+  // (false), rồi React tự dựng lại với giá trị thật, không cần setState
+  // trong effect.
   React.useEffect(() => {
-    setDaGan(true);
-    const mq = window.matchMedia("(max-width: 639px)");
-    const xet = () => setHep(mq.matches);
-    xet();
-    mq.addEventListener("change", xet);
-    return () => {
-      mq.removeEventListener("change", xet);
-      window.clearTimeout(goPhim.current.hen);
-    };
+    const go = goPhim.current;
+    return () => window.clearTimeout(go.hen);
   }, []);
 
   const tamTruot = daGan && hep;

@@ -134,6 +134,7 @@
   --color-danger: var(--danger);
   --color-danger-foreground: var(--danger-foreground);
   --color-gold-accent: var(--gold-accent);
+  --color-gold-accent-hover: var(--gold-accent-hover);
 
   /* --- Chữ --- */
   --font-sans:
@@ -438,6 +439,25 @@ body {
   color: var(--color-navy-900);
 }
 
+/*
+ * Danh sách thả xuống của <select>. Chrome trên Windows vẽ khung danh
+ * sách theo màu nền của TỪNG <option>, không theo ô chọn; option chưa
+ * tô thì nền trắng, mà chữ lại kế thừa màu sáng của giao diện tối —
+ * thành chữ trắng trên nền trắng, không đọc được. Tô thẳng cho option
+ * theo token màu, nên đúng ở cả giao diện sáng lẫn tối.
+ */
+select {
+  color-scheme: inherit;
+}
+select option,
+select optgroup {
+  background-color: var(--color-ink-900);
+  color: var(--color-ink-100);
+}
+select option:disabled {
+  color: var(--color-ink-500);
+}
+
 /* Vòng focus thống nhất toàn app — yêu cầu tiếp cận, không phải tuỳ chọn. */
 :focus-visible {
   outline: 2px solid var(--color-gold-500);
@@ -533,6 +553,21 @@ input[type="time"]::-webkit-calendar-picker-indicator:hover {
   animation: rise 520ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
+/* Bục nhận giải mọc lên từ mặt sàn (bảng phong thần). */
+@keyframes podium-rise {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: none;
+  }
+}
+
+.animate-podium {
+  transform-origin: bottom;
+  animation: podium-rise 720ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
 @media (prefers-reduced-motion: reduce) {
   :root {
     scroll-behavior: auto;
@@ -543,6 +578,15 @@ input[type="time"]::-webkit-calendar-picker-indicator:hover {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+  /*
+   * Hero được loại khỏi luật chung ở trên (để không phá nhịp màn mở đầu ở
+   * chế độ soi `?debug=1`), nên phải tắt riêng: không vào trang, không lơ
+   * lửng vô hạn. Gỡ animation thì phần tử đứng ngay ở trạng thái cuối.
+   * Màn mở đầu tự không chiếu cho người giảm chuyển động (INTRO_SCRIPT).
+   */
+  [class*="hero-"] {
+    animation: none !important;
   }
 }
 
@@ -584,6 +628,16 @@ html[data-intro="play"] .intro[data-phase="out"] {
 html[data-intro="play"] {
   /* Giữ chỗ thanh cuộn, để lúc nhả khoá cuộn trang không giật ngang. */
   scrollbar-gutter: stable;
+}
+
+/* Đứng ở khung đầu cho tới khi IntroOverlay báo đã sẵn sàng (xem
+   INTRO_SCRIPT). Dừng TẤT CẢ để mọi mốc giờ (màn mở đầu, khoá cuộn, hero)
+   cùng bắt đầu một lượt, không lệch nhau. */
+html[data-intro-wait],
+html[data-intro-wait] *,
+html[data-intro-wait] *::before,
+html[data-intro-wait] *::after {
+  animation-play-state: paused !important;
 }
 
 /* Khoá cuộn bằng animation, nên tự nhả kể cả khi JavaScript hỏng; bấm

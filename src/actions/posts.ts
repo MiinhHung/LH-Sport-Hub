@@ -20,6 +20,7 @@ import {
   commentSchema,
   fieldErrors,
   formDataToObject,
+  isUuid,
   postSchema,
   reactionSchema,
   xemTruocLinkSchema,
@@ -138,89 +139,111 @@ export async function createPostAction(
       ten: string;
     } | null = null;
 
-    if (input.type === "link" && input.linkUrl) {
-      const d = await docXemTruoc(input.linkUrl);
-      let anh: string | null = null;
+    /*
+      Từ đây trở xuống mà hỏng (đọc link lỗi, transaction lỗi) thì ảnh đã
+      upload ở trên thành rác không ai trỏ tới — dọn hết trước khi ném lỗi.
+    */
+    const donAnh = async () => {
+      const urls = uploaded.map((u) => u.url);
+      if (link?.anh) urls.push(link.anh);
+      await Promise.all(
+        urls.map((url) =>
+          deleteImage(url).catch((e) =>
+            console.error("[post] không dọn được ảnh:", e),
+          ),
+        ),
+      );
+    };
 
-      if (d.anhNguon) {
-        // Ảnh xem trước là thứ "có thì tốt": trang kia chậm hay chặn thì
-        // bài vẫn đăng được, chỉ là thẻ không có ảnh.
-        const tep = await taiAnhXemTruoc(d.anhNguon);
-        if (tep) {
-          try {
-            anh = (await uploadImage(tep, "links", "post")).url;
-          } catch (error) {
-            console.error("[link] không lưu được ảnh xem trước:", error);
+    let postId: string;
+    try {
+      if (input.type === "link" && input.linkUrl) {
+        const d = await docXemTruoc(input.linkUrl);
+        let anh: string | null = null;
+
+        if (d.anhNguon) {
+          // Ảnh xem trước là thứ "có thì tốt": trang kia chậm hay chặn thì
+          // bài vẫn đăng được, chỉ là thẻ không có ảnh.
+          const tep = await taiAnhXemTruoc(d.anhNguon);
+          if (tep) {
+            try {
+              anh = (await uploadImage(tep, "links", "post")).url;
+            } catch (error) {
+              console.error("[link] không lưu được ảnh xem trước:", error);
+            }
           }
         }
+
+        link = { url: d.url, tieuDe: d.tieuDe, moTa: d.moTa, anh, ten: d.ten };
       }
 
-      link = { url: d.url, tieuDe: d.tieuDe, moTa: d.moTa, anh, ten: d.ten };
-    }
+      postId = await db.transaction(async (tx) => {
+        const [created] = await tx
+          .insert(posts)
+          .values({
+            authorId: actor.id,
+            content: input.content,
+            type: (uploaded.length > 0 && input.type === "text"
+              ? "image"
+              : input.type) as PostTypeKey,
+            challengeId: input.challengeId,
+            sessionId: input.sessionId,
+            linkUrl: link?.url ?? null,
+            linkTitle: link?.tieuDe ?? null,
+            linkDesc: link?.moTa ?? null,
+            linkImage: link?.anh ?? null,
+            linkSite: link?.ten ?? null,
+          })
+          .returning({ id: posts.id });
 
-    const postId = await db.transaction(async (tx) => {
-      const [created] = await tx
-        .insert(posts)
-        .values({
-          authorId: actor.id,
-          content: input.content,
-          type: (uploaded.length > 0 && input.type === "text"
-            ? "image"
-            : input.type) as PostTypeKey,
-          challengeId: input.challengeId,
-          sessionId: input.sessionId,
-          linkUrl: link?.url ?? null,
-          linkTitle: link?.tieuDe ?? null,
-          linkDesc: link?.moTa ?? null,
-          linkImage: link?.anh ?? null,
-          linkSite: link?.ten ?? null,
-        })
-        .returning({ id: posts.id });
+        if (uploaded.length > 0) {
+          await tx.insert(postMedia).values(
+            uploaded.map((u, i) => ({
+              postId: created.id,
+              url: u.url,
+              width: u.width,
+              height: u.height,
+              fileSize: u.fileSize,
+              sortOrder: i,
+            })),
+          );
+        }
 
-      if (uploaded.length > 0) {
-        await tx.insert(postMedia).values(
-          uploaded.map((u, i) => ({
-            postId: created.id,
-            url: u.url,
-            width: u.width,
-            height: u.height,
-            fileSize: u.fileSize,
-            sortOrder: i,
-          })),
-        );
-      }
+        // Thông báo chỉ bắn cho cả team khi là "thông báo" chính thức —
+        // bài chém gió thường ngày mà cũng báo thì ai cũng tắt thông báo.
+        if (input.type === "announcement") {
+          const members = await tx
+            .select({ id: profiles.id })
+            .from(profiles)
+            .where(and(eq(profiles.status, "active"), ne(profiles.id, actor.id)));
 
-      // Thông báo chỉ bắn cho cả team khi là "thông báo" chính thức —
-      // bài chém gió thường ngày mà cũng báo thì ai cũng tắt thông báo.
-      if (input.type === "announcement") {
-        const members = await tx
-          .select({ id: profiles.id })
-          .from(profiles)
-          .where(and(eq(profiles.status, "active"), ne(profiles.id, actor.id)));
+          await notify(
+            tx,
+            members.map((m) => ({
+              recipientId: m.id,
+              actorId: actor.id,
+              type: "post_mention" as const,
+              title: `${actor.fullName} có thông báo mới`,
+              message: excerpt(input.content, 120),
+              href: "/bang-tin",
+            })),
+          );
+        }
 
-        await notify(
-          tx,
-          members.map((m) => ({
-            recipientId: m.id,
-            actorId: actor.id,
-            type: "post_mention" as const,
-            title: `${actor.fullName} có thông báo mới`,
-            message: excerpt(input.content, 120),
-            href: "/bang-tin",
-          })),
-        );
-      }
+        await audit(tx, {
+          actorId: actor.id,
+          action: "post.create",
+          targetType: "post",
+          targetId: created.id,
+          metadata: { type: input.type, images: uploaded.length },
+        });
 
-      await audit(tx, {
-        actorId: actor.id,
-        action: "post.create",
-        targetType: "post",
-        targetId: created.id,
-        metadata: { type: input.type, images: uploaded.length },
+        return created.id;
       });
-
-      return created.id;
-    });
+    } catch (error) {
+      await donAnh();
+      throw error;
+    }
 
     revalidateFeed();
     return success(postId ? "Đã đăng." : "Đã đăng.");
@@ -238,7 +261,7 @@ export async function deletePostAction(
   return runAction(async () => {
     const actor = await requireActor();
     const postId = String(formData.get("postId") ?? "");
-    if (!postId) return failure("Yêu cầu không hợp lệ.");
+    if (!isUuid(postId)) return failure("Yêu cầu không hợp lệ.");
 
     const post = await db.query.posts.findFirst({
       where: eq(posts.id, postId),
@@ -280,28 +303,27 @@ export async function togglePinPostAction(
     }
 
     const postId = String(formData.get("postId") ?? "");
-    if (!postId) return failure("Yêu cầu không hợp lệ.");
+    if (!isUuid(postId)) return failure("Yêu cầu không hợp lệ.");
 
-    const post = await db.query.posts.findFirst({
-      where: eq(posts.id, postId),
-      columns: { id: true, isPinned: true },
-    });
-    if (!post) return failure("Không tìm thấy bài viết.");
-
-    await db
+    // Lật cờ ngay trong một câu UPDATE: đọc rồi mới ghi thì hai người bấm
+    // cùng lúc sẽ cùng đọc "chưa ghim" và cùng ghi "ghim" — bấm hai lần
+    // mà bài vẫn ghim.
+    const [post] = await db
       .update(posts)
-      .set({ isPinned: !post.isPinned, updatedAt: new Date() })
-      .where(eq(posts.id, postId));
+      .set({ isPinned: sql`not ${posts.isPinned}`, updatedAt: new Date() })
+      .where(eq(posts.id, postId))
+      .returning({ isPinned: posts.isPinned });
+    if (!post) return failure("Không tìm thấy bài viết.");
 
     await audit(db, {
       actorId: actor.id,
-      action: post.isPinned ? "post.unpin" : "post.pin",
+      action: post.isPinned ? "post.pin" : "post.unpin",
       targetType: "post",
       targetId: postId,
     });
 
     revalidateFeed();
-    return success(post.isPinned ? "Đã bỏ ghim." : "Đã ghim lên đầu.");
+    return success(post.isPinned ? "Đã ghim lên đầu." : "Đã bỏ ghim.");
   });
 }
 
@@ -320,7 +342,7 @@ export async function createCommentAction(
     if (!parsed.success) {
       return failure("Bình luận chưa hợp lệ.", fieldErrors(parsed.error));
     }
-    const { postId, content } = parsed.data;
+    const { postId, content, parentId } = parsed.data;
 
     await db.transaction(async (tx) => {
       const post = await tx.query.posts.findFirst({
@@ -331,9 +353,30 @@ export async function createCommentAction(
         throw new AppError("Bài viết này không còn nữa.");
       }
 
+      /*
+        Trả lời: bình luận cha phải còn, và cùng bài. CHỈ MỘT TẦNG — trả
+        lời vào một câu trả lời thì gắn vào bình luận gốc của nó, nên giao
+        diện không bao giờ phải thụt vào mãi.
+      */
+      let cha: { id: string; authorId: string } | null = null;
+      if (parentId) {
+        const p = await tx.query.comments.findFirst({
+          where: and(
+            eq(comments.id, parentId),
+            eq(comments.postId, postId),
+            eq(comments.status, "published"),
+            isNull(comments.deletedAt),
+          ),
+          columns: { id: true, authorId: true, parentId: true },
+        });
+        if (!p) throw new AppError("Bình luận bạn trả lời không còn nữa.");
+        cha = { id: p.parentId ?? p.id, authorId: p.authorId };
+      }
+
       await tx.insert(comments).values({
         postId,
         authorId: actor.id,
+        parentId: cha?.id ?? null,
         content,
       });
 
@@ -342,14 +385,28 @@ export async function createCommentAction(
         .set({ commentCount: sql`${posts.commentCount} + 1` })
         .where(eq(posts.id, postId));
 
-      await notify(tx, {
-        recipientId: post.authorId,
-        actorId: actor.id,
-        type: "post_comment",
-        title: `${actor.fullName} bình luận bài của bạn`,
-        message: excerpt(content),
-        href: "/bang-tin",
-      });
+      // Người được trả lời nhận "trả lời bình luận"; chủ bài vẫn nhận
+      // "bình luận bài" như cũ — trừ khi hai người là một.
+      if (cha && cha.authorId !== actor.id) {
+        await notify(tx, {
+          recipientId: cha.authorId,
+          actorId: actor.id,
+          type: "comment_reply",
+          title: `${actor.fullName} trả lời bình luận của bạn`,
+          message: excerpt(content),
+          href: "/bang-tin",
+        });
+      }
+      if (!cha || cha.authorId !== post.authorId) {
+        await notify(tx, {
+          recipientId: post.authorId,
+          actorId: actor.id,
+          type: "post_comment",
+          title: `${actor.fullName} bình luận bài của bạn`,
+          message: excerpt(content),
+          href: "/bang-tin",
+        });
+      }
     });
 
     revalidateFeed();
@@ -364,7 +421,7 @@ export async function deleteCommentAction(
   return runAction(async () => {
     const actor = await requireActor();
     const commentId = String(formData.get("commentId") ?? "");
-    if (!commentId) return failure("Yêu cầu không hợp lệ.");
+    if (!isUuid(commentId)) return failure("Yêu cầu không hợp lệ.");
 
     const comment = await db.query.comments.findFirst({
       where: eq(comments.id, commentId),
@@ -377,24 +434,33 @@ export async function deleteCommentAction(
       return failure("Bạn chỉ xoá được bình luận của chính mình.");
     }
 
-    await db.transaction(async (tx) => {
-      await tx
+    const daXoa = await db.transaction(async (tx) => {
+      /*
+        Điều kiện `status <> 'deleted'` nằm NGAY TRONG câu UPDATE: hai lần
+        xoá chạy song song thì chỉ một lần nhận về dòng, lần kia trả rỗng
+        và không trừ bộ đếm thêm lần nữa. Kiểm ở trên chỉ để báo lỗi sớm.
+      */
+      const [deleted] = await tx
         .update(comments)
         .set({
           status: "deleted",
           deletedAt: new Date(),
           updatedAt: new Date(),
         })
-        .where(eq(comments.id, commentId));
+        .where(and(eq(comments.id, commentId), ne(comments.status, "deleted")))
+        .returning({ id: comments.id });
+      if (!deleted) return false;
 
-      // GREATEST giữ bộ đếm không bao giờ âm nếu có xoá trùng.
+      // GREATEST giữ bộ đếm không bao giờ âm.
       await tx
         .update(posts)
         .set({
           commentCount: sql`greatest(${posts.commentCount} - 1, 0)`,
         })
         .where(eq(posts.id, comment.postId));
+      return true;
     });
+    if (!daXoa) return failure("Bình luận đã bị xoá.");
 
     await audit(db, {
       actorId: actor.id,
@@ -431,6 +497,33 @@ export async function toggleReactionAction(
     const { targetType, targetId, type } = parsed.data;
 
     await db.transaction(async (tx) => {
+      /*
+        Kiểm đích còn sống trước khi đụng tới bộ đếm hay bắn thông báo.
+        Thiếu bước này thì một bài đã xoá (hoặc bị ẩn) vẫn bị thả tim,
+        bộ đếm vẫn nhảy và tác giả vẫn nhận thông báo về một bài không còn.
+      */
+      let post: { authorId: string; content: string } | undefined;
+      if (targetType === "post") {
+        post = await tx.query.posts.findFirst({
+          where: and(
+            eq(posts.id, targetId),
+            eq(posts.status, "published"),
+            isNull(posts.deletedAt),
+          ),
+          columns: { authorId: true, content: true },
+        });
+        if (!post) throw new AppError("Bài viết này không còn nữa.");
+      } else {
+        const comment = await tx.query.comments.findFirst({
+          where: and(
+            eq(comments.id, targetId),
+            ne(comments.status, "deleted"),
+          ),
+          columns: { id: true },
+        });
+        if (!comment) throw new AppError("Bình luận này không còn nữa.");
+      }
+
       const [existing] = await tx
         .select()
         .from(reactions)
@@ -462,23 +555,31 @@ export async function toggleReactionAction(
         return; // đổi loại thì tổng không đổi
       }
 
-      await tx.insert(reactions).values({
-        userId: actor.id,
-        targetType,
-        targetId,
-        type: type as ReactionKey,
-      });
+      /*
+        Lần thả ĐẦU TIÊN thì chưa có dòng nào để FOR UPDATE khoá, nên hai
+        cú bấm song song đều đi tới đây. ON CONFLICT DO NOTHING để cú thứ
+        hai lặng lẽ bỏ qua thay vì nổ lỗi trùng khoá — và chỉ cú nào thực
+        sự chèn được dòng mới được cộng bộ đếm, bắn thông báo.
+      */
+      const [inserted] = await tx
+        .insert(reactions)
+        .values({
+          userId: actor.id,
+          targetType,
+          targetId,
+          type: type as ReactionKey,
+        })
+        .onConflictDoNothing({
+          target: [reactions.userId, reactions.targetType, reactions.targetId],
+        })
+        .returning({ id: reactions.id });
+      if (!inserted) return;
 
       if (targetType === "post") {
         await tx
           .update(posts)
           .set({ reactionCount: sql`${posts.reactionCount} + 1` })
           .where(eq(posts.id, targetId));
-
-        const post = await tx.query.posts.findFirst({
-          where: eq(posts.id, targetId),
-          columns: { authorId: true, content: true },
-        });
 
         if (post) {
           await notify(tx, {

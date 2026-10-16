@@ -49,7 +49,7 @@ export default async function EditSessionPage({
   };
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
+    <div className="mx-auto max-w-5xl space-y-6">
       <Link
         href={`/buoi-tap/${id}`}
         className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-ink-500 transition-colors hover:text-ink-100"

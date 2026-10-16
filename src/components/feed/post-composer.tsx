@@ -67,26 +67,37 @@ export function PostComposer({
     formRef.current?.reset();
   }, [state.runId, state.status]);
 
-  // Thu hồi object URL khi rời trang, tránh rò bộ nhớ.
+  // Thu hồi object URL khi rời trang, tránh rò bộ nhớ. Đọc qua ref để lấy
+  // danh sách MỚI NHẤT — effect rỗng phụ thuộc chỉ thấy mảng rỗng lúc đầu.
+  const draftsRef = useRef(drafts);
   useEffect(() => {
-    return () => drafts.forEach((d) => URL.revokeObjectURL(d.url));
+    draftsRef.current = drafts;
+  }, [drafts]);
+  useEffect(() => {
+    return () => draftsRef.current.forEach((d) => URL.revokeObjectURL(d.url));
   }, []);
 
   /**
-   * Ghi danh sách ảnh hiện tại ngược vào input file.
+   * Dựng FormData lúc gửi: ảnh lấy từ `drafts`, không lấy từ input file.
+   *
+   * React 19 tự `reset()` biểu mẫu sau mỗi lần chạy action, kể cả khi máy
+   * chủ báo lỗi. Input file bị xoá trắng trong khi ảnh xem trước vẫn còn
+   * nguyên; sửa chữ rồi bấm đăng lại là bài lên KHÔNG có ảnh. Ô chữ, loại
+   * bài và link đều có kiểm soát nên reset không làm mất.
    */
-  useEffect(() => {
-    if (!fileRef.current) return;
-    const transfer = new DataTransfer();
-    drafts.forEach((d) => transfer.items.add(d.file));
-    fileRef.current.files = transfer.files;
-  }, [drafts]);
+  function guiBai(formData: FormData) {
+    formData.delete("images");
+    drafts.forEach((d) => formData.append("images", d.file));
+    return action(formData);
+  }
 
   function addFiles(list: FileList | null) {
     if (!list) return;
+    // Chép ra mảng ngay: input file bị xoá giá trị ngay sau khi gọi hàm này.
+    const files = Array.from(list);
     setDrafts((current) => {
       const room = MAX_POST_IMAGES - current.length;
-      const picked = Array.from(list).slice(0, Math.max(0, room));
+      const picked = files.slice(0, Math.max(0, room));
       return [
         ...current,
         ...picked.map((file) => ({ file, url: URL.createObjectURL(file) })),
@@ -144,7 +155,7 @@ export function PostComposer({
     <Card className="overflow-hidden">
       <form
         ref={formRef}
-        action={action}
+        action={guiBai}
         className={cn(
           "relative p-4 transition-colors sm:p-5",
           dangKeo && "bg-gold-50 dark:bg-gold-400/10",
@@ -340,15 +351,19 @@ export function PostComposer({
           </div>
         </div>
 
-        {/* Input file thật */}
+        {/* Input file chỉ để mở hộp chọn ảnh; ảnh gửi đi lấy từ `drafts`
+            (xem guiBai), nên không đặt `name` và xoá ngay sau khi chọn —
+            chọn lại đúng tấm vừa bỏ vẫn kích hoạt onChange. */}
         <input
           ref={fileRef}
           type="file"
-          name="images"
           accept="image/jpeg,image/png,image/webp"
           multiple
           className="sr-only"
-          onChange={(e) => addFiles(e.target.files)}
+          onChange={(e) => {
+            addFiles(e.target.files);
+            e.target.value = "";
+          }}
         />
       </form>
     </Card>

@@ -41,6 +41,7 @@ import {
   Mail as LucideMail,
   MapPin as LucideMapPin,
   Medal as LucideMedal,
+  Crown as LucideCrown,
   Megaphone as LucideMegaphone,
   MessageCircle as LucideMessageCircle,
   MessageSquare as LucideMessageSquare,
@@ -127,6 +128,7 @@ export const Bell = ve(LucideBell);
 export const BookOpen = ve(LucideBookOpen);
 export const Trophy = ve(LucideTrophy);
 export const Medal = ve(LucideMedal);
+export const Crown = ve(LucideCrown);
 export const Award = ve(LucideAward);
 export const CheckCircle2 = ve(LucideCheckCircle2);
 export const MessagesSquare = ve(LucideMessagesSquare);

@@ -39,7 +39,16 @@ export function SessionOwnerActions({
   const { hoi, hopThoai } = useHoiLai();
   const formRef = useRef<HTMLFormElement>(null);
   const daHoiRoi = useRef(false);
-  const [cancelling, setCancelling] = useState(false);
+  // Lưu runId của lần huỷ trước lúc mở ô xác nhận: có kết quả "success"
+  // MỚI thì đóng ô lại, khỏi để khung "Huỷ buổi tập này?" treo sau khi
+  // đã huỷ xong.
+  const [moTuRunId, setMoTuRunId] = useState<number | undefined | null>(null);
+  const cancelling =
+    moTuRunId !== null &&
+    canCancel &&
+    !(cancelState.status === "success" && cancelState.runId !== moTuRunId);
+  const setCancelling = (mo: boolean) =>
+    setMoTuRunId(mo ? cancelState.runId : null);
 
   const confirmDelete =
     goingCount > 1

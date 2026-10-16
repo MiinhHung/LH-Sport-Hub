@@ -1,6 +1,6 @@
 "use server";
 
-import { and, eq } from "drizzle-orm";
+import { and, desc, eq, isNull } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
@@ -16,13 +16,23 @@ import {
   type ChatMessagePayload,
 } from "@/lib/chat";
 import { LIMITS } from "@/lib/constants";
-import { uploadImage } from "@/lib/storage";
+import { deleteImage, uploadImage } from "@/lib/storage";
+import { isUuid } from "@/lib/validation";
 import { failure, runAction, success, type ActionState } from "./types";
+
+/** Thư mục chứa ảnh chat trong kho — dùng chung cho upload và xoá. */
+const CHAT_IMAGE_FOLDER = "chat";
 
 /** Cắt bớt để làm dòng xem trước trong danh sách. */
 function preview(text: string, max = 120) {
   const clean = text.replace(/\s+/g, " ").trim();
   return clean.length > max ? `${clean.slice(0, max)}…` : clean;
+}
+
+/** Dòng xem trước cho một tin: chữ nếu có, không thì ghi chú là ảnh. */
+function previewOf(m: { content: string; imageUrl: string | null }) {
+  if (m.content) return preview(m.content);
+  return m.imageUrl ? "Đã gửi một ảnh" : null;
 }
 
 /* ------------------------------------------------------------------ */
@@ -44,7 +54,7 @@ export async function openConversationAction(
     const actor = await requireActor();
     const partnerId = String(formData.get("partnerId") ?? "");
 
-    if (!partnerId) return failure("Yêu cầu không hợp lệ.");
+    if (!isUuid(partnerId)) return failure("Yêu cầu không hợp lệ.");
     if (partnerId === actor.id) {
       return failure("Không thể tự nhắn tin cho chính mình.");
     }
@@ -99,7 +109,9 @@ export async function sendMessageAction(
     const imageFile = formData.get("image");
     const hasImage = imageFile instanceof File && imageFile.size > 0;
 
-    if (!conversationId) return failure("Yêu cầu không hợp lệ.");
+    // Kiểm tra dạng uuid trước khi hỏi database — chuỗi lạ sẽ làm Postgres
+    // ném lỗi cú pháp thay vì một câu báo tử tế.
+    if (!isUuid(conversationId)) return failure("Yêu cầu không hợp lệ.");
     // Tin nhắn chỉ có ảnh cũng hợp lệ.
     if (!content && !hasImage) return failure("Chưa nhập nội dung.");
     if (content.length > LIMITS.commentContent) {
@@ -113,10 +125,25 @@ export async function sendMessageAction(
       return failure("Bạn không ở trong cuộc trò chuyện này.");
     }
 
+    // Người nhận đã bị khoá tài khoản thì không nhắn tiếp được nữa.
+    const recipientId =
+      conversation.userAId === actor.id
+        ? conversation.userBId
+        : conversation.userAId;
+    const recipient = await db.query.profiles.findFirst({
+      where: eq(profiles.id, recipientId),
+      columns: { status: true },
+    });
+    if (!recipient || recipient.status !== "active") {
+      return failure(
+        "Tài khoản này đang bị tạm khoá nên không nhận được tin nhắn.",
+      );
+    }
+
     // Upload trước, ngoài transaction: gọi mạng không nên giữ khoá database.
     const image =
       hasImage && imageFile instanceof File
-        ? await uploadImage(imageFile, "chat", "post")
+        ? await uploadImage(imageFile, CHAT_IMAGE_FOLDER, "post")
         : null;
 
     const now = new Date();
@@ -169,6 +196,7 @@ export async function fetchNewMessagesAction(
   sinceIso: string,
 ): Promise<{ ok: boolean; messages: ChatMessagePayload[] }> {
   try {
+    if (!isUuid(conversationId)) return { ok: false, messages: [] };
     const actor = await requireActor();
     if (!(await isParticipant(conversationId, actor.id))) {
       return { ok: false, messages: [] };
@@ -183,7 +211,6 @@ export async function fetchNewMessagesAction(
     return { ok: false, messages: [] };
   }
 }
-
 
 /* ------------------------------------------------------------------ */
 /* Danh dau da doc                                                     */
@@ -204,6 +231,7 @@ export async function markConversationReadAction(
   conversationId: string,
 ): Promise<{ ok: boolean }> {
   try {
+    if (!isUuid(conversationId)) return { ok: false };
     const actor = await requireActor();
 
     // Chỉ cần biết mình là bên A hay B — không cần kéo theo hồ sơ hai người.
@@ -244,11 +272,16 @@ export async function deleteMessageAction(
   return runAction(async () => {
     const actor = await requireActor();
     const messageId = String(formData.get("messageId") ?? "");
-    if (!messageId) return failure("Yêu cầu không hợp lệ.");
+    if (!isUuid(messageId)) return failure("Yêu cầu không hợp lệ.");
 
     const message = await db.query.messages.findFirst({
-      where: eq(messages.id, messageId),
-      columns: { id: true, senderId: true, conversationId: true },
+      where: and(eq(messages.id, messageId), isNull(messages.deletedAt)),
+      columns: {
+        id: true,
+        senderId: true,
+        conversationId: true,
+        imageUrl: true,
+      },
     });
 
     if (!message) return failure("Không tìm thấy tin nhắn.");
@@ -256,10 +289,49 @@ export async function deleteMessageAction(
       return failure("Bạn chỉ xoá được tin nhắn của chính mình.");
     }
 
-    await db
-      .update(messages)
-      .set({ deletedAt: new Date() })
-      .where(eq(messages.id, messageId));
+    await db.transaction(async (tx) => {
+      await tx
+        .update(messages)
+        .set({ deletedAt: new Date() })
+        .where(eq(messages.id, messageId));
+
+      // Tính lại dòng xem trước từ tin còn lại mới nhất — không thì nội
+      // dung vừa xoá vẫn nằm trong danh sách cuộc trò chuyện của cả hai.
+      // Mốc thời gian cũng lùi về tin đó, để phép tính "chưa đọc" (so mốc
+      // đã đọc với lastMessageAt) không báo nhầm tin cũ là chưa đọc.
+      const latest = await tx.query.messages.findFirst({
+        where: and(
+          eq(messages.conversationId, message.conversationId),
+          isNull(messages.deletedAt),
+        ),
+        orderBy: [desc(messages.createdAt)],
+        columns: {
+          senderId: true,
+          content: true,
+          imageUrl: true,
+          createdAt: true,
+        },
+      });
+
+      await tx
+        .update(conversations)
+        .set(
+          latest
+            ? {
+                lastMessagePreview: previewOf(latest),
+                lastSenderId: latest.senderId,
+                lastMessageAt: latest.createdAt,
+              }
+            : { lastMessagePreview: null, lastSenderId: null },
+        )
+        .where(eq(conversations.id, message.conversationId));
+    });
+
+    // Xoá ảnh sau khi database đã xong: ảnh mồ côi thì vô hại, còn tin
+    // trỏ vào ảnh đã mất thì hiện ô vỡ. Lỗi xoá ảnh chỉ ghi log.
+    if (message.imageUrl) {
+      await deleteImage(message.imageUrl, CHAT_IMAGE_FOLDER);
+    }
 
     revalidatePath(`/tin-nhan/${message.conversationId}`);
     return success("Đã xoá tin nhắn.");

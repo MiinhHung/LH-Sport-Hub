@@ -9,6 +9,7 @@ import { Avatar } from "@/components/ui";
 import { requireProfile } from "@/lib/auth";
 import { getConversation, listMessages, toPayload } from "@/lib/chat";
 import { nhanHoatDong } from "@/lib/hoat-dong";
+import { isUuid } from "@/lib/validation";
 
 export async function generateMetadata({
   params,
@@ -16,6 +17,7 @@ export async function generateMetadata({
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
   const { id } = await params;
+  if (!isUuid(id)) return { title: "Tin nhắn" };
   const profile = await requireProfile();
   const conversation = await getConversation(id, profile.id);
   return { title: conversation?.partner.fullName ?? "Tin nhắn" };
@@ -27,6 +29,8 @@ export default async function ConversationPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  // Id rác trên URL mà xuống thẳng Postgres sẽ nổ 22P02 thành lỗi 500.
+  if (!isUuid(id)) notFound();
   const profile = await requireProfile();
 
   // getConversation trả null khi người xem không thuộc cuộc trò chuyện,

@@ -1,3 +1,5 @@
+import { startOfDayInZone } from "@/lib/utils";
+
 type ThongBaoGoc = {
   id: string;
   type: string;
@@ -99,12 +101,8 @@ export function gomThongBao(ds: ThongBaoGoc[]): MangThoiGian[] {
 const MOT_NGAY = 24 * 60 * 60 * 1000;
 
 function nhanThoiGian(d: Date): string {
-  const bayGio = new Date();
-  const homNay = new Date(
-    bayGio.getFullYear(),
-    bayGio.getMonth(),
-    bayGio.getDate(),
-  ).getTime();
+  // 0 giờ hôm nay theo múi giờ app, không theo máy chủ (Vercel chạy UTC).
+  const homNay = startOfDayInZone().getTime();
 
   const t = d.getTime();
   if (t >= homNay) return "Hôm nay";

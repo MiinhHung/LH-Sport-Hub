@@ -153,12 +153,20 @@ export async function uploadImage(
   return { url: publicUrl, width, height, fileSize: output.byteLength };
 }
 
-export async function deleteImage(publicUrl: string): Promise<void> {
+/**
+ * Xoá ảnh khỏi kho. Truyền `folder` khi URL có thể do người dùng đặt,
+ * để chỉ xoá được ảnh trong đúng thư mục đó.
+ */
+export async function deleteImage(
+  publicUrl: string,
+  folder?: string,
+): Promise<void> {
   const marker = `/object/public/${UPLOAD.bucket}/`;
   const index = publicUrl.indexOf(marker);
   if (index === -1) return;
 
   const key = publicUrl.slice(index + marker.length);
+  if (folder && (!key.startsWith(`${folder}/`) || key.includes(".."))) return;
   const supabase = createAdminClient();
   const { error } = await supabase.storage.from(UPLOAD.bucket).remove([key]);
   if (error) console.error("[storage] xoá ảnh thất bại:", error);

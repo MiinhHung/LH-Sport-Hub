@@ -8,7 +8,10 @@ export const metadata: Metadata = { title: "Tài khoản bị khoá" };
 
 export default function SuspendedPage() {
   return (
-    <main className="flex min-h-dvh flex-col items-center justify-center bg-ink-950 px-5 text-center">
+    <main
+      id="noi-dung"
+      className="flex min-h-dvh flex-col items-center justify-center bg-ink-950 px-5 text-center"
+    >
       <span
         aria-hidden
         className="grid size-12 place-items-center rounded-xl bg-navy-900 text-gold-300"

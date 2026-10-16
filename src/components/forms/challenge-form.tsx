@@ -1,7 +1,7 @@
 "use client";
 
 import { SportIcon, StakeIcon } from "@/components/domain-icons";
-import { Check, Info } from "@/components/icons";
+import { Check, Info, Target, Users } from "@/components/icons";
 import { useRouter } from "next/navigation";
 import { useActionState, useState } from "react";
 
@@ -10,7 +10,7 @@ import {
   updateChallengeAction,
 } from "@/actions/challenges";
 import { idleState } from "@/actions/types";
-import { Chip, Khoi } from "@/components/forms/khoi";
+import { Chip, Khoi, ThanhGui } from "@/components/forms/khoi";
 import { XemTruocKeo } from "@/components/forms/xem-truoc-keo";
 import { Alert, Avatar, Field, Input, Select, Textarea } from "@/components/ui";
 import { Button } from "@/components/ui/button";
@@ -25,6 +25,7 @@ import {
   SPORT_KEYS,
   STAKES,
   STAKE_KEYS,
+  formatStake,
   type ChallengeFormatKey,
   type SportKey,
   type StakeKey,
@@ -223,27 +224,47 @@ export function ChallengeForm({
 
             <Field label="Ai nhận được kèo" required error={err.kind}>
               <input type="hidden" name="kind" value={kind} />
-              <div className="grid gap-2 sm:grid-cols-2">
-                <Chip
-                  active={kind === "open"}
-                  onClick={() => setKind("open")}
-                  className="text-left"
-                >
-                  Kèo mở
-                  <span className="mt-0.5 block text-[12.5px] font-normal opacity-80">
-                    Ai trong team cũng nhận được
-                  </span>
-                </Chip>
-                <Chip
-                  active={kind === "direct"}
-                  onClick={() => setKind("direct")}
-                  className="text-left"
-                >
-                  Thách đích danh
-                  <span className="mt-0.5 block text-[12.5px] font-normal opacity-80">
-                    Chỉ người bạn chọn
-                  </span>
-                </Chip>
+              <div className="grid gap-2.5 sm:grid-cols-2">
+                {(
+                  [
+                    {
+                      key: "open",
+                      icon: Users,
+                      ten: "Kèo mở",
+                      moTa: "Ai trong team cũng nhận được",
+                    },
+                    {
+                      key: "direct",
+                      icon: Target,
+                      ten: "Thách đích danh",
+                      moTa: "Chỉ người bạn chọn",
+                    },
+                  ] as const
+                ).map((o) => (
+                  <Chip
+                    key={o.key}
+                    active={kind === o.key}
+                    onClick={() => setKind(o.key)}
+                    className="justify-start gap-3 px-4 py-3 text-left [&_svg]:size-5"
+                  >
+                    <span
+                      className={cn(
+                        "grid size-10 shrink-0 place-items-center rounded-lg transition-colors",
+                        kind === o.key
+                          ? "bg-gold-400 text-navy-950"
+                          : "bg-ink-800 text-ink-400",
+                      )}
+                    >
+                      <o.icon aria-hidden />
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block">{o.ten}</span>
+                      <span className="mt-0.5 block text-[12.5px] font-normal opacity-75">
+                        {o.moTa}
+                      </span>
+                    </span>
+                  </Chip>
+                ))}
               </div>
             </Field>
           </Khoi>
@@ -342,14 +363,16 @@ export function ChallengeForm({
         >
           <Field label="Phần thưởng" required error={err.stakeType}>
             <input type="hidden" name="stakeType" value={stakeType} />
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+            <div className="grid grid-cols-3 gap-2.5 sm:grid-cols-4">
               {STAKE_KEYS.map((key) => (
                 <Chip
                   key={key}
+                  doc
                   active={stakeType === key}
                   onClick={() => pickStake(key)}
                 >
-                  <StakeIcon stake={key} /> {STAKES[key].label}
+                  <StakeIcon stake={key} />
+                  <span className="text-[13px]">{STAKES[key].label}</span>
                 </Chip>
               ))}
             </div>
@@ -357,17 +380,40 @@ export function ChallengeForm({
 
           {STAKES[stakeType].createsDebt && stakeType !== "khac" && (
             <Field label="Số lượng" htmlFor="stakeQty" error={err.stakeQty}>
+              {/* Bộ đếm − / + : bấm hai cái là xong, khỏi gõ số trên điện thoại */}
               <div className="flex items-center gap-3">
-                <Input
-                  id="stakeQty"
-                  name="stakeQty"
-                  type="number"
-                  min={1}
-                  max={MAX_STAKE_QTY}
-                  value={stakeQty}
-                  onChange={(e) => setStakeQty(Number(e.target.value) || 1)}
-                  className="w-24"
-                />
+                <div className="flex items-center rounded-xl border border-ink-700 bg-ink-850/60 p-1">
+                  <button
+                    type="button"
+                    onClick={() => setStakeQty((q) => Math.max(1, q - 1))}
+                    disabled={stakeQty <= 1}
+                    aria-label="Bớt một"
+                    className="grid size-9 place-items-center rounded-lg text-[18px] font-bold text-ink-300 transition-colors hover:bg-ink-800 hover:text-ink-100 disabled:opacity-30"
+                  >
+                    −
+                  </button>
+                  <Input
+                    id="stakeQty"
+                    name="stakeQty"
+                    type="number"
+                    min={1}
+                    max={MAX_STAKE_QTY}
+                    value={stakeQty}
+                    onChange={(e) => setStakeQty(Number(e.target.value) || 1)}
+                    className="tabular h-9 w-14 border-0 bg-transparent px-0 text-center text-[16px] font-bold shadow-none focus:ring-0 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setStakeQty((q) => Math.min(MAX_STAKE_QTY, q + 1))
+                    }
+                    disabled={stakeQty >= MAX_STAKE_QTY}
+                    aria-label="Thêm một"
+                    className="grid size-9 place-items-center rounded-lg text-[18px] font-bold text-ink-300 transition-colors hover:bg-ink-800 hover:text-ink-100 disabled:opacity-30"
+                  >
+                    +
+                  </button>
+                </div>
                 <span className="text-sm text-ink-400">
                   {STAKES[stakeType].unit}
                 </span>
@@ -561,7 +607,32 @@ export function ChallengeForm({
           </Alert>
         )}
 
-        <div className="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:justify-end">
+        <ThanhGui
+          tomTat={
+            <>
+              <span className="block truncate font-semibold text-ink-100">
+                {title.trim() || "Kèo chưa có tên"}
+              </span>
+              <span className="mt-0.5 flex items-center gap-1.5 truncate">
+                <SportIcon sport={sport} className="size-3.5 shrink-0" />
+                {spec.label}
+                {format !== "free" && points !== "" && ` · ${points} điểm`}
+                <span aria-hidden className="text-ink-600">
+                  ·
+                </span>
+                <StakeIcon
+                  stake={stakeType}
+                  className="size-3.5 shrink-0 text-gold-700 dark:text-gold-300"
+                />
+                <span className="truncate">
+                  {stakeType === "khac" && !stakeNote.trim()
+                    ? "Chưa ghi phần thưởng"
+                    : formatStake(stakeType, stakeQty, stakeNote)}
+                </span>
+              </span>
+            </>
+          }
+        >
           <Button
             variant="ghost"
             size="lg"
@@ -571,13 +642,14 @@ export function ChallengeForm({
             Thôi
           </Button>
           <SubmitButton
-            variant="primary"
+            variant="accent"
             size="lg"
+            className="flex-1 sm:flex-none"
             pendingText={sua ? "Đang lưu…" : "Đang tạo kèo…"}
           >
             {sua ? "Lưu thay đổi" : "Tạo kèo"}
           </SubmitButton>
-        </div>
+        </ThanhGui>
       </form>
 
       {/* Xem trước — chỉ từ lg. Dưới mức đó màn hình vừa đủ cho biểu mẫu,

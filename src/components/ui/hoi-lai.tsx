@@ -63,14 +63,30 @@ export function useHoiLai() {
   const [noiDung, setNoiDung] = React.useState<NoiDung | null>(null);
 
   const hoi = React.useCallback((n: NoiDung) => {
+    // Đang hỏi dở mà hỏi tiếp: câu cũ coi như "Thôi", kẻo lời hứa cũ bị
+    // ghi đè rồi treo mãi.
+    traLoi.current?.(false);
     setNoiDung(n);
     return new Promise<boolean>((resolve) => {
       traLoi.current = resolve;
       // Đợi React vẽ xong nội dung rồi mới mở, nếu không lần đầu hộp
-      // thoại mở ra trống trơn.
-      requestAnimationFrame(() => ref.current?.showModal());
+      // thoại mở ra trống trơn. Đang mở sẵn thì gọi lại showModal sẽ lỗi.
+      requestAnimationFrame(() => {
+        const d = ref.current;
+        if (d && !d.open) d.showModal();
+      });
     });
   }, []);
+
+  // Gỡ component khi còn đang hỏi: trả "Thôi" để đoạn mã đang `await`
+  // chạy tiếp được, không treo.
+  React.useEffect(
+    () => () => {
+      traLoi.current?.(false);
+      traLoi.current = null;
+    },
+    [],
+  );
 
   const dong = React.useCallback((ok: boolean) => {
     ref.current?.close();

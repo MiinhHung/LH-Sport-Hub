@@ -60,15 +60,23 @@ export function ODanLink({
     const cua = ++lan.current;
     setDangDoc(true);
     setLoi(null);
-    const kq = await xemTruocLinkAction(s);
-    if (cua !== lan.current) return;
-    setDangDoc(false);
-    if (kq.ok) {
-      setDoc(kq);
-      datUrl(kq.url);
-    } else {
+    try {
+      const kq = await xemTruocLinkAction(s);
+      if (cua !== lan.current) return;
+      if (kq.ok) {
+        setDoc(kq);
+        datUrl(kq.url);
+      } else {
+        setDoc(null);
+        setLoi(kq.loi);
+      }
+    } catch {
+      // Lỗi mạng / server: báo một câu, đừng để vòng xoay quay mãi.
+      if (cua !== lan.current) return;
       setDoc(null);
-      setLoi(kq.loi);
+      setLoi("Không đọc được đường dẫn này, thử lại sau nhé.");
+    } finally {
+      if (cua === lan.current) setDangDoc(false);
     }
   }, [datUrl]);
 
@@ -96,7 +104,17 @@ export function ODanLink({
           inputMode="url"
           value={url}
           disabled={dangBan}
-          onChange={(e) => datUrl(e.target.value)}
+          onChange={(e) => {
+            datUrl(e.target.value);
+            // Sửa tay địa chỉ thì thẻ xem trước cũ không còn đúng nữa, và
+            // lần đọc đang chạy (nếu có) cũng bỏ — kẻo nó về sau rồi ghi
+            // đè lên chữ người ta đang gõ.
+            if (doc && e.target.value !== doc.url) setDoc(null);
+            if (dangDoc) {
+              lan.current++;
+              setDangDoc(false);
+            }
+          }}
           onPaste={(e) => {
             const v = e.clipboardData.getData("text");
             if (v) {

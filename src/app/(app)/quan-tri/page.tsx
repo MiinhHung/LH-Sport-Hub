@@ -24,6 +24,11 @@ const TONE_VAI_TRO: Record<RoleKey, Tone> = {
   member: "slate",
 };
 
+/** Thuộc ban quản trị (admin hoặc điều hành viên). */
+function laQuanTri(role: string): boolean {
+  return role === "admin" || role === "moderator";
+}
+
 export default async function AdminPage() {
   const me = await requireProfile();
 
@@ -221,7 +226,10 @@ export default async function AdminPage() {
 
                     {/* Hàng của chính mình không có nút (MemberControls tự
                         trả null), nên bỏ luôn ô bọc để khỏi chừa khoảng trống. */}
-                    {p.id !== me.id && (
+                    {/* Điều hành viên không khoá được admin/điều hành viên khác
+                        (luật của setUserStatusAction), nên giấu nút luôn. */}
+                    {p.id !== me.id &&
+                      (me.role === "admin" || !laQuanTri(p.role)) && (
                       <div className="w-full pl-[52px] sm:w-auto sm:pl-0">
                         <MemberControls
                           userId={p.id}
@@ -229,6 +237,9 @@ export default async function AdminPage() {
                           role={p.role as RoleKey}
                           status={p.status}
                           canAssignRoles={me.role === "admin"}
+                          canChangeStatus={
+                            me.role === "admin" || !laQuanTri(p.role)
+                          }
                           isSelf={p.id === me.id}
                         />
                       </div>

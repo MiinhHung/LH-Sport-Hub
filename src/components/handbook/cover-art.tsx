@@ -1,3 +1,5 @@
+import { useId } from "react";
+
 import { cn } from "@/lib/utils";
 
 /**
@@ -43,7 +45,9 @@ export function CoverArt({
   motif: CoverMotif;
   className?: string;
 }) {
-  const id = `ca-${motif}`;
+  // useId chứ không phải `ca-${motif}`: cùng một hình hiện nhiều lần trên
+  // một trang thì id trùng nhau, `url(#...)` trỏ nhầm sang bìa khác.
+  const id = `ca${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
 
   return (
     <svg
@@ -69,7 +73,7 @@ export function CoverArt({
 
       {/* Hình vẽ lệch lên trên và sang phải: nửa dưới bên trái để dành cho
           chữ tiêu đề đè lên. */}
-      <g transform="translate(700 330)">{MOTIFS[motif]}</g>
+      <g transform="translate(700 330)">{MOTIFS[motif](id)}</g>
     </svg>
   );
 }
@@ -315,16 +319,16 @@ const Lines = (
 );
 
 /** Mặt vợt và lưới dây. */
-const Strings = (
+const Strings = (id: string) => (
   <g transform="rotate(-32)">
     <defs>
-      <clipPath id="ca-head">
+      <clipPath id={`${id}-head`}>
         <ellipse cx="0" cy="-90" rx="178" ry="212" />
       </clipPath>
     </defs>
 
     {/* Dây */}
-    <g clipPath="url(#ca-head)" stroke={GOLD_SOFT} strokeWidth="4" opacity="0.5">
+    <g clipPath={`url(#${id}-head)`} stroke={GOLD_SOFT} strokeWidth="4" opacity="0.5">
       {[-160, -120, -80, -40, 0, 40, 80, 120, 160].map((x) => (
         <line key={`v${x}`} x1={x} y1="-320" x2={x} y2="140" />
       ))}
@@ -458,10 +462,10 @@ const Net = (
 );
 
 /** Đế giày nhìn từ dưới lên: rãnh xương cá và điểm xoay ở ức bàn chân. */
-const Sole = (
+const Sole = (id: string) => (
   <g transform="rotate(14)">
     <defs>
-      <clipPath id="ca-sole">
+      <clipPath id={`${id}-sole`}>
         <path d={SOLE_PATH} />
       </clipPath>
     </defs>
@@ -470,7 +474,7 @@ const Sole = (
 
     {/* Rãnh xương cá */}
     <g
-      clipPath="url(#ca-sole)"
+      clipPath={`url(#${id}-sole)`}
       stroke={GOLD_SOFT}
       strokeWidth="7"
       fill="none"
@@ -497,18 +501,18 @@ const Sole = (
 );
 
 /** Mặt trời vừa lên khỏi đường chân trời, tia toả ra. */
-const Sunrise = (
+const Sunrise = (id: string) => (
   <g>
     {/* Cắt nửa dưới của đĩa mặt trời đi, để nó đúng là vừa nhô lên. */}
     <defs>
-      <clipPath id="ca-sun">
+      <clipPath id={`${id}-sun`}>
         <rect x="-420" y="-420" width="840" height="500" />
       </clipPath>
     </defs>
 
     {/* Tia nắng */}
     <g
-      clipPath="url(#ca-sun)"
+      clipPath={`url(#${id}-sun)`}
       stroke={GOLD}
       strokeWidth="11"
       strokeLinecap="round"
@@ -531,7 +535,7 @@ const Sunrise = (
     </g>
 
     {/* Đĩa mặt trời */}
-    <g clipPath="url(#ca-sun)">
+    <g clipPath={`url(#${id}-sun)`}>
       <circle cx="0" cy="80" r="158" fill={GOLD} fillOpacity="0.92" />
     </g>
 
@@ -554,14 +558,15 @@ const Sunrise = (
   </g>
 );
 
-const MOTIFS: Record<CoverMotif, React.ReactElement> = {
-  shuttle: Shuttle,
-  footwork: Footwork,
-  serve: Serve,
-  lines: Lines,
+/** Hình nào có clipPath thì nhận id riêng của từng bìa. */
+const MOTIFS: Record<CoverMotif, (id: string) => React.ReactElement> = {
+  shuttle: () => Shuttle,
+  footwork: () => Footwork,
+  serve: () => Serve,
+  lines: () => Lines,
   strings: Strings,
-  pulse: Pulse,
-  net: Net,
+  pulse: () => Pulse,
+  net: () => Net,
   sole: Sole,
   sunrise: Sunrise,
 };

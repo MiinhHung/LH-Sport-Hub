@@ -77,11 +77,19 @@ function useReaction(
   const [summary, setSummary] = useState(initial);
   const [, startTransition] = useTransition();
 
-  // Dữ liệu mới từ server (sau revalidate) thì lấy làm chuẩn.
-  useEffect(() => setSummary(initial), [initial]);
+  // Dữ liệu mới từ server (sau revalidate) thì lấy làm chuẩn. Đổi ngay
+  // trong lúc dựng thay vì setState trong effect (đỡ một lần vẽ thừa).
+  const [goc, setGoc] = useState(initial);
+  if (goc !== initial) {
+    setGoc(initial);
+    setSummary(initial);
+  }
 
   function toggle(type: ReactionKey) {
-    setSummary((current) => applyToggle(current, type));
+    // Giữ lại trạng thái NGAY TRƯỚC cú bấm này. Trả về `initial` (bản từ
+    // server lúc tải trang) là sai khi người ta đã bấm vài lần rồi.
+    const truoc = summary;
+    setSummary(applyToggle(truoc, type));
 
     const fd = new FormData();
     fd.set("targetType", targetType);
@@ -89,9 +97,14 @@ function useReaction(
     fd.set("type", type);
 
     startTransition(async () => {
-      const result = await toggleReactionAction(idleState, fd);
-      // Thất bại thì trả lại trạng thái cũ để không hiện sai.
-      if (result.status === "error") setSummary(initial);
+      try {
+        const result = await toggleReactionAction(idleState, fd);
+        // Thất bại thì trả lại trạng thái cũ để không hiện sai.
+        if (result.status === "error") setSummary(truoc);
+      } catch {
+        // Mất mạng / server lỗi: cũng trả lại như cũ.
+        setSummary(truoc);
+      }
     });
   }
 
@@ -221,10 +234,16 @@ function CommentRow({
   comment,
   viewer,
   canModerate,
+  onTraLoi,
+  nho,
 }: {
   comment: FeedComment;
   viewer: Viewer;
   canModerate: boolean;
+  /** Bấm "Trả lời" dưới bình luận này. */
+  onTraLoi: () => void;
+  /** Câu trả lời: avatar nhỏ hơn, nằm thụt trong chuỗi. */
+  nho?: boolean;
 }) {
   const [removed, setRemoved] = useState(false);
   const [, startTransition] = useTransition();
@@ -257,8 +276,13 @@ function CommentRow({
     const fd = new FormData();
     fd.set("commentId", comment.id);
     startTransition(async () => {
-      const result = await deleteCommentAction(idleState, fd);
-      if (result.status === "error") setRemoved(false);
+      try {
+        const result = await deleteCommentAction(idleState, fd);
+        if (result.status === "error") setRemoved(false);
+      } catch {
+        // Lỗi mạng: hiện lại bình luận, vì thật ra nó chưa bị xoá.
+        setRemoved(false);
+      }
     });
   }
 
@@ -269,11 +293,11 @@ function CommentRow({
         name={comment.author.fullName}
         src={comment.author.avatarUrl}
         seed={comment.author.id}
-        size="sm"
+        size={nho ? "xs" : "sm"}
         className="mt-0.5"
       />
       <div className="min-w-0 flex-1">
-        <div className="relative inline-block max-w-full rounded-lg bg-ink-850 px-3.5 py-2">
+        <div className="relative inline-block max-w-full rounded-2xl bg-ink-850 px-3.5 py-2">
           <p className="text-[13px] font-semibold text-ink-100">
             {comment.author.fullName}
           </p>
@@ -286,6 +310,9 @@ function CommentRow({
           <time
             className="text-ink-500"
             dateTime={comment.createdAt.toISOString()}
+            // "x phút trước" tính lúc dựng: máy chủ và trình duyệt lệch
+            // nhau vài giây là đủ khác chữ, đừng báo lỗi hydrate.
+            suppressHydrationWarning
           >
             {timeAgo(comment.createdAt)}
           </time>
@@ -322,6 +349,14 @@ function CommentRow({
             )}
           </div>
 
+          <button
+            type="button"
+            onClick={onTraLoi}
+            className="font-semibold text-ink-500 transition-colors hover:text-ink-200 pointer-coarse:min-h-8"
+          >
+            Trả lời
+          </button>
+
           {canDelete && (
             <button
               type="button"
@@ -344,6 +379,128 @@ function CommentRow({
           )}
         </div>
       </div>
+    </li>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Ô trả lời một bình luận                                             */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Ô nhập mở ngay dưới chuỗi bình luận đang được trả lời. Trả lời vào một
+ * câu trả lời thì điền sẵn "@Tên " để biết đang đáp ai (máy chủ vẫn gắn
+ * vào bình luận gốc — chỉ một tầng).
+ */
+function OTraLoi({
+  postId,
+  parentId,
+  ten,
+  nhacTen,
+  viewer,
+  onDong,
+}: {
+  postId: string;
+  parentId: string;
+  ten: string;
+  /** Điền sẵn "@ten " vào ô (khi trả lời một câu trả lời). */
+  nhacTen: boolean;
+  viewer: Viewer;
+  onDong: () => void;
+}) {
+  const [draft, setDraft] = useState(nhacTen ? `@${ten} ` : "");
+  const [pending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
+  const oNhap = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    const el = oNhap.current;
+    if (!el) return;
+    el.focus();
+    el.setSelectionRange(el.value.length, el.value.length);
+  }, []);
+
+  function submit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const content = draft.trim();
+    if (!content) return;
+    setError(null);
+
+    const fd = new FormData();
+    fd.set("postId", postId);
+    fd.set("parentId", parentId);
+    fd.set("content", content);
+
+    startTransition(async () => {
+      try {
+        const result = await createCommentAction(idleState, fd);
+        if (result.status === "error") {
+          setError(result.message ?? "Không gửi được câu trả lời.");
+          return;
+        }
+        onDong();
+      } catch {
+        setError("Không gửi được câu trả lời.");
+      }
+    });
+  }
+
+  return (
+    <li>
+      <form onSubmit={submit} className="flex items-start gap-2">
+        <Avatar
+          name={viewer.fullName}
+          src={viewer.avatarUrl}
+          seed={viewer.id}
+          size="xs"
+          className="mt-1.5"
+        />
+        <div className="min-w-0 flex-1">
+          <div className="flex items-end gap-2 rounded-2xl border border-ink-700 bg-ink-900 py-1 pr-1 pl-3 transition-[border-color,box-shadow] focus-within:border-gold-400 focus-within:ring-2 focus-within:ring-gold-400/25">
+            <textarea
+              ref={oNhap}
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  e.currentTarget.form?.requestSubmit();
+                }
+                if (e.key === "Escape") onDong();
+              }}
+              rows={1}
+              maxLength={LIMITS.commentContent}
+              placeholder={`Trả lời ${ten}…`}
+              aria-label={`Trả lời ${ten}`}
+              className="max-h-28 min-h-8 w-full resize-none bg-transparent py-1.5 text-[13.5px] text-ink-200 outline-none placeholder:text-ink-500"
+            />
+            <button
+              type="submit"
+              disabled={!draft.trim() || pending}
+              aria-label="Gửi câu trả lời"
+              className="grid size-7 shrink-0 place-items-center rounded-full bg-navy-900 text-white transition-[background-color,opacity,transform] hover:bg-navy-800 active:scale-95 disabled:opacity-30"
+            >
+              <Send className="size-3.5" />
+            </button>
+          </div>
+          <p className="mt-1 flex items-center gap-2 text-[12px] text-ink-500">
+            {error ? (
+              <span className="font-medium text-rose-600 dark:text-rose-400">
+                {error}
+              </span>
+            ) : (
+              <span className="hidden sm:inline">Enter để gửi · Esc để huỷ</span>
+            )}
+            <button
+              type="button"
+              onClick={onDong}
+              className="font-semibold hover:text-ink-200 sm:hidden"
+            >
+              Huỷ
+            </button>
+          </p>
+        </div>
+      </form>
     </li>
   );
 }
@@ -390,9 +547,34 @@ export function PostInteractions({
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
-  const visible = showAll ? comments : comments.slice(-3);
-  const hidden = comments.length - visible.length;
+  /*
+   * Gom thành chuỗi: bình luận gốc, mỗi cái kèm các câu trả lời của nó.
+   * Câu trả lời mà bình luận gốc không có trong danh sách (đã xoá, hoặc
+   * nằm ngoài phần đã tải) thì đứng như một bình luận thường.
+   */
+  const coMat = new Set(comments.map((c) => c.id));
+  const goc = comments.filter((c) => !c.parentId || !coMat.has(c.parentId));
+  const traLoiCua = new Map<string, FeedComment[]>();
+  for (const c of comments) {
+    if (c.parentId && coMat.has(c.parentId)) {
+      traLoiCua.set(c.parentId, [...(traLoiCua.get(c.parentId) ?? []), c]);
+    }
+  }
+  const chuoiHien = showAll ? goc : goc.slice(-3);
+  const soDangHien = chuoiHien.reduce(
+    (n, c) => n + 1 + (traLoiCua.get(c.id)?.length ?? 0),
+    0,
+  );
+  const hidden = comments.length - soDangHien;
   const mine = summary.mine;
+
+  /** Đang trả lời: chuỗi nào, người nào, có điền sẵn tên không. */
+  const [traLoi, setTraLoi] = useState<{
+    goc: string;
+    dich: string;
+    ten: string;
+    nhacTen: boolean;
+  } | null>(null);
 
   function batBinhLuan() {
     setMoBinhLuan(true);
@@ -413,9 +595,15 @@ export function PostInteractions({
     fd.set("content", content);
 
     startTransition(async () => {
-      const result = await createCommentAction(idleState, fd);
-      if (result.status === "error") {
-        setError(result.message ?? "Không gửi được bình luận.");
+      try {
+        const result = await createCommentAction(idleState, fd);
+        if (result.status === "error") {
+          setError(result.message ?? "Không gửi được bình luận.");
+          setDraft(content);
+        }
+      } catch {
+        // Lỗi mạng: trả lại chữ đã gõ để khỏi mất.
+        setError("Không gửi được bình luận.");
         setDraft(content);
       }
     });
@@ -441,53 +629,65 @@ export function PostInteractions({
 
       {/* Thanh hành động */}
       <div className="flex items-center gap-1 border-t border-ink-800 px-2 py-1 sm:px-3">
-        <div
-          ref={chonRef}
-          className="relative flex flex-1 items-center"
-          {...reChon}
-        >
-          <button
-            type="button"
-            onClick={() => toggle(mine ?? "like")}
-            onContextMenu={(e) => {
-              e.preventDefault();
-              datChon(true);
-            }}
-            aria-pressed={!!mine}
-            aria-label={mine ? `Bỏ ${REACTIONS[mine].label}` : "Thích bài này"}
-            className={cn(
-              NUT_HANH_DONG,
-              mine
-                ? "text-gold-700 hover:bg-gold-50 dark:text-gold-300 dark:hover:bg-gold-400/10"
-                : "text-ink-400 hover:bg-ink-850 hover:text-ink-100",
-            )}
+        {/*
+          NÚT CẢM XÚC LÀ MỘT CỤM, ĐỨNG GIỮA NỬA TRÁI. Bản trước nút chính
+          giãn hết nửa trái (đẩy chữ vào giữa) còn nút mặt cười bị dạt ra
+          sát vạch ngăn — hai thứ lệch nhau, nhìn như không dính gì tới
+          nhau. Giờ cả hai nằm chung một viên, căn giữa, đối xứng với nút
+          "Bình luận" bên phải.
+        */}
+        <div className="flex flex-1 justify-center">
+          <div
+            ref={chonRef}
+            className="relative flex items-center rounded-lg transition-colors hover:bg-ink-850"
+            {...reChon}
           >
-            {mine ? (
-              <ReactionBadge reaction={mine} size="sm" />
-            ) : (
-              <ThumbsUp className="size-[18px]" />
-            )}
-            {mine ? REACTIONS[mine].label : "Thích"}
-          </button>
-          <button
-            type="button"
-            onClick={() => datChon((v) => !v)}
-            aria-expanded={chonMo}
-            aria-label="Chọn cảm xúc khác"
-            className="grid size-10 shrink-0 place-items-center rounded-lg text-ink-500 transition-colors hover:bg-ink-850 hover:text-ink-100"
-          >
-            <SmilePlus className="size-[18px]" />
-          </button>
-          {chonMo && (
-            <ReactionPicker
-              mine={mine}
-              className="left-0"
-              onPick={(k) => {
-                datChon(false);
-                toggle(k);
+            <button
+              type="button"
+              onClick={() => toggle(mine ?? "like")}
+              onContextMenu={(e) => {
+                e.preventDefault();
+                datChon(true);
               }}
-            />
-          )}
+              aria-pressed={!!mine}
+              aria-label={
+                mine ? `Bỏ ${REACTIONS[mine].label}` : "Thích bài này"
+              }
+              className={cn(
+                "inline-flex h-10 items-center gap-2 rounded-l-lg pr-2 pl-3.5 text-[13.5px] font-semibold transition-colors active:scale-[0.98]",
+                mine
+                  ? "text-gold-700 dark:text-gold-300"
+                  : "text-ink-400 hover:text-ink-100",
+              )}
+            >
+              {mine ? (
+                <ReactionBadge reaction={mine} size="sm" />
+              ) : (
+                <ThumbsUp className="size-[18px]" />
+              )}
+              {mine ? REACTIONS[mine].label : "Thích"}
+            </button>
+            <span aria-hidden className="h-4 w-px bg-ink-700/70" />
+            <button
+              type="button"
+              onClick={() => datChon((v) => !v)}
+              aria-expanded={chonMo}
+              aria-label="Chọn cảm xúc khác"
+              className="grid h-10 w-9 place-items-center rounded-r-lg text-ink-500 transition-colors hover:text-ink-100"
+            >
+              <SmilePlus className="size-[17px]" />
+            </button>
+            {chonMo && (
+              <ReactionPicker
+                mine={mine}
+                className="left-1/2 -translate-x-1/2"
+                onPick={(k) => {
+                  datChon(false);
+                  toggle(k);
+                }}
+              />
+            )}
+          </div>
         </div>
 
         <span aria-hidden className="h-5 w-px bg-ink-800" />
@@ -518,16 +718,65 @@ export function PostInteractions({
             </button>
           )}
 
-          {visible.length > 0 && (
+          {chuoiHien.length > 0 && (
             <ul className="space-y-4">
-              {visible.map((c) => (
-                <CommentRow
-                  key={c.id}
-                  comment={c}
-                  viewer={viewer}
-                  canModerate={canModerate}
-                />
-              ))}
+              {chuoiHien.map((c) => {
+                const cacTraLoi = traLoiCua.get(c.id) ?? [];
+                const dangTraLoi = traLoi?.goc === c.id;
+                return (
+                  <li key={c.id}>
+                    <ul className="space-y-0">
+                      <CommentRow
+                        comment={c}
+                        viewer={viewer}
+                        canModerate={canModerate}
+                        onTraLoi={() =>
+                          setTraLoi({
+                            goc: c.id,
+                            dich: c.id,
+                            ten: c.author.fullName,
+                            nhacTen: false,
+                          })
+                        }
+                      />
+                    </ul>
+
+                    {/* Chuỗi trả lời: thụt vào, có vạch dọc nối về bình luận gốc */}
+                    {(cacTraLoi.length > 0 || dangTraLoi) && (
+                      <ul className="mt-3 ml-4 space-y-3 border-l-2 border-ink-800 pl-4 sm:ml-[18px]">
+                        {cacTraLoi.map((r) => (
+                          <CommentRow
+                            key={r.id}
+                            nho
+                            comment={r}
+                            viewer={viewer}
+                            canModerate={canModerate}
+                            onTraLoi={() =>
+                              setTraLoi({
+                                goc: c.id,
+                                dich: r.id,
+                                ten: r.author.fullName,
+                                nhacTen: r.author.id !== viewer.id,
+                              })
+                            }
+                          />
+                        ))}
+                        {dangTraLoi && (
+                          <OTraLoi
+                            key={traLoi.dich}
+                            postId={postId}
+                            parentId={traLoi.dich}
+                            ten={traLoi.ten}
+                            nhacTen={traLoi.nhacTen}
+                            viewer={viewer}
+                            onDong={() => setTraLoi(null)}
+                          />
+                        )}
+                      </ul>
+                    )}
+                  </li>
+                );
+              })}
             </ul>
           )}
 

@@ -13,7 +13,6 @@ import type { ReactNode } from "react";
 import { ChallengeCard } from "@/components/challenge-card";
 import { ChuaCoKeo } from "@/components/keo/chua-co-keo";
 import { CotPhaiKeo } from "@/components/keo/cot-phai";
-import { TeamFeed } from "@/components/team-feed";
 import { Badge, Card, PageIntro } from "@/components/ui";
 import { LinkButton } from "@/components/ui/button";
 import { requireProfile } from "@/lib/auth";
@@ -300,9 +299,6 @@ export default async function ChallengesPage({
               </div>
             )}
           </section>
-
-          {/* Ảnh của team — để cuối cột trái, không tranh chỗ với nội dung chính */}
-          <TeamFeed />
         </div>
 
         {/* Cột phải chỉ hiện từ lg, giống bảng tin: dưới mức đó màn hình

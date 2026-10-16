@@ -88,6 +88,49 @@ const EMOJIS = [
 
 type Pending = ChatMessagePayload & { pending?: true; failed?: true };
 
+/** Tin tạm (đang gửi hoặc gửi hỏng) — chưa có id thật trên máy chủ. */
+const TEMP_PREFIX = "tam-";
+let tempSeq = 0;
+/** Id tạm không trùng, kể cả khi bấm gửi / gửi lại hai lần trong cùng mili giây. */
+function newTempId() {
+  tempSeq += 1;
+  return `${TEMP_PREFIX}${Date.now()}-${tempSeq}`;
+}
+const isTemp = (m: Pending) =>
+  Boolean(m.pending || m.failed || m.id.startsWith(TEMP_PREFIX));
+
+/**
+ * Gộp tin từ máy chủ vào danh sách đang hiện.
+ *
+ * - Tin đã có (trùng id) thì bỏ qua.
+ * - Tin tạm (đang gửi / gửi hỏng) LUÔN được giữ và xếp cuối: nếu bỏ đi
+ *   giữa chừng thì lúc gửi hỏng không còn gì để đánh dấu, chữ người dùng
+ *   gõ biến mất luôn.
+ * - Tin thật của chính mình về tới thì gỡ một bản tạm cùng nội dung đang
+ *   chờ, để không hiện hai lần trong lúc chờ kết quả gửi.
+ */
+function mergeIncoming(
+  current: Pending[],
+  incoming: ChatMessagePayload[],
+  viewerId: string,
+): Pending[] {
+  const ids = new Set(current.map((m) => m.id));
+  const add = incoming.filter((m) => !ids.has(m.id));
+  if (add.length === 0) return current;
+
+  const confirmed = current.filter((m) => !isTemp(m));
+  let temps = current.filter(isTemp);
+  for (const m of add) {
+    if (m.senderId !== viewerId) continue;
+    const i = temps.findIndex(
+      (t) =>
+        t.pending && t.content === m.content && !t.imageUrl === !m.imageUrl,
+    );
+    if (i !== -1) temps = temps.filter((_, j) => j !== i);
+  }
+  return [...confirmed, ...add, ...temps];
+}
+
 function dayLabel(iso: string) {
   const d = new Date(iso);
   const now = new Date();
@@ -138,7 +181,7 @@ export function ChatThread({
   const [, startTransition] = useTransition();
   const { hoi, hopThoai } = useHoiLai();
 
-  const bottomRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const textRef = useRef<HTMLTextAreaElement>(null);
   const emojiRef = useRef<HTMLDivElement>(null);
@@ -150,22 +193,55 @@ export function ChatThread({
   // đã đọc một lần cho mỗi cuộc trò chuyện.
   const markedRead = useRef<string | null>(null);
 
+  // Bản mới nhất của danh sách tin, để vòng hỏi tin biết tin nào đã có
+  // mà không phải đưa `items` vào phụ thuộc của effect.
+  const itemsRef = useRef<Pending[]>(initialMessages);
+  useEffect(() => {
+    itemsRef.current = items;
+  }, [items]);
+
+  // Mọi object URL (blob:) đang sống — để thu hồi hết khi rời khung chat,
+  // nếu không ảnh đính kèm cứ nằm trong bộ nhớ trình duyệt mãi.
+  const blobUrls = useRef<Set<string>>(new Set());
+  // File gốc của tin gửi hỏng, để bấm "Gửi lại" không phải chọn ảnh lại.
+  const tempFiles = useRef<Map<string, File>>(new Map());
+
+  useEffect(() => {
+    const urls = blobUrls.current;
+    return () => {
+      for (const url of urls) URL.revokeObjectURL(url);
+      urls.clear();
+    };
+  }, []);
+
+  const revokeBlob = useCallback((url: string | null | undefined) => {
+    if (!url || !blobUrls.current.has(url)) return;
+    URL.revokeObjectURL(url);
+    blobUrls.current.delete(url);
+  }, []);
+
   const markRead = useCallback(() => {
     if (markedRead.current === conversationId) return;
     markedRead.current = conversationId;
     void markConversationReadAction(conversationId);
   }, [conversationId]);
 
+  // Bỏ qua tin tạm: giờ của chúng lấy từ đồng hồ máy người dùng, lấy làm
+  // mốc hỏi tin thì có thể bỏ sót tin thật.
   const lastRealAt = items.reduce<string | null>(
     (acc, m) =>
-      m.pending ? acc : !acc || m.createdAt > acc ? m.createdAt : acc,
+      isTemp(m) ? acc : !acc || m.createdAt > acc ? m.createdAt : acc,
     null,
   );
 
+  // Cuộn đúng khung tin. `scrollIntoView` cuộn luôn cả trang cha, đẩy
+  // header co/giãn theo và làm khung chat giật.
   const scrollToBottom = useCallback((smooth = false) => {
-    bottomRef.current?.scrollIntoView({
+    const el = listRef.current;
+    if (!el) return;
+    el.scrollTo({
+      top: el.scrollHeight,
       behavior: smooth ? "smooth" : "auto",
-      block: "end",
     });
   }, []);
 
@@ -199,17 +275,16 @@ export function ChatThread({
       const result = await fetchNewMessagesAction(conversationId, since);
       if (cancelled || !result.ok || result.messages.length === 0) return;
 
-      setItems((current) => {
-        const known = new Set(
-          current.filter((m) => !m.pending).map((m) => m.id),
-        );
-        const fresh = result.messages.filter((m) => !known.has(m.id));
-        if (fresh.length === 0) return current;
-        return [...current.filter((m) => !m.pending), ...fresh];
-      });
+      const known = new Set(itemsRef.current.map((m) => m.id));
+      const fresh = result.messages.filter((m) => !known.has(m.id));
+      if (fresh.length === 0) return;
 
-      // Có tin mới từ người kia => mở lại chốt để đánh dấu đã đọc lần nữa.
-      if (result.messages.some((m) => m.senderId !== viewerId)) {
+      setItems((current) => mergeIncoming(current, fresh, viewerId));
+
+      // Chỉ khi THẬT SỰ có tin mới từ người kia mới đánh dấu đã đọc lại.
+      // Xét trên `result.messages` thì tin cũ trả về lặp lại cũng tính, và
+      // mỗi lần hỏi lại bắn một lệnh UPDATE vô ích.
+      if (fresh.some((m) => m.senderId !== viewerId)) {
         markedRead.current = null;
         markRead();
       }
@@ -230,17 +305,15 @@ export function ChatThread({
       return;
     }
     setError(null);
-    setAttachment((current) => {
-      if (current) URL.revokeObjectURL(current.url);
-      return { file, url: URL.createObjectURL(file) };
-    });
+    if (attachment) revokeBlob(attachment.url);
+    const url = URL.createObjectURL(file);
+    blobUrls.current.add(url);
+    setAttachment({ file, url });
   }
 
   function clearAttachment() {
-    setAttachment((current) => {
-      if (current) URL.revokeObjectURL(current.url);
-      return null;
-    });
+    if (attachment) revokeBlob(attachment.url);
+    setAttachment(null);
     if (fileRef.current) fileRef.current.value = "";
   }
 
@@ -258,6 +331,13 @@ export function ChatThread({
       el.focus();
       el.setSelectionRange(start + emoji.length, start + emoji.length);
     });
+  }
+
+  /** Bỏ một tin tạm (gửi hỏng) — chỉ ở máy mình, máy chủ chưa hề có nó. */
+  function discardTemp(m: Pending) {
+    revokeBlob(m.imageUrl);
+    tempFiles.current.delete(m.id);
+    setItems((current) => current.filter((x) => x.id !== m.id));
   }
 
   async function removeMessage(id: string) {
@@ -287,16 +367,35 @@ export function ChatThread({
     const file = attachment?.file ?? null;
     if (!content && !file) return;
 
-    const tempId = `tam-${Date.now()}`;
     const previewUrl = attachment?.url ?? null;
 
     setDraft("");
-    setError(null);
     setEmojiOpen(false);
-    stickToBottom.current = true;
     // Không thu hồi object URL ở đây: bản tạm còn đang dùng nó để hiện ảnh.
     setAttachment(null);
     if (fileRef.current) fileRef.current.value = "";
+
+    dispatch(content, file, previewUrl);
+  }
+
+  /** Gửi lại một tin hỏng: gỡ bản hỏng, gửi lại đúng chữ và ảnh cũ. */
+  function retry(m: Pending) {
+    const file = tempFiles.current.get(m.id) ?? null;
+    tempFiles.current.delete(m.id);
+    setItems((current) => current.filter((x) => x.id !== m.id));
+    dispatch(m.content, file, file ? m.imageUrl : null);
+  }
+
+  function dispatch(
+    content: string,
+    file: File | null,
+    previewUrl: string | null,
+  ) {
+    const tempId = newTempId();
+
+    setError(null);
+    stickToBottom.current = true;
+    if (file) tempFiles.current.set(tempId, file);
 
     setItems((current) => [
       ...current,
@@ -330,7 +429,9 @@ export function ChatThread({
         return;
       }
 
-      // Lần hỏi tin kế tiếp sẽ mang về bản thật; bỏ bản tạm đi.
+      tempFiles.current.delete(tempId);
+
+      // Lấy bản thật về ngay; bỏ bản tạm đi.
       const fresh = await fetchNewMessagesAction(
         conversationId,
         lastRealAt ?? new Date(Date.now() - 60_000).toISOString(),
@@ -338,13 +439,9 @@ export function ChatThread({
       setItems((current) => {
         const withoutTemp = current.filter((m) => m.id !== tempId);
         if (!fresh.ok) return withoutTemp;
-        const known = new Set(withoutTemp.map((m) => m.id));
-        return [
-          ...withoutTemp,
-          ...fresh.messages.filter((m) => !known.has(m.id)),
-        ];
+        return mergeIncoming(withoutTemp, fresh.messages, viewerId);
       });
-      if (previewUrl) URL.revokeObjectURL(previewUrl);
+      revokeBlob(previewUrl);
     });
   }
 
@@ -409,7 +506,8 @@ export function ChatThread({
           stickToBottom.current =
             el.scrollHeight - el.scrollTop - el.clientHeight < 120;
         }}
-        className="min-h-0 flex-1 overflow-y-auto px-4 py-5 sm:px-5"
+        ref={listRef}
+        className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-5 sm:px-5"
       >
         {items.length === 0 && (
           <div className="flex flex-col items-center py-16 text-center">
@@ -422,9 +520,7 @@ export function ChatThread({
             <p className="mt-4 text-[15px] font-semibold text-ink-200">
               Chưa có tin nhắn nào với {partnerName}
             </p>
-            <p className="mt-1 text-[13.5px] text-ink-500">
-              Chào một câu đi.
-            </p>
+            <p className="mt-1 text-[13.5px] text-ink-500">Chào một câu đi.</p>
           </div>
         )}
 
@@ -452,8 +548,14 @@ export function ChatThread({
                   {mine && !m.pending && (
                     <button
                       type="button"
-                      onClick={() => removeMessage(m.id)}
-                      aria-label="Xoá tin nhắn"
+                      // Tin gửi hỏng chưa có trên máy chủ (id "tam-…"), gọi
+                      // action xoá chỉ nhận lỗi — bỏ tại chỗ là đủ.
+                      onClick={() =>
+                        isTemp(m) ? discardTemp(m) : removeMessage(m.id)
+                      }
+                      aria-label={
+                        isTemp(m) ? "Bỏ tin gửi hỏng" : "Xoá tin nhắn"
+                      }
                       /*
                         `pointer-coarse:opacity-100` — TRÊN ĐIỆN THOẠI THÌ
                         HIỆN SẴN.
@@ -546,11 +648,22 @@ export function ChatThread({
                         mine ? "text-right" : "text-left",
                       )}
                     >
-                      {m.failed
-                        ? "Không gửi được"
-                        : m.pending
-                          ? "Đang gửi…"
-                          : clockLabel(m.createdAt)}
+                      {m.failed ? (
+                        <>
+                          Không gửi được ·{" "}
+                          <button
+                            type="button"
+                            onClick={() => retry(m)}
+                            className="underline underline-offset-2 hover:text-rose-700 dark:hover:text-rose-300"
+                          >
+                            Gửi lại
+                          </button>
+                        </>
+                      ) : m.pending ? (
+                        "Đang gửi…"
+                      ) : (
+                        clockLabel(m.createdAt)
+                      )}
                     </p>
                   </div>
                 </div>
@@ -558,7 +671,6 @@ export function ChatThread({
             );
           })}
         </ol>
-        <div ref={bottomRef} />
       </div>
 
       {/* Ô soạn tin — cùng dáng ô bình luận ở bảng tin */}
@@ -626,6 +738,7 @@ export function ChatThread({
                       key={emoji}
                       type="button"
                       onClick={() => insertEmoji(emoji)}
+                      aria-label={`Chèn ${emoji}`}
                       className="grid size-8 place-items-center rounded-lg text-lg transition-[transform,background-color] duration-150 hover:scale-125 hover:bg-ink-850"
                     >
                       {emoji}

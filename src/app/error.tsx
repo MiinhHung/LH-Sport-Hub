@@ -20,10 +20,10 @@ import * as React from "react";
  */
 export default function RootError({
   error,
-  reset,
+  retry,
 }: {
   error: Error & { digest?: string };
-  reset: () => void;
+  retry: () => void;
 }) {
   React.useEffect(() => {
     console.error("[trang công khai] lỗi:", error);
@@ -102,7 +102,7 @@ export default function RootError({
         >
           <button
             type="button"
-            onClick={reset}
+            onClick={() => retry()}
             style={{
               height: "2.75rem",
               padding: "0 1.5rem",

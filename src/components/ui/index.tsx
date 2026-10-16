@@ -542,5 +542,3 @@ export function AvatarStack({
     </div>
   );
 }
-
-export { Reveal } from "./reveal";

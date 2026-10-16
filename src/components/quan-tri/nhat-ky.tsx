@@ -13,7 +13,13 @@ import {
 } from "@/components/icons";
 
 import { Avatar } from "@/components/ui";
-import { cn, formatDate, formatDateTime, formatTime } from "@/lib/utils";
+import {
+  cn,
+  formatDate,
+  formatDateTime,
+  formatTime,
+  startOfDayInZone,
+} from "@/lib/utils";
 
 /**
  * Nhật ký hoạt động của trang quản trị.
@@ -174,12 +180,8 @@ type Dong = {
 const MOT_NGAY = 24 * 60 * 60 * 1000;
 
 function nhanNgay(d: Date): string {
-  const bayGio = new Date();
-  const homNay = new Date(
-    bayGio.getFullYear(),
-    bayGio.getMonth(),
-    bayGio.getDate(),
-  ).getTime();
+  // 0 giờ hôm nay theo múi giờ app, không theo máy chủ (Vercel chạy UTC).
+  const homNay = startOfDayInZone().getTime();
   const t = d.getTime();
   if (t >= homNay) return "Hôm nay";
   if (t >= homNay - MOT_NGAY) return "Hôm qua";

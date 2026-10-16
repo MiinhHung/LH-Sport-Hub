@@ -30,13 +30,23 @@ export const maxDuration = 60;
  *
  * Vì sao đúng 01:00 UTC: đó là 8 giờ sáng giờ Việt Nam. Buổi tập của
  * team ở 00:00 UTC thứ 7 (7 giờ sáng VN). Chạy 01:00 UTC thứ 6 thì buổi
- * ấy còn cách 23 tiếng — lọt đúng cửa sổ 24h của phần nhắc lịch bên
- * dưới — nên lời nhắc tới vào sáng thứ 6 cho buổi sáng thứ 7. Đổi sang
- * giờ khác thì vẫn chạy, chỉ là lời nhắc đến sớm hoặc muộn hơn.
+ * ấy còn cách 23 tiếng — lọt cửa sổ nhắc lịch bên dưới (còn lần chạy
+ * sáng thứ 5 thì buổi ấy cách 47 tiếng, chưa tới) — nên lời nhắc tới
+ * vào sáng thứ 6 cho buổi sáng thứ 7. Đổi sang giờ khác thì vẫn chạy,
+ * chỉ là lời nhắc đến sớm hoặc muộn hơn.
  *
- * MỘT LẦN/NGÀY KHÔNG LÀM SÓT BUỔI NÀO: phần nhắc lịch quét cửa sổ 24h
- * tới và đánh dấu `reminderSentAt`, mà cron cũng chạy cách nhau 24h —
- * hai con số khớp nhau nên mọi buổi đều rơi vào đúng một lần quét.
+ * CỬA SỔ NHẮC LỊCH LÀ 36H, KHÔNG PHẢI 24H. Cửa sổ 24h khớp khít với nhịp
+ * cron 24h chỉ trên giấy: Vercel không gọi cron đúng từng phút (gói
+ * Hobby có thể lệch trong cả tiếng), hai lần chạy cách nhau hơn 24h là
+ * có một khe mà buổi nào bắt đầu trong khe đó thì không lần quét nào
+ * thấy. Nới ra 36h cho dư; `reminderSentAt` đảm bảo mỗi buổi chỉ nhắc
+ * một lần. Cái giá là buổi chiều/tối có thể được nhắc sớm hơn một ngày
+ * — nên lời nhắc ghi rõ ngày giờ chứ không viết "ngày mai".
+ *
+ * Còn một chỗ cron một lần/ngày không cứu được: buổi được TẠO (hoặc dời
+ * giờ) sau lần chạy hôm nay mà bắt đầu trước lần chạy ngày mai. Cửa sổ
+ * rộng mấy cũng vậy — lúc cron chạy thì buổi đó chưa có. Người tạo buổi
+ * sát giờ thì tự báo trong nhóm.
  *
  * Mọi bước đều idempotent — chạy lại nhiều lần không sinh dữ liệu trùng.
  */
@@ -90,11 +100,15 @@ export async function GET(request: NextRequest) {
 
   for (const row of stale) {
     try {
-      await db.transaction(async (tx) => {
-        await settleChallenge(tx, row.challengeId, {
+      const settled = await db.transaction(async (tx) => {
+        const kq = await settleChallenge(tx, row.challengeId, {
           confirmedBy: null,
           auto: true,
         });
+        // null = kèo đã được ai đó xử lý (xác nhận, khiếu nại, xoá) giữa
+        // lúc quét và lúc khoá. Không chốt gì thì không ghi log, không đếm.
+        if (!kq) return false;
+
         await audit(tx, {
           actorId: null,
           action: "result.auto_confirm",
@@ -102,8 +116,9 @@ export async function GET(request: NextRequest) {
           targetId: row.challengeId,
           metadata: { afterDays: LIMITS.autoConfirmResultAfterDays },
         });
+        return true;
       });
-      report.autoConfirmedResults += 1;
+      if (settled) report.autoConfirmedResults += 1;
     } catch (error) {
       console.error("[cron] tự động xác nhận thất bại:", row.challengeId, error);
       report.errors.push(`auto-confirm ${row.challengeId}`);
@@ -111,10 +126,11 @@ export async function GET(request: NextRequest) {
   }
 
   /* --------------------------------------------------------------- */
-  /* 2. Nhac lich buoi tap sap dien ra (trong 24h toi)                */
+  /* 2. Nhac lich buoi tap sap dien ra (trong 36h toi)                */
   /* --------------------------------------------------------------- */
 
-  const in24h = new Date(Date.now() + 24 * 60 * 60 * 1000);
+  // 36h chứ không 24h — lý do ở chú thích đầu hàm.
+  const cuaSoNhac = new Date(Date.now() + 36 * 60 * 60 * 1000);
 
   const upcoming = await db
     .select({
@@ -129,7 +145,7 @@ export async function GET(request: NextRequest) {
         eq(playSessions.status, "open"),
         isNull(playSessions.reminderSentAt),
         gte(playSessions.startsAt, new Date()),
-        lte(playSessions.startsAt, in24h),
+        lte(playSessions.startsAt, cuaSoNhac),
       ),
     )
     .limit(50);

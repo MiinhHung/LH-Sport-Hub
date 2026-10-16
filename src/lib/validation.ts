@@ -486,6 +486,13 @@ export const xemTruocLinkSchema = z.object({ url: linkUrlField });
 export const commentSchema = z.object({
   postId: uuidField,
   content: requiredText(LIMITS.commentContent, "Bình luận"),
+  /** Có thì là trả lời một bình luận; để trống là bình luận thường. */
+  parentId: z
+    .string()
+    .trim()
+    .transform((v) => v || undefined)
+    .pipe(uuidField.optional())
+    .optional(),
 });
 
 export const reactionSchema = z.object({
@@ -529,4 +536,13 @@ export function fieldErrors(error: z.ZodError): Record<string, string> {
     if (!(key in out)) out[key] = issue.message;
   }
   return out;
+}
+
+/**
+ * Kiểm nhanh một id lấy thẳng từ FormData trước khi đưa vào câu truy vấn.
+ * Thiếu bước này thì chuỗi rác đi thẳng xuống Postgres và nổ lỗi 22P02
+ * (sai cú pháp uuid) thay vì một câu "Yêu cầu không hợp lệ." tử tế.
+ */
+export function isUuid(value: unknown): value is string {
+  return typeof value === "string" && uuidField.safeParse(value).success;
 }

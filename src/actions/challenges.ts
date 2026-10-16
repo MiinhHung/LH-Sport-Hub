@@ -1,6 +1,6 @@
 "use server";
 
-import { and, count, eq, inArray, sql } from "drizzle-orm";
+import { and, count, eq, inArray } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
@@ -22,7 +22,6 @@ import {
   canLeave,
   canRespondToInvite,
   isFull,
-  teamOf,
   type ChallengeLike,
   type ParticipantLike,
   type TeamSide,
@@ -35,6 +34,7 @@ import {
   challengeSchema,
   fieldErrors,
   formDataToObject,
+  isUuid,
   joinChallengeSchema,
 } from "@/lib/validation";
 import { formatDateTime } from "@/lib/utils";
@@ -98,15 +98,6 @@ async function syncLockState(
   }
 
   return "unchanged";
-}
-
-async function namesOf(ids: string[]): Promise<Map<string, string>> {
-  if (ids.length === 0) return new Map();
-  const rows = await db
-    .select({ id: profiles.id, fullName: profiles.fullName })
-    .from(profiles)
-    .where(inArray(profiles.id, ids));
-  return new Map(rows.map((r) => [r.id, r.fullName]));
 }
 
 function revalidateChallenge(id?: string) {
@@ -603,7 +594,7 @@ export async function respondInviteAction(
 
     const challengeId = String(formData.get("challengeId") ?? "");
     const answer = String(formData.get("answer") ?? "");
-    if (!challengeId || (answer !== "accept" && answer !== "decline")) {
+    if (!isUuid(challengeId) || (answer !== "accept" && answer !== "decline")) {
       return failure("Yêu cầu không hợp lệ.");
     }
 
@@ -724,7 +715,7 @@ export async function leaveChallengeAction(
   return runAction(async () => {
     const actor = await requireActor();
     const challengeId = String(formData.get("challengeId") ?? "");
-    if (!challengeId) return failure("Yêu cầu không hợp lệ.");
+    if (!isUuid(challengeId)) return failure("Yêu cầu không hợp lệ.");
 
     const outcome = await db.transaction(async (tx) => {
       const { challenge, asLogic, asParticipants } = await loadLocked(
@@ -872,7 +863,7 @@ export async function deleteChallengeAction(
   const result = await runAction(async () => {
     const actor = await requireActor();
     const challengeId = String(formData.get("challengeId") ?? "");
-    if (!challengeId) return failure("Yêu cầu không hợp lệ.");
+    if (!isUuid(challengeId)) return failure("Yêu cầu không hợp lệ.");
 
     const challenge = await db.query.challenges.findFirst({
       where: eq(challenges.id, challengeId),
@@ -892,7 +883,27 @@ export async function deleteChallengeAction(
       );
     }
 
-    await db.transaction(async (tx) => {
+    const outcome = await db.transaction(async (tx) => {
+      /*
+        KIỂM LẠI SAU KHI KHOÁ. Phần kiểm ở trên đọc không khoá: giữa lúc đó
+        và lúc xoá, người chơi có thể vừa gửi kết quả — và lệnh xoá sẽ kéo
+        theo (cascade) luôn kết quả ấy. Gửi kết quả cũng khoá hàng kèo này
+        trước, nên khoá ở đây buộc hai việc phải xếp hàng.
+      */
+      const { challenge: locked } = await loadLocked(tx, challengeId);
+      if (locked.creatorId !== actor.id && !isModerator(actor)) {
+        return { error: "Chỉ người tạo kèo mới xoá được." };
+      }
+      const [existingResult] = await tx
+        .select({ id: challengeResults.id })
+        .from(challengeResults)
+        .where(eq(challengeResults.challengeId, challengeId));
+      if (existingResult) {
+        return {
+          error: "Kèo đã có kết quả (chờ duyệt hoặc đã chốt) nên không thể xoá.",
+        };
+      }
+
       // Ghi log TRƯỚC khi xoá, vì audit_logs không giữ bản sao nội dung.
       await audit(tx, {
         actorId: actor.id,
@@ -901,13 +912,15 @@ export async function deleteChallengeAction(
         targetId: challengeId,
         metadata: {
           title: challenge.title,
-          status: challenge.status,
+          status: locked.status,
           byModerator: challenge.creatorId !== actor.id,
         },
       });
 
       await tx.delete(challenges).where(eq(challenges.id, challengeId));
+      return { error: null };
     });
+    if (outcome.error) return failure(outcome.error);
 
     deleted = true;
     revalidateChallenge(challengeId);
@@ -932,7 +945,11 @@ export async function movePlayerTeamAction(
     const userId = String(formData.get("userId") ?? "");
     const team = String(formData.get("team") ?? "") as TeamSide;
 
-    if (!challengeId || !userId || (team !== "A" && team !== "B")) {
+    if (
+      !isUuid(challengeId) ||
+      !isUuid(userId) ||
+      (team !== "A" && team !== "B")
+    ) {
       return failure("Yêu cầu không hợp lệ.");
     }
 

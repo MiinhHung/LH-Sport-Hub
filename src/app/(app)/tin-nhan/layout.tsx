@@ -61,8 +61,8 @@ export default async function MessagesLayout({
   return (
     <div
       className={
-        "-mx-4 -mt-5 -mb-28 flex h-[calc(100dvh_-_113px_-_env(safe-area-inset-bottom))] overflow-hidden sm:-mx-6 sm:-mt-6 " +
-        "md:mx-0 md:mt-0 md:mb-0 md:h-[calc(100dvh_-_65px_-_4rem)] md:rounded-xl md:border md:border-ink-800 md:bg-ink-900"
+        "-mx-4 -mt-5 -mb-28 flex h-[calc(100dvh_-_113px_-_env(safe-area-inset-bottom))] overflow-hidden sm:-mx-6 sm:-mt-6 sm:h-[calc(100dvh_-_119px_-_env(safe-area-inset-bottom))] " +
+        "md:mx-0 md:mt-0 md:mb-0 md:h-[calc(100dvh_-_70px_-_8.5rem)] lg:h-[calc(100dvh_-_70px_-_5.5rem)] md:rounded-xl md:border md:border-ink-800 md:bg-ink-900"
       }
     >
       <CotHoiThoai

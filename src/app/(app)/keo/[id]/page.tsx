@@ -206,6 +206,7 @@ function GiuaSan({
   winner,
   ghiChu,
   tuDong,
+  daXacNhan,
 }: {
   hasScore: boolean;
   scoreA: number | null | undefined;
@@ -213,6 +214,8 @@ function GiuaSan({
   winner: "A" | "B" | null;
   ghiChu: string | null;
   tuDong: boolean;
+  /** Kết quả đã chốt chưa. Chưa chốt thì chỉ là "báo thắng", chưa phải thắng. */
+  daXacNhan: boolean;
 }) {
   return (
     <div className="flex min-w-36 flex-col items-center justify-center gap-2 border-y border-ink-800 px-5 py-6 text-center sm:border-x sm:border-y-0">
@@ -237,7 +240,11 @@ function GiuaSan({
       )}
 
       <p className="text-[12.5px] font-semibold text-ink-500">
-        {winner ? `Đội ${winner} thắng` : "Chưa có kết quả"}
+        {winner
+          ? daXacNhan
+            ? `Đội ${winner} thắng`
+            : `Đội ${winner} báo thắng`
+          : "Chưa có kết quả"}
       </p>
 
       {tuDong && <p className="text-[12px] text-ink-500">Tự động xác nhận</p>}
@@ -327,12 +334,12 @@ export default async function ChallengeDetailPage({
       (p.status === "accepted" || p.status === "invited"),
   )?.team;
 
-  // Xoá hẳn chỉ mở khi chưa phát sinh kết quả/nợ — khớp với luật ở server.
+  // Xoá hẳn chỉ mở khi CHƯA CÓ kết quả nào gửi lên (kể cả đang chờ xác
+  // nhận) — khớp với `deleteChallengeAction` ở server.
   const canDelete =
-    (challenge.creatorId === user.id || isMod) &&
-    challenge.result?.status !== "confirmed";
+    (challenge.creatorId === user.id || isMod) && !challenge.result;
 
-  // Sửa chặt hơn xoá một bậc: hễ ĐÃ CÓ kết quả gửi lên là khoá, kể cả
+  // Sửa cũng vậy: hễ ĐÃ CÓ kết quả gửi lên là khoá, kể cả
   // khi còn đang chờ xác nhận. Đổi tiền cược lúc đã biết ai thắng thì
   // người thua phải trả một khoản họ chưa từng đồng ý.
   // `updateChallengeAction` kiểm y hệt.
@@ -465,6 +472,7 @@ export default async function ChallengeDetailPage({
                   }
                   ghiChu={challenge.result?.notes ?? null}
                   tuDong={Boolean(challenge.result?.autoConfirmed)}
+                  daXacNhan={challenge.result?.status === "confirmed"}
                 />
 
                 <CotDoi

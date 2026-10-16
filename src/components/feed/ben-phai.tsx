@@ -17,7 +17,11 @@ import { AvatarStack, Card } from "@/components/ui";
 import { LinkButton } from "@/components/ui/button";
 import { formatStake, type StakeKey } from "@/lib/constants";
 import { ARTICLES } from "@/content/cam-nang";
-import type { listChallenges, listUpcomingSessions } from "@/lib/queries";
+import type {
+  ClubStats,
+  listChallenges,
+  listUpcomingSessions,
+} from "@/lib/queries";
 import { formatTime, timeUntil } from "@/lib/utils";
 
 export type Sessions = Awaited<ReturnType<typeof listUpcomingSessions>>;
@@ -180,9 +184,12 @@ function ChallengeRows({ challenges }: { challenges: Challenges }) {
 export function SideRail({
   sessions,
   openChallenges,
+  stats,
 }: {
   sessions: Sessions;
   openChallenges: Challenges;
+  /** Số liệu thật của CLB; thiếu thì không vẽ ô thống kê. */
+  stats?: ClubStats;
 }) {
   // eslint-disable-next-line react-hooks/purity
   const tip = ARTICLES[Math.floor(Date.now() / 86_400_000) % ARTICLES.length];
@@ -223,38 +230,44 @@ export function SideRail({
         )}
       </RailSection>
 
-      {/* Thống kê nhanh CLB */}
-      <section aria-labelledby="thong-ke-rail">
-        <Card className="overflow-hidden">
-          <div className="flex items-center justify-between gap-3 border-b border-ink-800 px-4 py-3">
-            <h2
-              id="thong-ke-rail"
-              className="flex items-center gap-2 text-[15px] font-semibold text-ink-100"
-            >
-              <Users className="size-4 text-ink-500" />
-              <span>Hoạt động CLB</span>
-            </h2>
-            <span className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[12px] font-semibold text-emerald-700 dark:border-emerald-400/30 dark:bg-emerald-500/10 dark:text-emerald-300">
-              <span aria-hidden className="size-1.5 rounded-full bg-emerald-500" />
-              Sôi nổi
-            </span>
-          </div>
-          <dl className="grid grid-cols-3 divide-x divide-ink-800 text-center">
-            <div className="px-2 py-3.5">
-              <dd className="tabular font-display text-[20px] leading-none text-ink-100">18</dd>
-              <dt className="mt-1.5 text-[12.5px] font-medium text-ink-500">Thành viên</dt>
+      {/* Thống kê nhanh CLB — số đếm thật từ cơ sở dữ liệu. Trước đây là
+          mấy con số viết cứng (18, 12, 86%) và nhãn "Sôi nổi" cũng cứng,
+          nên CLB có ra sao thì ô này cũng nói y một câu. */}
+      {stats && (
+        <section aria-labelledby="thong-ke-rail">
+          <Card className="overflow-hidden">
+            <div className="flex items-center justify-between gap-3 border-b border-ink-800 px-4 py-3">
+              <h2
+                id="thong-ke-rail"
+                className="flex items-center gap-2 text-[15px] font-semibold text-ink-100"
+              >
+                <Users className="size-4 text-ink-500" />
+                <span>Hoạt động CLB</span>
+              </h2>
             </div>
-            <div className="px-2 py-3.5">
-              <dd className="tabular font-display text-[20px] leading-none text-ink-100">12</dd>
-              <dt className="mt-1.5 text-[12.5px] font-medium text-ink-500">Kèo đã đấu</dt>
-            </div>
-            <div className="px-2 py-3.5">
-              <dd className="tabular font-display text-[20px] leading-none text-ink-100">86%</dd>
-              <dt className="mt-1.5 text-[12.5px] font-medium text-ink-500">Tham gia</dt>
-            </div>
-          </dl>
-        </Card>
-      </section>
+            <dl className="grid grid-cols-3 divide-x divide-ink-800 text-center">
+              <div className="flex flex-col-reverse px-2 py-3.5">
+                <dt className="mt-1.5 text-[12.5px] font-medium text-ink-500">Thành viên</dt>
+                <dd className="tabular font-display text-[20px] leading-none text-ink-100">
+                  {stats.thanhVien}
+                </dd>
+              </div>
+              <div className="flex flex-col-reverse px-2 py-3.5">
+                <dt className="mt-1.5 text-[12.5px] font-medium text-ink-500">Kèo đã đấu</dt>
+                <dd className="tabular font-display text-[20px] leading-none text-ink-100">
+                  {stats.keoDaDau}
+                </dd>
+              </div>
+              <div className="flex flex-col-reverse px-2 py-3.5">
+                <dt className="mt-1.5 text-[12.5px] font-medium text-ink-500">Buổi đã tập</dt>
+                <dd className="tabular font-display text-[20px] leading-none text-ink-100">
+                  {stats.buoiDaTap}
+                </dd>
+              </div>
+            </dl>
+          </Card>
+        </section>
+      )}
 
       {/* Cẩm nang — mỗi ngày gợi một bài khác */}
       <section aria-labelledby="cam-nang-rail">

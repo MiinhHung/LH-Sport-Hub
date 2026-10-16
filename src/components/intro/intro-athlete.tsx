@@ -33,8 +33,18 @@ import {
   SWOOSH_D,
 } from "@/components/intro/athlete-rig";
 
-const GOLD = "url(#athlete-gold-accent)";
-const METAL = "url(#athlete-gold-metal)";
+/**
+ * Tiền tố cho class khớp và id gradient. Màn mở đầu dùng `rg` (CSS sinh
+ * sẵn chạy theo `html[data-intro="play"]`); bản khác, như đố vui cuối trang,
+ * dùng tiền tố riêng để không bị CSS của màn mở đầu điều khiển, và tự lái
+ * khớp bằng JavaScript (xem landing/cau-thu.tsx).
+ */
+const RigCtx = React.createContext("rg");
+const useK = () => React.useContext(RigCtx);
+/** Id gradient theo tiền tố: hai bản cùng trang không giẫm id của nhau. */
+const gid = (k: string, name: string) =>
+  k === "rg" ? `athlete-${name}` : `${k}-athlete-${name}`;
+const url = (k: string, name: string) => `url(#${gid(k, name)})`;
 /*
  * Màu đặc cho NÉT THẲNG. Gradient theo objectBoundingBox không vẽ được
  * trên đường thẳng đứng hay nằm ngang (hộp bao rộng 0), nên thân vợt,
@@ -68,6 +78,8 @@ const FOREARM = `M -6.5 0 C -6.5 20 -5.5 40 -4.8 ${BONE.forearm} L 4.8 ${BONE.fo
 
 /** Chấm đánh dấu khớp, chỉ hiện ở chế độ debug. */
 function Dot() {
+  // Chấm khớp chỉ dành cho bảng soi pose của màn mở đầu.
+  if (useK() !== "rg") return null;
   return (
     <circle className="rg-joint" r={3.4} fill="#ff4d6d" stroke="#ffffff" strokeWidth={1} />
   );
@@ -83,9 +95,10 @@ function J({
   name: string;
   children: React.ReactNode;
 }) {
+  const k = useK();
   return (
     <g transform={`translate(${at[0]} ${at[1]})`}>
-      <g className={`rg rg-${name}`}>
+      <g className={`${k} ${k}-${name}`}>
         {children}
         <Dot />
       </g>
@@ -96,9 +109,10 @@ function J({
 /* ---------- Bộ phận ---------- */
 
 function Leg({ side }: { side: "L" | "R" }) {
+  const k = useK();
   const near = side === "R";
   const hip = near ? BONE.hipNear : BONE.hipFar;
-  const skin = near ? "url(#athlete-skin-clean)" : "url(#athlete-skin-shadow)";
+  const skin = near ? url(k, "skin-clean") : url(k, "skin-shadow");
   return (
     <J at={[hip.x, hip.y]} name={`hip${side}`}>
       {/* Đùi + ống quần */}
@@ -124,22 +138,23 @@ function Leg({ side }: { side: "L" | "R" }) {
 
 /** Vợt: gốc tại tâm nắm tay, trục vợt thẳng hàng với cẳng tay (hướng +y). */
 function Racket() {
+  const k = useK();
   const g = BONE.grip;
   const throat = BONE.grip + BONE.shaft;
   return (
     <>
       {/* Cán: chui qua nắm tay, lộ phần đuôi phía dưới ngón út */}
-      <rect x={-3.5} y={-13} width={7} height={5} rx={2} fill={GOLD} />
+      <rect x={-3.5} y={-13} width={7} height={5} rx={2} fill={url(k, "gold-accent")} />
       <rect x={-3} y={-9} width={6} height={g + 9} rx={2.5} fill="#f8fafc" />
       {/* Thân vợt + chạc */}
       <path d={`M 0 ${g} L 0 ${throat}`} stroke={METAL_LINE} strokeWidth={3} strokeLinecap="round" />
-      <ellipse cx={0} cy={throat} rx={3.2} ry={2.4} fill={GOLD} />
+      <ellipse cx={0} cy={throat} rx={3.2} ry={2.4} fill={url(k, "gold-accent")} />
       {/* Mặt vợt, tâm tại (0, RACKET_HEAD_Y) = điểm chạm cầu */}
       <g transform={`translate(0 ${RACKET_HEAD_Y})`}>
         <ellipse
           rx={BONE.racketRx}
           ry={BONE.racketRy}
-          stroke={METAL}
+          stroke={url(k, "gold-metal")}
           strokeWidth={3.2}
           fill="rgba(232, 197, 106, 0.08)"
         />
@@ -162,8 +177,9 @@ function Racket() {
 }
 
 function Arm({ side }: { side: "L" | "R" }) {
+  const k = useK();
   const near = side === "R";
-  const skin = near ? "url(#athlete-skin-clean)" : "url(#athlete-skin-shadow)";
+  const skin = near ? url(k, "skin-clean") : url(k, "skin-shadow");
   const hand = near ? (
     <J at={[0, BONE.forearm]} name="wrR">
       {/* Vợt vẽ trước nắm tay, để các ngón phủ lên cán */}
@@ -196,25 +212,26 @@ function Arm({ side }: { side: "L" | "R" }) {
 }
 
 function Head() {
+  const k = useK();
   return (
     <J at={[BONE.neckBase.x, BONE.neckBase.y]} name="head">
       {/* Tóc đuôi ngựa: con của đầu, nằm sau đầu, trễ nhịp theo lò xo */}
       <J at={[BONE.hairPivot.x, BONE.hairPivot.y]} name="hair">
-        <path d="M -5 0 C -9 10 -8 24 -2 35 C 2 27 4.5 12 4.5 0 Z" fill="url(#athlete-hair-sleek)" />
-        <circle cx={0} cy={2} r={3.6} fill={GOLD} />
+        <path d="M -5 0 C -9 10 -8 24 -2 35 C 2 27 4.5 12 4.5 0 Z" fill={url(k, "hair-sleek")} />
+        <circle cx={0} cy={2} r={3.6} fill={url(k, "gold-accent")} />
       </J>
       {/* Cổ */}
-      <path d="M -6 4 L 6 4 L 5.5 -16 L -5 -16 Z" fill="url(#athlete-skin-clean)" />
+      <path d="M -6 4 L 6 4 L 5.5 -16 L -5 -16 Z" fill={url(k, "skin-clean")} />
       {/* Đầu: mặt trơn, chỉ một nét bóng dưới cằm */}
-      <circle cx={5} cy={-36} r={24} fill="url(#athlete-skin-clean)" />
-      <path d="M -6 -17 C 2 -12 14 -14 22 -24" stroke="url(#athlete-skin-shadow)" strokeWidth={2} fill="none" />
+      <circle cx={5} cy={-36} r={24} fill={url(k, "skin-clean")} />
+      <path d="M -6 -17 C 2 -12 14 -14 22 -24" stroke={url(k, "skin-shadow")} strokeWidth={2} fill="none" />
       {/* Tóc */}
       <path
         d="M -19 -34 C -21 -54 -6 -63 8 -62 C 21 -61 29 -53 29 -44 C 20 -50 4 -52 -6 -47 C -12 -43 -16 -38 -19 -30 Z"
-        fill="url(#athlete-hair-sleek)"
+        fill={url(k, "hair-sleek")}
       />
       {/* Băng đô vàng viền trắng */}
-      <path d="M -20 -43 C -4 -53 16 -53 29.5 -45 L 29.5 -40 C 16 -47 -4 -47 -20 -37.5 Z" fill={GOLD} />
+      <path d="M -20 -43 C -4 -53 16 -53 29.5 -45 L 29.5 -40 C 16 -47 -4 -47 -20 -37.5 Z" fill={url(k, "gold-accent")} />
       <path d="M -20 -43 C -4 -53 16 -53 29.5 -45" stroke="#ffffff" strokeWidth={1.1} fill="none" />
     </J>
   );
@@ -233,60 +250,66 @@ function Shuttle() {
 
 /* ---------- Cảnh ---------- */
 
-function Athlete() {
+/**
+ * Hình nhân vật, khung 500×720. Không tự chuyển động: bản `rg` chạy theo
+ * CSS sinh sẵn của màn mở đầu, bản tiền tố khác thì người dùng tự lái các
+ * class `<k>-<khớp>` (xem landing/cau-thu.tsx).
+ *
+ * `intro`: vẽ thêm hai quả cầu của màn mở đầu (cầu rơi tới, cầu bay dự
+ * phòng). Nơi khác tự vẽ quả cầu của mình.
+ */
+export function AthleteSvg({
+  k = "rg",
+  className,
+  intro = false,
+}: {
+  k?: string;
+  className?: string;
+  intro?: boolean;
+}) {
   const c = CONTACT_POINT;
   return (
-    <div aria-hidden className="intro-athlete pointer-events-none absolute">
-      {/*
-        CSS sinh từ athlete-rig.ts lúc nạp module, giống nhau ở máy chủ và
-        trình duyệt. suppressHydrationWarning chỉ đề phòng làm tròn số
-        thực khác nhau ở chữ số cuối giữa hai engine JavaScript.
-      */}
-      <style suppressHydrationWarning>{RIG_CSS}</style>
-      <svg
-        viewBox="0 0 500 720"
-        className="intro-rim absolute inset-0 size-full overflow-visible"
-        fill="none"
-      >
+    <RigCtx.Provider value={k}>
+      <svg viewBox="0 0 500 720" className={className} fill="none">
         <defs>
-          <radialGradient id="athlete-court-shadow" cx="50%" cy="50%" r="50%">
+          <radialGradient id={gid(k, "court-shadow")} cx="50%" cy="50%" r="50%">
             <stop offset="0%" stopColor="#e8c56a" stopOpacity="0.5" />
             <stop offset="60%" stopColor="#e8c56a" stopOpacity="0.15" />
             <stop offset="100%" stopColor="#e8c56a" stopOpacity="0" />
           </radialGradient>
-          <linearGradient id="athlete-swoosh-gold" x1="0" y1="1" x2="1" y2="0">
+          <linearGradient id={gid(k, "swoosh-gold")} x1="0" y1="1" x2="1" y2="0">
             <stop offset="0%" stopColor="#e8c56a" stopOpacity="0" />
             <stop offset="60%" stopColor="#e8c56a" stopOpacity="0.85" />
             <stop offset="100%" stopColor="#ffffff" stopOpacity="1" />
           </linearGradient>
-          <linearGradient id="athlete-jersey-navy" x1="0" y1="0" x2="1" y2="1">
+          <linearGradient id={gid(k, "jersey-navy")} x1="0" y1="0" x2="1" y2="1">
             <stop offset="0%" stopColor="#102554" />
             <stop offset="60%" stopColor="#081432" />
             <stop offset="100%" stopColor="#040b1c" />
           </linearGradient>
-          <linearGradient id="athlete-gold-accent" x1="0" y1="0" x2="1" y2="0">
+          <linearGradient id={gid(k, "gold-accent")} x1="0" y1="0" x2="1" y2="0">
             <stop offset="0%" stopColor="#ffe28a" />
             <stop offset="50%" stopColor="#f5c042" />
             <stop offset="100%" stopColor="#c98a12" />
           </linearGradient>
-          <linearGradient id="athlete-gold-metal" x1="0" y1="0" x2="1" y2="1">
+          <linearGradient id={gid(k, "gold-metal")} x1="0" y1="0" x2="1" y2="1">
             <stop offset="0%" stopColor="#ffffff" />
             <stop offset="35%" stopColor="#f7d37a" />
             <stop offset="100%" stopColor="#9a6e14" />
           </linearGradient>
-          <linearGradient id="athlete-skin-clean" x1="0" y1="0" x2="1" y2="1">
+          <linearGradient id={gid(k, "skin-clean")} x1="0" y1="0" x2="1" y2="1">
             <stop offset="0%" stopColor="#fad7c0" />
             <stop offset="100%" stopColor="#e3a780" />
           </linearGradient>
-          <linearGradient id="athlete-skin-shadow" x1="0" y1="0" x2="1" y2="1">
+          <linearGradient id={gid(k, "skin-shadow")} x1="0" y1="0" x2="1" y2="1">
             <stop offset="0%" stopColor="#df9c75" />
             <stop offset="100%" stopColor="#b8744c" />
           </linearGradient>
-          <linearGradient id="athlete-hair-sleek" x1="0" y1="0" x2="0" y2="1">
+          <linearGradient id={gid(k, "hair-sleek")} x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor="#2c3a50" />
             <stop offset="100%" stopColor="#0f172a" />
           </linearGradient>
-          <radialGradient id="athlete-impact-burst" cx="50%" cy="50%" r="50%">
+          <radialGradient id={gid(k, "impact-burst")} cx="50%" cy="50%" r="50%">
             <stop offset="0%" stopColor="#ffffff" stopOpacity="1" />
             <stop offset="25%" stopColor="#fff3cf" stopOpacity="0.95" />
             <stop offset="60%" stopColor="#e8c56a" stopOpacity="0.4" />
@@ -296,8 +319,8 @@ function Athlete() {
 
         {/* Bóng đổ: ngoài rig, co giãn theo độ cao nhảy và độ khuỵu gối */}
         <g transform={`translate(${ROOT_X} ${GROUND_Y + 4})`}>
-          <g className="rg rg-shadow">
-            <ellipse rx={120} ry={16} fill="url(#athlete-court-shadow)" />
+          <g className={`${k} ${k}-shadow`}>
+            <ellipse rx={120} ry={16} fill={url(k, "court-shadow")} />
           </g>
         </g>
 
@@ -306,11 +329,11 @@ function Athlete() {
           d={SWOOSH_D}
           pathLength={1}
           strokeDasharray="1"
-          stroke="url(#athlete-swoosh-gold)"
+          stroke={url(k, "swoosh-gold")}
           strokeWidth={22}
           strokeLinecap="round"
           strokeLinejoin="round"
-          className="rg rg-swoosh"
+          className={`${k} ${k}-swoosh`}
           suppressHydrationWarning
         />
         <path
@@ -321,24 +344,24 @@ function Athlete() {
           strokeWidth={4}
           strokeLinecap="round"
           strokeLinejoin="round"
-          className="rg rg-swoosh"
+          className={`${k} ${k}-swoosh`}
           suppressHydrationWarning
         />
 
         {/* Người chơi */}
-        <g className="rg rg-root">
+        <g className={`${k} ${k}-root`}>
           <J name="pelvis">
             <Leg side="L" />
             <Leg side="R" />
             <J name="torso">
               <Arm side="L" />
-              <path d={JERSEY} fill="url(#athlete-jersey-navy)" />
-              <path d="M -14 -100 C -14 -60 -12 -20 -11 6" stroke={GOLD} strokeWidth={3.5} strokeLinecap="round" />
+              <path d={JERSEY} fill={url(k, "jersey-navy")} />
+              <path d="M -14 -100 C -14 -60 -12 -20 -11 6" stroke={url(k, "gold-accent")} strokeWidth={3.5} strokeLinecap="round" />
               <path d="M 17 -96 C 18 -60 17 -24 14 6" stroke="#ffffff" strokeOpacity={0.4} strokeWidth={2} />
               <J at={[BONE.hem.x, BONE.hem.y]} name="hem">
                 <path d={HEM} fill="#081432" />
               </J>
-              <path d="M -5 -112 C 0 -105 9 -105 13 -112" stroke={GOLD} strokeWidth={3} strokeLinecap="round" />
+              <path d="M -5 -112 C 0 -105 9 -105 13 -112" stroke={url(k, "gold-accent")} strokeWidth={3} strokeLinecap="round" />
               <Head />
               <Arm side="R" />
             </J>
@@ -346,19 +369,23 @@ function Athlete() {
           <Dot />
         </g>
 
-        {/* Quả cầu rơi tới, gặp mặt vợt đúng khung chạm */}
-        <g className="rg rg-shin">
-          <Shuttle />
-        </g>
-        {/* Đường bay dự phòng sau cú đập (ẩn khi JS dựng đường bay vào hero) */}
-        <g className="rg rg-shout">
-          <Shuttle />
-        </g>
+        {intro && (
+          <>
+            {/* Quả cầu rơi tới, gặp mặt vợt đúng khung chạm */}
+            <g className="rg rg-shin">
+              <Shuttle />
+            </g>
+            {/* Đường bay dự phòng sau cú đập (ẩn khi JS dựng đường bay vào hero) */}
+            <g className="rg rg-shout">
+              <Shuttle />
+            </g>
+          </>
+        )}
 
         {/* Chớp sáng tại điểm chạm */}
         <g transform={`translate(${c.x.toFixed(1)} ${c.y.toFixed(1)})`} suppressHydrationWarning>
-          <g className="rg rg-impact">
-            <circle r={60} fill="url(#athlete-impact-burst)" />
+          <g className={`${k} ${k}-impact`}>
+            <circle r={60} fill={url(k, "impact-burst")} />
             <ellipse rx={42} ry={32} stroke="#ffffff" strokeWidth={2.4} opacity={0.95} />
             <ellipse rx={70} ry={52} stroke="#e8c56a" strokeWidth={1.8} strokeDasharray="8 6" opacity={0.75} />
             <path d="M 0 -46 L 0 46 M -46 0 L 46 0" stroke="#ffffff" strokeWidth={2.4} strokeLinecap="round" />
@@ -366,6 +393,24 @@ function Athlete() {
           </g>
         </g>
       </svg>
+    </RigCtx.Provider>
+  );
+}
+
+function Athlete() {
+  return (
+    <div aria-hidden className="intro-athlete pointer-events-none absolute">
+      {/*
+        CSS sinh từ athlete-rig.ts lúc nạp module, giống nhau ở máy chủ và
+        trình duyệt. suppressHydrationWarning chỉ đề phòng làm tròn số
+        thực khác nhau ở chữ số cuối giữa hai engine JavaScript.
+      */}
+      <style suppressHydrationWarning>{RIG_CSS}</style>
+      <AthleteSvg
+        k="rg"
+        intro
+        className="intro-rim absolute inset-0 size-full overflow-visible"
+      />
 
       {/* Mốc đo 1px đứng yên tại điểm chạm: đường bay vào hero xuất phát từ đây */}
       <span

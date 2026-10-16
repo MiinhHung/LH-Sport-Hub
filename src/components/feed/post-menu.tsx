@@ -47,9 +47,13 @@ export function PostMenu({
     const fd = new FormData();
     fd.set("postId", postId);
     startTransition(async () => {
-      const result = await action(idleState, fd);
-      if (result.status === "error")
-        setError(result.message ?? "Có lỗi xảy ra.");
+      try {
+        const result = await action(idleState, fd);
+        if (result.status === "error")
+          setError(result.message ?? "Có lỗi xảy ra.");
+      } catch {
+        setError("Mất kết nối, thử lại sau nhé.");
+      }
     });
   }
 

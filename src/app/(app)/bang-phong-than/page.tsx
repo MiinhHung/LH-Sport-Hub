@@ -1,4 +1,4 @@
-import { Flame, Ghost, Swords, Trophy } from "@/components/icons";
+import { Crown, Flame, Ghost, Swords, Trophy } from "@/components/icons";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
@@ -18,28 +18,42 @@ const phanTram = (e: LeaderboardEntry) => Math.round(e.winRate * 100);
 /* ------------------------------------------------------------------ */
 
 /*
- * Bục ba bậc: hạng 1 đứng giữa và cao nhất, như bục thật ở giải đấu.
- * Phân hạng bằng chiều cao bục, cỡ chữ và màu thương hiệu (vàng cho
- * hạng 1, navy cho hạng 2 và 3), không dùng huy chương emoji.
+ * Bục ba bậc trên nền navy: hạng 1 đứng giữa, cao nhất, đội vương miện.
+ * Ba màu kim loại vàng – bạc – đồng phân hạng; số hạng chỉ in một lần,
+ * to trên mặt bục, còn số trận thắng gom vào một dòng nhỏ dưới tên.
+ *
+ * LUÔN ĐỦ BA BẬC. Team mới có một người thắng thì bản cũ chỉ còn một
+ * khối vàng trơ trọi giữa khung. Bậc chưa có người giờ là ô trống viền
+ * đứt kèm lời rủ "thắng một kèo để lên bục" — vừa đủ hình, vừa có cớ
+ * để đi thách kèo.
  */
 const BUC = {
   1: {
-    cao: "h-24 sm:h-28",
-    nen: "bg-gold-400 text-navy-900",
-    avatar: "lg" as const,
-    so: "text-[40px] sm:text-[48px]",
+    cao: "h-28 sm:h-36",
+    mat: "bg-gradient-to-b from-gold-300 via-gold-400 to-gold-600 text-navy-950",
+    vien: "ring-gold-300 shadow-[0_0_32px_rgba(232,197,106,0.55)]",
+    avatar: "xl" as const,
+    avatarNho: "size-20 sm:size-24",
+    so: "text-[52px] sm:text-[64px]",
+    tre: "[animation-delay:120ms]",
   },
   2: {
-    cao: "h-16 sm:h-20",
-    nen: "bg-navy-900 text-gold-300",
-    avatar: "md" as const,
-    so: "text-[30px] sm:text-[36px]",
+    cao: "h-20 sm:h-24",
+    mat: "bg-gradient-to-b from-slate-100 via-slate-300 to-slate-400 text-navy-900",
+    vien: "ring-slate-300",
+    avatar: "lg" as const,
+    avatarNho: "size-14 sm:size-16",
+    so: "text-[40px] sm:text-[48px]",
+    tre: "[animation-delay:240ms]",
   },
   3: {
-    cao: "h-11 sm:h-14",
-    nen: "bg-navy-800 text-white",
-    avatar: "md" as const,
-    so: "text-[26px] sm:text-[30px]",
+    cao: "h-14 sm:h-16",
+    mat: "bg-gradient-to-b from-[#e8b07c] via-[#c98a52] to-[#9a5f2c] text-white",
+    vien: "ring-[#d99a62]",
+    avatar: "lg" as const,
+    avatarNho: "size-14 sm:size-16",
+    so: "text-[34px] sm:text-[40px]",
+    tre: "[animation-delay:360ms]",
   },
 };
 
@@ -52,64 +66,94 @@ function BacBuc({
   hang: 1 | 2 | 3;
   meId: string;
 }) {
-  // Giữ chỗ trống để hạng 1 vẫn đứng giữa khi chưa đủ ba người.
-  if (!entry) return <li aria-hidden />;
-
   const b = BUC[hang];
-  const isMe = entry.profile.id === meId;
+  const isMe = entry?.profile.id === meId;
 
   return (
     <li className="flex min-w-0 flex-col items-center">
-      <LinkHoSo
-        id={entry.profile.id}
-        nguoiXem={meId}
-        ten={entry.profile.fullName}
-        className="rounded-full"
-      >
-        <Avatar
-          name={entry.profile.fullName}
-          src={entry.profile.avatarUrl}
-          seed={entry.profile.id}
-          size={b.avatar}
-          className={cn(hang === 1 && "ring-2 ring-gold-400 ring-offset-2 ring-offset-ink-900")}
-        />
-      </LinkHoSo>
+      {entry ? (
+        <>
+          <div className="relative">
+            {hang === 1 && (
+              <Crown
+                aria-hidden
+                className="absolute -top-7 left-1/2 size-7 -translate-x-1/2 fill-gold-400 text-gold-300 drop-shadow-[0_2px_8px_rgba(232,197,106,0.6)] sm:-top-8 sm:size-8"
+              />
+            )}
+            <LinkHoSo
+              id={entry.profile.id}
+              nguoiXem={meId}
+              ten={entry.profile.fullName}
+              className="block rounded-full"
+            >
+              <Avatar
+                name={entry.profile.fullName}
+                src={entry.profile.avatarUrl}
+                seed={entry.profile.id}
+                size={b.avatar}
+                className={cn("ring-[3px] ring-offset-[3px] ring-offset-navy-950", b.vien, b.avatarNho)}
+              />
+            </LinkHoSo>
+          </div>
 
-      <p className="mt-2.5 w-full truncate px-1 text-center text-[13.5px] font-bold text-ink-100 sm:text-[14.5px]">
-        {entry.profile.fullName}
-      </p>
-      <p className="mt-0.5 text-center text-[12px] text-ink-500">
-        {isMe ? (
-          <span className="font-semibold text-gold-700 dark:text-gold-300">Bạn</span>
-        ) : (
-          <span className="tabular">{phanTram(entry)}% thắng</span>
-        )}
-      </p>
+          <p className="mt-3 flex w-full min-w-0 items-center justify-center gap-1.5 px-1">
+            <span className="truncate text-[13.5px] font-bold text-white sm:text-[15px]">
+              {entry.profile.fullName}
+            </span>
+            {isMe && (
+              <span className="shrink-0 rounded-full bg-gold-400 px-1.5 py-px text-[10.5px] font-bold text-navy-950">
+                Bạn
+              </span>
+            )}
+          </p>
+          <p className="tabular mt-1 text-center text-[12px] text-white/60 sm:text-[12.5px]">
+            <span className="font-semibold text-white/90">{entry.wins}</span> thắng
+            <span aria-hidden className="text-white/30">
+              {" · "}
+            </span>
+            {phanTram(entry)}%
+          </p>
+        </>
+      ) : (
+        <>
+          <span
+            aria-hidden
+            className={cn(
+              "grid place-items-center rounded-full border-2 border-dashed border-white/20 text-[22px] font-bold text-white/30",
+              b.avatarNho,
+            )}
+          >
+            ?
+          </span>
+          <p className="mt-3 text-[13.5px] font-semibold text-white/50 sm:text-[14.5px]">
+            Còn trống
+          </p>
+          <p className="mt-1 px-1 text-center text-[11.5px] leading-snug text-white/40 sm:text-[12px]">
+            Thắng 1 kèo để lên bục
+          </p>
+        </>
+      )}
 
-      {/* Bục: số trận thắng là con số chính, số hạng nằm trên mặt bục */}
-      <p className="mt-2 flex items-baseline gap-1">
-        <span
-          className={cn(
-            "tabular font-display leading-none font-bold text-ink-100",
-            b.so,
-          )}
-        >
-          {entry.wins}
-        </span>
-        <span className="text-[12px] font-medium text-ink-500">thắng</span>
-      </p>
-
+      {/* Mặt bục: mọc lên từ sàn, số hạng in to */}
       <div
         className={cn(
-          "mt-3 flex w-full items-start justify-center rounded-t-xl pt-2",
+          "animate-podium relative mt-4 flex w-full items-start justify-center overflow-hidden rounded-t-2xl pt-2",
           b.cao,
-          b.nen,
+          b.tre,
+          entry ? b.mat : "border border-b-0 border-dashed border-white/15 bg-white/[0.03] text-white/20",
         )}
       >
-        <span className="tabular font-display text-[20px] leading-none font-bold sm:text-[24px]">
+        {/* Vệt sáng mép trên như mặt bục kim loại */}
+        {entry && (
+          <span aria-hidden className="absolute inset-x-0 top-0 h-1.5 bg-white/40" />
+        )}
+        <span className={cn("tabular font-display leading-none font-black", b.so)}>
           {hang}
         </span>
-        <span className="sr-only">Hạng {hang}</span>
+        <span className="sr-only">
+          Hạng {hang}
+          {!entry && ": còn trống"}
+        </span>
       </div>
     </li>
   );
@@ -118,23 +162,44 @@ function BacBuc({
 function BucNhanGiai({
   top,
   meId,
+  soNguoi,
 }: {
   top: LeaderboardEntry[];
   meId: string;
+  soNguoi: number;
 }) {
   return (
     <section aria-labelledby="buc">
-      <h2 id="buc" className="sr-only">
-        Ba người dẫn đầu
-      </h2>
-      <Card className="overflow-hidden px-3 pt-6 sm:px-8 sm:pt-8">
+      <div className="relative isolate overflow-hidden rounded-2xl bg-navy-950 px-3 pt-6 ring-1 ring-white/10 sm:px-8 sm:pt-7">
+        {/* Nền: quầng vàng sau hạng 1, lưới mờ, vạch sàn */}
+        <div
+          aria-hidden
+          className="absolute top-10 left-1/2 -z-10 size-[420px] -translate-x-1/2 rounded-full bg-gold-400/20 blur-[90px]"
+        />
+        <div
+          aria-hidden
+          className="absolute inset-0 -z-10 [background-image:linear-gradient(rgba(255,255,255,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.04)_1px,transparent_1px)] [background-size:40px_40px] [mask-image:radial-gradient(ellipse_at_top,black_20%,transparent_70%)]"
+        />
+
+        <div className="flex items-baseline justify-between gap-3">
+          <h2
+            id="buc"
+            className="font-sport text-[13px] font-bold tracking-[0.25em] text-gold-300 uppercase"
+          >
+            Top 3 dẫn đầu
+          </h2>
+          <span className="tabular text-[12.5px] text-white/50">
+            {soNguoi} người đã ra sân
+          </span>
+        </div>
+
         {/* Thứ tự hiển thị 2 - 1 - 3 cho hạng 1 đứng giữa */}
-        <ol className="grid grid-cols-3 items-end gap-2 sm:gap-4">
+        <ol className="mt-10 grid grid-cols-3 items-end gap-2 sm:mt-12 sm:gap-5">
           <BacBuc entry={top[1]} hang={2} meId={meId} />
           <BacBuc entry={top[0]} hang={1} meId={meId} />
           <BacBuc entry={top[2]} hang={3} meId={meId} />
         </ol>
-      </Card>
+      </div>
     </section>
   );
 }
@@ -272,9 +337,11 @@ export default async function LeaderboardPage() {
       ) : (
         <div className="grid grid-cols-[minmax(0,1fr)] items-start gap-6 lg:grid-cols-[minmax(0,1fr)_300px] xl:grid-cols-[minmax(0,1fr)_320px]">
           <div className="min-w-0 space-y-6">
-            {bucNhanGiai.length > 0 && (
-              <BucNhanGiai top={bucNhanGiai} meId={me.id} />
-            )}
+            <BucNhanGiai
+              top={bucNhanGiai}
+              meId={me.id}
+              soNguoi={played.length}
+            />
 
             {/* Bảng xếp hạng */}
             <section aria-labelledby="xep-hang">
@@ -283,8 +350,8 @@ export default async function LeaderboardPage() {
                   <h2 id="xep-hang" className="text-[16px] font-semibold text-ink-100">
                     Xếp hạng
                   </h2>
-                  <span className="tabular text-[12.5px] text-ink-500">
-                    {played.length} người đã ra sân
+                  <span className="text-[12.5px] text-ink-500">
+                    Theo số trận thắng
                   </span>
                 </div>
 

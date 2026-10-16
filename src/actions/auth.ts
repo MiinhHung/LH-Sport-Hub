@@ -1,8 +1,13 @@
 "use server";
 
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
-import { allowedEmailDomains, isEmailDomainAllowed } from "@/lib/env";
+import {
+  allowedEmailDomains,
+  isEmailDomainAllowed,
+  publicEnv,
+} from "@/lib/env";
 import { createClient } from "@/lib/supabase/server";
 import {
   fieldErrors,
@@ -154,11 +159,19 @@ export async function signUpAction(
       return failure(`Email không thuộc công ty.${domainHint()}`);
     }
 
+    // Link xác nhận trong email dẫn về /auth/callback để đăng nhập luôn.
+    // Origin lấy từ request để đúng cả bản preview lẫn bản thật; Supabase
+    // chỉ chuyển hướng tới URL nằm trong danh sách Redirect URLs.
+    const origin = (await headers()).get("origin") ?? publicEnv.siteUrl;
+
     const supabase = await createClient();
     const { data, error } = await supabase.auth.signUp({
       email: parsed.data.email,
       password: parsed.data.password,
-      options: { data: { full_name: parsed.data.fullName } },
+      options: {
+        data: { full_name: parsed.data.fullName },
+        emailRedirectTo: `${origin}/auth/callback?next=/bang-tin`,
+      },
     });
 
     if (error) return failure(translateAuthError(error));
@@ -166,7 +179,7 @@ export async function signUpAction(
     // Nếu Supabase bật xác minh email thì chưa có session ngay.
     if (!data.session) {
       return success(
-        "Đã tạo tài khoản. Kiểm tra email để xác minh rồi quay lại đăng nhập.",
+        "Đã tạo tài khoản. Mở email và bấm link xác nhận là vào được ngay.",
       );
     }
 

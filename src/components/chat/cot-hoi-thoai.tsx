@@ -171,7 +171,7 @@ export function CotHoiThoai({
           Kẻ từ hàng thứ hai trở đi (`[&>li+li]`) để hàng đầu không có
           một vạch lửng lơ ngay dưới tiêu đề.
         */
-        <ul className="min-h-0 flex-1 overflow-y-auto [&>li+li]:border-t [&>li+li]:border-ink-800">
+        <ul className="min-h-0 flex-1 overflow-y-auto overscroll-contain [&>li+li]:border-t [&>li+li]:border-ink-800">
           {loc.map((c) => {
             const dangXem = duongDan === `/tin-nhan/${c.id}`;
             return (
@@ -219,6 +219,10 @@ export function CotHoiThoai({
                             : "text-ink-500",
                         )}
                         dateTime={c.lastMessageAt}
+                        // timeAgo dựa vào Date.now(): giờ máy chủ lúc dựng
+                        // HTML và giờ máy người dùng lúc hydrate lệch nhau
+                        // vài giây là đủ ra chữ khác — chuyện bình thường.
+                        suppressHydrationWarning
                       >
                         {timeAgo(c.lastMessageAt)}
                       </time>

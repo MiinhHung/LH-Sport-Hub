@@ -1,7 +1,9 @@
 "use client";
 
 import * as React from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { motion, AnimatePresence, useInView } from "motion/react";
+
+import { useCalm } from "@/components/landing/use-calm";
 
 export interface TeamMember {
   id: string;
@@ -19,7 +21,7 @@ export interface TeamMember {
 
 /**
  * Danh sách thành viên team Light Human theo đúng yêu cầu:
- * Bảo, Phúc, Hùng, Trượng, Trâm, Minh, Nhi, Thư, Khuyết...
+ * Nhi, Thư, Hiền, Thùy, Khuyết, Bảo, Minh, Trượng, Trâm, Kiệt, Hùng, Ngân, Hạnh, Linh, Uyên, Phúc.
  */
 export const TEAM_MEMBERS: TeamMember[] = [
   {
@@ -36,8 +38,8 @@ export const TEAM_MEMBERS: TeamMember[] = [
     flourish: "swoosh",
   },
   {
-    id: "phuc",
-    name: "Phúc",
+    id: "hien",
+    name: "Hiền",
     nickname: "Cứu Cầu Ngoạn Mục",
     quote: "Dù cầu sát sàn vẫn lăn xả cứu bằng được 🔥",
     x: 76,
@@ -140,8 +142,8 @@ export const TEAM_MEMBERS: TeamMember[] = [
     flourish: "swoosh",
   },
   {
-    id: "tuan",
-    name: "Tuấn",
+    id: "thuy",
+    name: "Thùy",
     nickname: "Đội Trưởng Nhiệt Huyết",
     quote: "Người kết nối anh em mỗi sáng thứ 7 lên sân đầy đủ 👑",
     x: 26,
@@ -153,8 +155,8 @@ export const TEAM_MEMBERS: TeamMember[] = [
     flourish: "star",
   },
   {
-    id: "duy",
-    name: "Duy",
+    id: "kiet",
+    name: "Kiệt",
     nickname: "Pháo Binh Tầm Xa",
     quote: "Phông cầu sâu tận vạch cuối, áp đảo đối phương.",
     x: 70,
@@ -177,6 +179,58 @@ export const TEAM_MEMBERS: TeamMember[] = [
     glowColor: "rgba(254, 240, 138, 0.6)",
     scale: 1.05,
     flourish: "heart",
+  },
+  {
+    id: "ngan",
+    name: "Ngân",
+    nickname: "Giao Cầu Thần Sầu",
+    quote: "Giao ngắn sát lưới, đối thủ chỉ biết đứng nhìn.",
+    x: 50,
+    y: 92,
+    rotate: 4,
+    color: "#ffd166",
+    glowColor: "rgba(255, 209, 102, 0.65)",
+    scale: 1.06,
+    flourish: "star",
+  },
+  {
+    id: "hanh",
+    name: "Hạnh",
+    nickname: "Nụ Cười Sân Cầu",
+    quote: "Thắng hay thua cũng vui, có mặt là sân rộn ràng 😄",
+    x: 84,
+    y: 86,
+    rotate: -6,
+    color: "#fff7d6",
+    glowColor: "rgba(255, 247, 214, 0.6)",
+    scale: 1.05,
+    flourish: "heart",
+  },
+  {
+    id: "phuc",
+    name: "Phúc",
+    nickname: "Tay Vợt Bền Bỉ",
+    quote: "Đánh đủ ba set vẫn chạy như lúc mới khởi động 💪",
+    x: 88,
+    y: 55,
+    rotate: 5,
+    color: "#ffeaa0",
+    glowColor: "rgba(255, 234, 160, 0.65)",
+    scale: 1.05,
+    flourish: "swoosh",
+  },
+  {
+    id: "uyen",
+    name: "Uyên",
+    nickname: "Cầu Cao Sâu Bền",
+    quote: "Đánh cầu cao tận cuối sân, rally bao lâu cũng không nản.",
+    x: 14,
+    y: 90,
+    rotate: 7,
+    color: "#fcd34d",
+    glowColor: "rgba(252, 211, 77, 0.65)",
+    scale: 1.05,
+    flourish: "loop",
   },
 ];
 
@@ -287,7 +341,7 @@ function SignatureFlourish({
         strokeLinecap="round"
         strokeLinejoin="round"
         strokeOpacity="0.9"
-        initial={{ pathLength: 0 }}
+        initial={isDrawn ? false : { pathLength: 0 }}
         animate={{ pathLength: isDrawn ? 1 : 0 }}
         transition={{ duration: 0.45, ease: "easeOut" }}
       />
@@ -329,11 +383,23 @@ function shuffleMembers(list: TeamMember[]): TeamMember[] {
   return array;
 }
 
+
 /**
  * COMPONENT MÔ PHỎNG NGƯỜI KÝ TÊN THẬT (LIVE SIGNING SIMULATION)
  * Không hiển thị sẵn: từng thành viên lần lượt được cây bút vàng vẽ ký lên mặt lưới ngẫu nhiên!
+ *
+ *  - Lớp này thuần trang trí (tên đã nằm trong nhãn của khung hero), nên
+ *    `aria-hidden`: trình đọc màn hình không phải đọc 12 cái tên rời rạc.
+ *  - Ra khỏi màn hình thì DỪNG hẳn: không hẹn giờ, không lơ lửng, không
+ *    lắc bút. Cuộn vào lại thì ký tiếp từ người đang dở.
+ *  - Người bật giảm chuyển động: hiện sẵn đủ mọi chữ ký, đứng yên.
  */
 export function TeamSignaturesLayer() {
+  const layerRef = React.useRef<HTMLDivElement>(null);
+  const inView = useInView(layerRef, { margin: "80px" });
+  const calm = useCalm();
+  const chay = inView && !calm;
+
   // Hàng đợi ký tên theo thứ tự ngẫu nhiên
   const [memberQueue, setMemberQueue] = React.useState<TeamMember[]>(TEAM_MEMBERS);
 
@@ -353,12 +419,15 @@ export function TeamSignaturesLayer() {
   // Tooltip tương tác
   const [activeMember, setActiveMember] = React.useState<TeamMember | null>(null);
 
-  // Người đang được ký hiện tại
-  const currentMember = memberQueue[currentIndex] ?? null;
-  const isSimulationFinished = currentIndex >= memberQueue.length;
+  // Người đang được ký hiện tại (giảm chuyển động: không ai "đang ký", tất cả đã ký)
+  const currentMember = calm ? null : (memberQueue[currentIndex] ?? null);
+  const isSimulationFinished = calm || currentIndex >= memberQueue.length;
 
   // Chuỗi hành động mô phỏng người ký tên
   React.useEffect(() => {
+    // Khuất màn hình hoặc giảm chuyển động: không hẹn giờ gì cả.
+    if (!chay) return;
+
     if (isSimulationFinished) {
       // Ký xong toàn bộ: hiển thị trọn vẹn trong 3.5s rồi tự động xáo trộn ngẫu nhiên và ký lại lượt mới
       const tReset = setTimeout(() => {
@@ -372,7 +441,7 @@ export function TeamSignaturesLayer() {
     }
 
     // 1. Cây bút di chuyển tới vị trí (300ms)
-    setSigningPhase("arriving");
+    const t0 = setTimeout(() => setSigningPhase("arriving"), 0);
     const t1 = setTimeout(() => {
       // 2. Bắt đầu viết tên nét mực (700ms)
       setSigningPhase("writing");
@@ -393,14 +462,19 @@ export function TeamSignaturesLayer() {
     }, 1550);
 
     return () => {
+      clearTimeout(t0);
       clearTimeout(t1);
       clearTimeout(t2);
       clearTimeout(t3);
     };
-  }, [currentIndex, isSimulationFinished, currentMember]);
+  }, [chay, currentIndex, isSimulationFinished, currentMember]);
 
   return (
-    <div className="pointer-events-none absolute inset-0 z-25 overflow-visible">
+    <div
+      ref={layerRef}
+      aria-hidden="true"
+      className="pointer-events-none absolute inset-0 z-25 overflow-visible"
+    >
       {/* ================= CÂY BÚT VÀNG KIM ĐANG KÝ TÊN ================= */}
       {!isSimulationFinished && currentMember && (
         <GoldenPen
@@ -416,13 +490,13 @@ export function TeamSignaturesLayer() {
               ? currentMember.y + 3
               : currentMember.y - 1
           }
-          isWriting={signingPhase === "writing" || signingPhase === "flourish"}
+          isWriting={chay && (signingPhase === "writing" || signingPhase === "flourish")}
         />
       )}
 
       {/* ================= CÁC CHỮ KÝ ĐÃ VÀ ĐANG ĐƯỢC KÝ ================= */}
       {TEAM_MEMBERS.map((member, index) => {
-        const isSigned = signedIds.includes(member.id);
+        const isSigned = calm || signedIds.includes(member.id);
         const isCurrentlySigning = currentMember?.id === member.id;
         // Không hiển thị nếu chưa tới lượt ký
         if (!isSigned && !isCurrentlySigning) return null;
@@ -430,102 +504,113 @@ export function TeamSignaturesLayer() {
         const isHovered = activeMember?.id === member.id;
         const isWritingNow = isCurrentlySigning && signingPhase === "writing";
         const isFlourishingNow = isCurrentlySigning && signingPhase === "flourish";
+        // Lơ lửng nhẹ chỉ khi đã ký xong VÀ đang trong màn hình.
+        const troi = isSigned && chay;
 
         return (
-          <motion.div
+          /*
+           * Hai lớp: lớp ngoài giữ vị trí + góc nghiêng tĩnh, lớp trong để
+           * motion chạy scale/y. Gộp chung một lớp thì motion ghi đè cả
+           * `transform`, mất `translate(-50%, -50%) rotate(...)`.
+           */
+          <div
             key={member.id}
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{
-              opacity: 1,
-              scale: isHovered ? member.scale * 1.15 : member.scale,
-              y: isSigned ? [0, -3, 0] : 0,
-            }}
-            transition={{
-              scale: { duration: 0.2 },
-              y: isSigned
-                ? {
-                    duration: 4 + (index % 3),
-                    repeat: Infinity,
-                    repeatType: "reverse",
-                    ease: "easeInOut",
-                  }
-                : undefined,
-            }}
-            className="pointer-events-auto absolute cursor-pointer select-none"
+            className="absolute"
             style={{
               left: `${member.x}%`,
               top: `${member.y}%`,
               transform: `translate(-50%, -50%) rotate(${member.rotate}deg)`,
             }}
-            onMouseEnter={() => setActiveMember(member)}
-            onMouseLeave={() => setActiveMember(null)}
           >
-            <div
-              className="relative flex flex-col items-center transition-all duration-300"
-              style={{
-                filter: isHovered
-                  ? `drop-shadow(0 0 16px ${member.glowColor}) drop-shadow(0 0 24px rgba(245,192,66,0.6))`
-                  : `drop-shadow(0 2px 6px rgba(0,0,0,0.65))`,
+            <motion.div
+              initial={calm ? false : { opacity: 0, scale: 0.8 }}
+              animate={{
+                opacity: 1,
+                scale: isHovered ? member.scale * 1.15 : member.scale,
+                y: troi ? [0, -3, 0] : 0,
               }}
+              transition={{
+                scale: { duration: 0.2 },
+                y: troi
+                  ? {
+                      duration: 4 + (index % 3),
+                      repeat: Infinity,
+                      repeatType: "reverse",
+                      ease: "easeInOut",
+                    }
+                  : { duration: 0.3 },
+              }}
+              className="pointer-events-auto relative cursor-pointer select-none"
+              onMouseEnter={() => setActiveMember(member)}
+              onMouseLeave={() => setActiveMember(null)}
             >
-              {/* Tên thành viên viết tay */}
-              <div className="relative overflow-visible">
-                <motion.span
-                  className="font-signature text-[27px] sm:text-[32px] font-bold tracking-wide block"
-                  style={{
-                    color: member.color,
-                    textShadow: `0 0 12px ${member.glowColor}`,
-                  }}
-                  initial={isCurrentlySigning ? { clipPath: "inset(0 100% 0 0)" } : { clipPath: "inset(0 0% 0 0)" }}
-                  animate={{
-                    clipPath: isSigned || isFlourishingNow ? "inset(0 0% 0 0)" : isWritingNow ? "inset(0 0% 0 0)" : "inset(0 100% 0 0)",
-                  }}
-                  transition={{ duration: 0.65, ease: "easeInOut" }}
-                >
-                  {member.name}
-                </motion.span>
+              <div
+                className="relative flex flex-col items-center transition-all duration-300"
+                style={{
+                  filter: isHovered
+                    ? `drop-shadow(0 0 16px ${member.glowColor}) drop-shadow(0 0 24px rgba(245,192,66,0.6))`
+                    : `drop-shadow(0 2px 6px rgba(0,0,0,0.65))`,
+                }}
+              >
+                {/* Tên thành viên viết tay */}
+                <div className="relative overflow-visible">
+                  <motion.span
+                    className="font-signature text-[27px] sm:text-[32px] font-bold tracking-wide block"
+                    style={{
+                      color: member.color,
+                      textShadow: `0 0 12px ${member.glowColor}`,
+                    }}
+                    initial={isCurrentlySigning ? { clipPath: "inset(0 100% 0 0)" } : { clipPath: "inset(0 0% 0 0)" }}
+                    animate={{
+                      clipPath: isSigned || isFlourishingNow ? "inset(0 0% 0 0)" : isWritingNow ? "inset(0 0% 0 0)" : "inset(0 100% 0 0)",
+                    }}
+                    transition={{ duration: 0.65, ease: "easeInOut" }}
+                  >
+                    {member.name}
+                  </motion.span>
+                </div>
+  
+                {/* Nét gạch chân uốn lượn dưới chữ ký */}
+                <div className="w-[72px] sm:w-[82px] -mt-2">
+                  <SignatureFlourish
+                    type={member.flourish}
+                    color={member.color}
+                    isDrawn={isSigned || isFlourishingNow}
+                  />
+                </div>
+  
+                {/* Đốm sáng mực vàng kim lấp lánh khi ký xong */}
+                {isSigned && (
+                  <span
+                    className="absolute -top-1 -right-2 text-[10px] animate-pulse select-none"
+                    style={{ color: member.color }}
+                  >
+                    ✦
+                  </span>
+                )}
               </div>
-
-              {/* Nét gạch chân uốn lượn dưới chữ ký */}
-              <div className="w-[72px] sm:w-[82px] -mt-2">
-                <SignatureFlourish
-                  type={member.flourish}
-                  color={member.color}
-                  isDrawn={isSigned || isFlourishingNow}
-                />
-              </div>
-
-              {/* Đốm sáng mực vàng kim lấp lánh khi ký xong */}
-              {isSigned && (
-                <span
-                  className="absolute -top-1 -right-2 text-[10px] animate-pulse select-none"
-                  style={{ color: member.color }}
-                >
-                  ✦
-                </span>
-              )}
-            </div>
-
-            {/* Tooltip kỷ niệm hiển thị khi rê chuột vào */}
-            <AnimatePresence>
-              {isHovered && (
-                <motion.div
-                  initial={{ opacity: 0, y: 8, scale: 0.92 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: 6, scale: 0.92 }}
-                  transition={{ duration: 0.18 }}
-                  className="pointer-events-none absolute -bottom-16 left-1/2 -translate-x-1/2 z-50 whitespace-nowrap rounded-lg border border-gold-400/40 bg-navy-950/95 px-3 py-1.5 shadow-2xl backdrop-blur-md"
-                >
-                  <div className="flex items-center gap-1.5 font-sans">
-                    <span className="font-bold text-gold-300 text-[12px]">{member.name}</span>
-                    <span className="text-white/40 text-[10px]">·</span>
-                    <span className="text-white/90 text-[11px] font-medium">{member.nickname}</span>
-                  </div>
-                  <p className="mt-0.5 text-[10px] text-white/70 italic font-sans">{member.quote}</p>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </motion.div>
+  
+              {/* Tooltip kỷ niệm hiển thị khi rê chuột vào */}
+              <AnimatePresence>
+                {isHovered && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 8, scale: 0.92 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 6, scale: 0.92 }}
+                    transition={{ duration: 0.18 }}
+                    className="pointer-events-none absolute -bottom-16 left-1/2 -translate-x-1/2 z-50 whitespace-nowrap rounded-lg border border-gold-400/40 bg-navy-950/95 px-3 py-1.5 shadow-2xl backdrop-blur-md"
+                  >
+                    <div className="flex items-center gap-1.5 font-sans">
+                      <span className="font-bold text-gold-300 text-[12px]">{member.name}</span>
+                      <span className="text-white/40 text-[10px]">·</span>
+                      <span className="text-white/90 text-[11px] font-medium">{member.nickname}</span>
+                    </div>
+                    <p className="mt-0.5 text-[10px] text-white/70 italic font-sans">{member.quote}</p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
+          </div>
         );
       })}
     </div>

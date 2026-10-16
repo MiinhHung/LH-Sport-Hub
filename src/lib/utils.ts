@@ -118,6 +118,44 @@ export function weekdayLabel(date: Date | string): string {
   return WEEKDAYS[dayIndexInZone(d)] ?? "";
 }
 
+/**
+ * Ngày, tháng, năm và thứ (0 = Chủ nhật) của một mốc, tính theo múi giờ
+ * của app. Máy chủ Vercel chạy UTC, nên `getDate()`/`getDay()` sẽ lệch
+ * một ngày trong khoảng 0–7 giờ sáng giờ Việt Nam.
+ */
+export function zonedYmd(date: Date = new Date()): {
+  year: number;
+  month: number;
+  day: number;
+  weekday: number;
+} {
+  const p = parts(date);
+  return {
+    year: Number(p.year),
+    month: Number(p.month),
+    day: Number(p.day),
+    weekday: dayIndexInZone(date),
+  };
+}
+
+/** Mốc 0 giờ (theo múi giờ app) của ngày chứa `date`, dạng Date thật. */
+export function startOfDayInZone(date: Date = new Date()): Date {
+  const p = parts(date);
+  // Độ lệch của múi giờ app so với UTC tại đúng thời điểm này.
+  const gioTrenDongHo = Date.UTC(
+    Number(p.year),
+    Number(p.month) - 1,
+    Number(p.day),
+    Number(p.hour) % 24,
+    Number(p.minute),
+  );
+  const doLech =
+    gioTrenDongHo - Math.floor(date.getTime() / 60_000) * 60_000;
+  return new Date(
+    Date.UTC(Number(p.year), Number(p.month) - 1, Number(p.day)) - doLech,
+  );
+}
+
 /** Chỉ số ngày trong năm theo múi giờ app, dùng để so hai mốc cùng ngày. */
 function ymdInZone(date: Date): string {
   const p = parts(date);

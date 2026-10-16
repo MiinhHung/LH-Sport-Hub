@@ -198,6 +198,9 @@ export const REACTION_KEYS = Object.keys(REACTIONS) as ReactionKey[];
 
 export const MAX_POST_IMAGES = 4;
 
+/** Giá thuê sân mỗi giờ (VNĐ). Tổng tiền sân = số giờ đặt × giá này. */
+export const GIA_SAN_MOI_GIO = 139_000;
+
 /* ------------------------------------------------------------------ */
 /* Gioi han noi dung                                                   */
 /* ------------------------------------------------------------------ */

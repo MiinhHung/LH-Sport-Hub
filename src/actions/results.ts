@@ -164,12 +164,15 @@ export async function submitResultAction(
         .set({ status: "pending_confirm", updatedAt: now })
         .where(eq(challenges.id, input.challengeId));
 
-      // Chỉ đội KHÁC mới xác nhận được, nên chỉ báo cho họ.
-      const myTeam =
-        asParticipants.find((p) => p.userId === actor.id)?.team ?? "A";
-      const recipients = teamMembers(asParticipants, otherTeam(myTeam)).map(
-        (p) => p.userId,
-      );
+      // Chỉ đội KHÁC mới xác nhận được, nên chỉ báo cho họ. Moderator
+      // nhập hộ từ ngoài kèo thì cả hai đội đều xác nhận được.
+      const myTeam = asParticipants.find((p) => p.userId === actor.id)?.team;
+      const recipients = (
+        myTeam
+          ? teamMembers(asParticipants, otherTeam(myTeam))
+          : activeParticipants(asParticipants)
+      )
+        .map((p) => p.userId);
 
       const score = scoreLine(input.scoreA, input.scoreB);
 

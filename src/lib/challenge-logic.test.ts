@@ -170,4 +170,22 @@ describe("challenge-logic unit tests", () => {
     );
     expect(oppConfirm.ok).toBe(true);
   });
+
+  it("canConfirmResult: moderator playing in the challenge cannot confirm for own team", () => {
+    const pendingChallenge: ChallengeLike = {
+      ...baseChallenge,
+      status: "pending_confirm",
+    };
+    const players: ParticipantLike[] = [
+      { userId: "user-a1", team: "A", status: "accepted", isCreator: true },
+      { userId: "user-mod", team: "A", status: "accepted", isCreator: false },
+      { userId: "user-b1", team: "B", status: "accepted", isCreator: false },
+    ];
+
+    const sameTeamMod = canConfirmResult(pendingChallenge, players, "user-a1", "user-mod", true);
+    expect(sameTeamMod.ok).toBe(false);
+
+    const outsideMod = canConfirmResult(pendingChallenge, players, "user-a1", "user-mod2", true);
+    expect(outsideMod.ok).toBe(true);
+  });
 });

@@ -33,7 +33,8 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { id } = await params;
   const p = await getProfileById(id);
-  return { title: p ? p.fullName : "Thành viên" };
+  // Hồ sơ bị khoá thì trang trả 404, đừng để tiêu đề tab lộ tên ra.
+  return { title: p && p.status === "active" ? p.fullName : "Thành viên" };
 }
 
 export default async function MemberProfilePage({

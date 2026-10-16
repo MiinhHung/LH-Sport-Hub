@@ -11,8 +11,8 @@ export interface AppHeaderProps {
 
 export function AppHeader({
   profile,
-  unread = 3,
-  unreadMessages = 2,
+  unread = 0,
+  unreadMessages = 0,
   variant = "default",
 }: AppHeaderProps) {
   return (

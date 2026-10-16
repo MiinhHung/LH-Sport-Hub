@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { SideRail, UpcomingStrip } from "@/components/feed/ben-phai";
-import { FeedFilter, type FeedFilterKey } from "@/components/feed/feed-filter";
+import { FeedFilter } from "@/components/feed/feed-filter";
 import { PostCard } from "@/components/feed/post-card";
 import { PostComposer } from "@/components/feed/post-composer";
 import { CalendarDays, Swords } from "@/components/icons";
@@ -8,8 +8,12 @@ import { EmptyState, PageIntro } from "@/components/ui";
 import { LinkButton } from "@/components/ui/button";
 import { isModerator, requireProfile } from "@/lib/auth";
 import { LIMITS } from "@/lib/constants";
-import { listFeed } from "@/lib/feed";
-import { listChallenges, listUpcomingSessions } from "@/lib/queries";
+import { isFeedFilterKey, listFeed } from "@/lib/feed";
+import {
+  getClubStats,
+  listChallenges,
+  listUpcomingSessions,
+} from "@/lib/queries";
 
 export const metadata: Metadata = { title: "Bảng tin" };
 
@@ -48,11 +52,16 @@ export default async function HomePage({
     TOI_DA,
   );
 
-  // Ba truy vấn độc lập, chạy song song
-  const [{ items, hasMore }, sessions, openChallenges] = await Promise.all([
-    listFeed({ viewerId: profile.id, limit: soBai }),
+  // Loại bài lấy từ URL: giá trị lạ coi như "Tất cả". Lọc ngay trong câu
+  // truy vấn, không lọc trên 15 bài đã tải, để "Xem thêm" vẫn đúng.
+  const activeLoai = isFeedFilterKey(loai) ? loai : "all";
+
+  // Bốn truy vấn độc lập, chạy song song
+  const [{ items, hasMore }, sessions, openChallenges, stats] = await Promise.all([
+    listFeed({ viewerId: profile.id, limit: soBai, loai: activeLoai }),
     listUpcomingSessions(3),
     listChallenges({ tab: "open", userId: profile.id, limit: 3 }),
+    getClubStats(),
   ]);
 
   const viewer = {
@@ -63,14 +72,13 @@ export default async function HomePage({
   const canModerate = isModerator(profile);
   const tenGoi = profile.fullName.trim().split(/\s+/).at(-1) ?? "";
 
-  // Lọc theo loại bài hiển thị
-  const activeLoai = (loai as FeedFilterKey) || "all";
-  const displayedItems = items.filter((post) => {
-    if (activeLoai === "keo") return Boolean(post.challenge);
-    if (activeLoai === "tim-nguoi") return post.type === "looking_for_player";
-    if (activeLoai === "thong-bao") return post.type === "announcement";
-    return true;
+  const displayedItems = items;
+
+  // Link "Xem thêm" giữ nguyên bộ lọc đang chọn.
+  const xemThem = new URLSearchParams({
+    bai: String(Math.min(soBai + MOI_LAN, TOI_DA)),
   });
+  if (activeLoai !== "all") xemThem.set("loai", activeLoai);
 
   return (
     <div className="space-y-6">
@@ -134,10 +142,10 @@ export default async function HomePage({
             </div>
           )}
 
-          {hasMore && soBai < TOI_DA && activeLoai === "all" && (
+          {hasMore && soBai < TOI_DA && (
             <div className="pt-1 text-center">
               <LinkButton
-                href={`?bai=${Math.min(soBai + MOI_LAN, TOI_DA)}`}
+                href={`?${xemThem.toString()}`}
                 variant="secondary"
                 scroll={false}
               >
@@ -146,7 +154,7 @@ export default async function HomePage({
             </div>
           )}
 
-          {items.length > 0 && !hasMore && activeLoai === "all" && (
+          {items.length > 0 && !hasMore && (
             <p className="flex items-center gap-3 pt-2 text-[12.5px] text-ink-500">
               <span aria-hidden className="h-px flex-1 bg-ink-800" />
               <span>Bạn đã xem hết bảng tin</span>
@@ -154,7 +162,7 @@ export default async function HomePage({
             </p>
           )}
 
-          {hasMore && soBai >= TOI_DA && activeLoai === "all" && (
+          {hasMore && soBai >= TOI_DA && (
             <p className="pt-2 text-center text-[12.5px] text-ink-500">
               Đang hiện {TOI_DA} bài mới nhất.
             </p>
@@ -163,7 +171,11 @@ export default async function HomePage({
 
         {/* Cột phải */}
         <div className="hidden lg:block">
-          <SideRail sessions={sessions} openChallenges={openChallenges} />
+          <SideRail
+            sessions={sessions}
+            openChallenges={openChallenges}
+            stats={stats}
+          />
         </div>
       </div>
     </div>

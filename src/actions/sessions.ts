@@ -13,6 +13,7 @@ import { notify } from "@/lib/notifications";
 import {
   fieldErrors,
   formDataToObject,
+  isUuid,
   playSessionEditSchema,
   playSessionSchema,
 } from "@/lib/validation";
@@ -172,28 +173,52 @@ export async function updateSessionAction(
       });
     }
 
-    const going = await db
-      .select({ userId: playSessionAttendees.userId })
-      .from(playSessionAttendees)
-      .where(
-        and(
-          eq(playSessionAttendees.sessionId, input.sessionId),
-          eq(playSessionAttendees.status, "going"),
-        ),
-      );
+    const outcome = await db.transaction(async (tx) => {
+      /*
+        Khoá hàng buổi tập giống `setAttendanceAction`. Không khoá thì
+        trong lúc mình đếm số người đi, một người khác vừa bấm "Đi" —
+        và giới hạn mới lưu xuống thấp hơn số người thực sự đã nhận.
+      */
+      const [locked] = await tx
+        .select()
+        .from(playSessions)
+        .where(eq(playSessions.id, input.sessionId))
+        .for("update");
 
-    // Hạ giới hạn xuống dưới số người đã nhận đi thì ai là người bị
-    // đẩy ra? Không có câu trả lời tử tế nào, nên chặn luôn.
-    if (input.maxPlayers !== null && input.maxPlayers < going.length) {
-      const loi = `Đã có ${going.length} người nhận đi, không hạ giới hạn xuống ${input.maxPlayers} được.`;
-      return failure(loi, { maxPlayers: loi });
-    }
+      if (!locked) throw new AppError("Không tìm thấy buổi tập.");
+      if (locked.status === "cancelled") {
+        return {
+          error:
+            "Buổi tập đã huỷ thì không sửa được nữa. Muốn đánh lại thì tạo buổi mới.",
+          field: null,
+        };
+      }
 
-    const doiCho = session.venueName !== input.venueName;
-    const doiGio =
-      doiGioBatDau || input.endsAt.getTime() !== session.endsAt.getTime();
+      const going = await tx
+        .select({ userId: playSessionAttendees.userId })
+        .from(playSessionAttendees)
+        .where(
+          and(
+            eq(playSessionAttendees.sessionId, input.sessionId),
+            eq(playSessionAttendees.status, "going"),
+          ),
+        );
 
-    await db.transaction(async (tx) => {
+      // Hạ giới hạn xuống dưới số người đã nhận đi thì ai là người bị
+      // đẩy ra? Không có câu trả lời tử tế nào, nên chặn luôn.
+      if (input.maxPlayers !== null && input.maxPlayers < going.length) {
+        return {
+          error: `Đã có ${going.length} người nhận đi, không hạ giới hạn xuống ${input.maxPlayers} được.`,
+          field: "maxPlayers",
+        };
+      }
+
+      const daDoiGioBatDau =
+        input.startsAt.getTime() !== locked.startsAt.getTime();
+      const doiCho = locked.venueName !== input.venueName;
+      const doiGio =
+        daDoiGioBatDau || input.endsAt.getTime() !== locked.endsAt.getTime();
+
       await tx
         .update(playSessions)
         .set({
@@ -208,6 +233,9 @@ export async function updateSessionAction(
           maxPlayers: input.maxPlayers,
           costTotal: input.costTotal,
           notes: input.notes,
+          // Dời giờ bắt đầu thì lời nhắc cũ (nếu đã gửi) nói sai giờ —
+          // xoá dấu để cron nhắc lại theo giờ mới.
+          ...(daDoiGioBatDau ? { reminderSentAt: null } : {}),
           updatedAt: new Date(),
         })
         .where(eq(playSessions.id, input.sessionId));
@@ -245,10 +273,19 @@ export async function updateSessionAction(
         metadata: {
           doiGio,
           doiCho,
-          byModerator: session.creatorId !== actor.id,
+          byModerator: locked.creatorId !== actor.id,
         },
       });
+
+      return { error: null, field: null };
     });
+
+    if (outcome.error) {
+      return failure(
+        outcome.error,
+        outcome.field ? { [outcome.field]: outcome.error } : undefined,
+      );
+    }
 
     updatedId = input.sessionId;
     revalidateSessions(input.sessionId);
@@ -272,7 +309,10 @@ export async function setAttendanceAction(
     const sessionId = String(formData.get("sessionId") ?? "");
     const answer = String(formData.get("answer") ?? "");
 
-    if (!sessionId || (answer !== "going" && answer !== "not_going")) {
+    if (
+      !isUuid(sessionId) ||
+      (answer !== "going" && answer !== "not_going")
+    ) {
       return failure("Yêu cầu không hợp lệ.");
     }
 
@@ -391,7 +431,7 @@ export async function deleteSessionAction(
   const result = await runAction(async () => {
     const actor = await requireActor();
     const sessionId = String(formData.get("sessionId") ?? "");
-    if (!sessionId) return failure("Yêu cầu không hợp lệ.");
+    if (!isUuid(sessionId)) return failure("Yêu cầu không hợp lệ.");
 
     const session = await db.query.playSessions.findFirst({
       where: eq(playSessions.id, sessionId),
@@ -467,7 +507,7 @@ export async function cancelSessionAction(
     const sessionId = String(formData.get("sessionId") ?? "");
     const reason = String(formData.get("reason") ?? "").trim();
 
-    if (!sessionId) return failure("Yêu cầu không hợp lệ.");
+    if (!isUuid(sessionId)) return failure("Yêu cầu không hợp lệ.");
     if (reason.length > 300) return failure("Lý do tối đa 300 ký tự.");
 
     const outcome = await db.transaction(async (tx) => {

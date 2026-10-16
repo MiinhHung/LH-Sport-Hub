@@ -612,14 +612,16 @@ export function JourneyLine({
     <SkinCtx.Provider value={skin}>
     <section
       ref={sectionRef}
+      // svh chứ không dvh: trên điện thoại, thanh địa chỉ ẩn/hiện làm dvh đổi
+      // liên tục, chiều dài đường cuộn và khung ghim nhảy theo. svh đứng yên.
       className={cn("relative", skin.section)}
-      style={reduce ? undefined : { height: "420dvh" }}
+      style={reduce ? undefined : { height: "420svh" }}
     >
       <div
         ref={stageRef}
         className={cn(
           "relative flex flex-col overflow-hidden px-5 pt-[84px] pb-4 sm:px-10",
-          reduce ? "py-24" : "sticky top-0 h-dvh",
+          reduce ? "py-24" : "sticky top-0 h-svh",
         )}
       >
         <div className="mx-auto flex min-h-0 w-full max-w-6xl flex-1 flex-col">

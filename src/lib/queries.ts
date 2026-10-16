@@ -23,6 +23,7 @@ import {
   profiles,
 } from "@/db/schema";
 import type { TeamSide } from "@/lib/challenge-logic";
+import { isUuid } from "@/lib/validation";
 
 /** Cột profile an toàn để hiển thị công khai trong nội bộ. */
 const publicProfileColumns = {
@@ -37,31 +38,14 @@ const publicProfileColumns = {
   lastActiveAt: true,
 } as const;
 
-const challengeWith = {
-  creator: { columns: publicProfileColumns },
-  session: {
-    columns: {
-      id: true,
-      title: true,
-      startsAt: true,
-      venueName: true,
-    } as const,
-  },
-  participants: {
-    with: { user: { columns: publicProfileColumns } },
-    orderBy: [
-      asc(challengeParticipants.team),
-      asc(challengeParticipants.joinedAt),
-    ] as any,
-  },
-  result: true as const,
-} as const;
-
 export type ChallengeDetail = NonNullable<
   Awaited<ReturnType<typeof getChallengeDetail>>
 >;
 
 export async function getChallengeDetail(id: string) {
+  // Id rác trên URL (/keo/abc) mà đưa thẳng xuống Postgres sẽ nổ 22P02
+  // thành trang lỗi 500; trả null để trang gọi notFound() cho đúng 404.
+  if (!isUuid(id)) return null;
   return db.query.challenges.findFirst({
     where: eq(challenges.id, id),
     with: {
@@ -212,19 +196,12 @@ export async function getMyTodos(userId: string) {
 /* Buoi tap                                                            */
 /* ------------------------------------------------------------------ */
 
-const sessionWith = {
-  creator: { columns: publicProfileColumns },
-  attendees: {
-    with: { user: { columns: publicProfileColumns } },
-    orderBy: (p: any, { asc }: any) => [asc(p.createdAt)],
-  },
-} as const;
-
 export type PlaySessionDetail = NonNullable<
   Awaited<ReturnType<typeof getSessionDetail>>
 >;
 
 export async function getSessionDetail(id: string) {
+  if (!isUuid(id)) return null;
   return db.query.playSessions.findFirst({
     where: eq(playSessions.id, id),
     with: {
@@ -304,6 +281,43 @@ export async function listSelectableSessions() {
 /* Thanh vien                                                          */
 /* ------------------------------------------------------------------ */
 
+export type ClubStats = {
+  thanhVien: number;
+  keoDaDau: number;
+  buoiDaTap: number;
+};
+
+/**
+ * Ba con số cho ô "Hoạt động CLB" ở cột phải bảng tin. Ba lần đếm gọn
+ * chạy song song, không kéo dữ liệu về.
+ */
+export async function getClubStats(): Promise<ClubStats> {
+  const [[tv], [keo], [buoi]] = await Promise.all([
+    db
+      .select({ value: sql<number>`count(*)::int` })
+      .from(profiles)
+      .where(eq(profiles.status, "active")),
+    db
+      .select({ value: sql<number>`count(*)::int` })
+      .from(challenges)
+      .where(eq(challenges.status, "completed")),
+    db
+      .select({ value: sql<number>`count(*)::int` })
+      .from(playSessions)
+      .where(
+        and(
+          ne(playSessions.status, "cancelled"),
+          sql`${playSessions.endsAt} < now()`,
+        ),
+      ),
+  ]);
+  return {
+    thanhVien: tv?.value ?? 0,
+    keoDaDau: keo?.value ?? 0,
+    buoiDaTap: buoi?.value ?? 0,
+  };
+}
+
 export async function listMembers() {
   return db.query.profiles.findMany({
     where: eq(profiles.status, "active"),
@@ -313,6 +327,7 @@ export async function listMembers() {
 }
 
 export async function getProfileById(id: string) {
+  if (!isUuid(id)) return null;
   return db.query.profiles.findFirst({ where: eq(profiles.id, id) });
 }
 

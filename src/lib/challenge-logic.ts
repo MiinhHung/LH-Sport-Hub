@@ -240,10 +240,12 @@ export function canConfirmResult(
   if (submittedBy === userId) {
     return no("Bạn không thể tự xác nhận kết quả do chính mình nhập.");
   }
-  if (isModerator) return ok;
-
   const myTeam = teamOf(participants, userId);
-  if (!myTeam) return no("Bạn không ở trong kèo này.");
+  // Moderator đứng ngoài kèo được duyệt hộ; còn đang chơi trong kèo thì
+  // phải theo luật khác đội như mọi người.
+  if (!myTeam) {
+    return isModerator ? ok : no("Bạn không ở trong kèo này.");
+  }
 
   const submitterTeam = teamOf(participants, submittedBy);
   if (submitterTeam && myTeam === submitterTeam) {

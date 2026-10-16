@@ -16,6 +16,7 @@ export function MemberControls({
   role,
   status,
   canAssignRoles,
+  canChangeStatus,
   isSelf,
 }: {
   userId: string;
@@ -23,6 +24,11 @@ export function MemberControls({
   role: RoleKey;
   status: "active" | "suspended";
   canAssignRoles: boolean;
+  /**
+   * Được khoá/mở khoá người này không. Điều hành viên không đụng được
+   * admin hay điều hành viên khác — khớp với `setUserStatusAction`.
+   */
+  canChangeStatus: boolean;
   isSelf: boolean;
 }) {
   const [roleState, roleAction] = useActionState(setUserRoleAction, idleState);
@@ -44,6 +50,8 @@ export function MemberControls({
     hàng của mình trông lệch hẳn so với các hàng khác.
   */
   if (isSelf) return null;
+  // Không có nút nào bấm được thì cũng không dựng gì.
+  if (!canAssignRoles && !canChangeStatus) return null;
 
   const error =
     (roleState.status === "error" && roleState.message) ||
@@ -62,6 +70,9 @@ export function MemberControls({
             <input type="hidden" name="userId" value={userId} />
             <Select
               name="role"
+              // key theo vai trò: đổi xong, server trả vai trò mới thì ô
+              // chọn dựng lại với giá trị mới thay vì giữ giá trị cũ.
+              key={role}
               defaultValue={role}
               aria-label={`Vai trò của ${fullName}`}
               className="h-10 w-auto bg-[right_0.6rem_center] py-0 pr-8 pl-3 text-[13px]"
@@ -90,62 +101,64 @@ export function MemberControls({
           hét lên), và đi qua hộp thoại xác nhận, cùng loại đang dùng
           cho xoá kèo, xoá buổi tập.
         */}
-        <form
-          action={statusAction}
-          ref={formRef}
-          onSubmit={async (e) => {
-            if (daHoiRoi.current) {
-              daHoiRoi.current = false;
-              return;
-            }
-            e.preventDefault();
-            const ok = await hoi({
-              tieuDe: dangMo
-                ? `Tạm khoá ${fullName}?`
-                : `Mở khoá cho ${fullName}?`,
-              moTa: dangMo
-                ? `${fullName} sẽ không đăng nhập được nữa, và app không tự báo cho họ biết vì sao. Kèo và bài viết cũ vẫn còn.`
-                : `${fullName} sẽ đăng nhập lại được ngay.`,
-              // Nhãn mặc định của hộp thoại là "Xoá" — sai hẳn việc ở
-              // đây. Khoá tài khoản không xoá gì cả, và một cái nút ghi
-              // "Xoá" trong hộp hỏi về việc khoá là cách nhanh nhất để
-              // người ta bấm Thôi vì tưởng mình sắp xoá mất ai đó.
-              nhanDongY: dangMo ? "Tạm khoá" : "Mở khoá",
-              nguyHiem: dangMo,
-            });
-            if (!ok) return;
-            daHoiRoi.current = true;
-            formRef.current?.requestSubmit();
-          }}
-        >
-          <input type="hidden" name="userId" value={userId} />
-          <input
-            type="hidden"
-            name="status"
-            value={dangMo ? "suspended" : "active"}
-          />
-          <SubmitButton
-            variant="secondary"
-            pendingText="Đang xử lý…"
-            className={
-              dangMo
-                ? "border-rose-200 text-rose-700 hover:border-rose-300 hover:bg-rose-50 dark:border-rose-400/30 dark:text-rose-300 dark:hover:border-rose-400/50 dark:hover:bg-rose-500/10"
-                : "border-emerald-200 text-emerald-700 hover:border-emerald-300 hover:bg-emerald-50 dark:border-emerald-400/30 dark:text-emerald-300 dark:hover:border-emerald-400/50 dark:hover:bg-emerald-500/10"
-            }
+        {canChangeStatus && (
+          <form
+            action={statusAction}
+            ref={formRef}
+            onSubmit={async (e) => {
+              if (daHoiRoi.current) {
+                daHoiRoi.current = false;
+                return;
+              }
+              e.preventDefault();
+              const ok = await hoi({
+                tieuDe: dangMo
+                  ? `Tạm khoá ${fullName}?`
+                  : `Mở khoá cho ${fullName}?`,
+                moTa: dangMo
+                  ? `${fullName} sẽ không đăng nhập được nữa, và app không tự báo cho họ biết vì sao. Kèo và bài viết cũ vẫn còn.`
+                  : `${fullName} sẽ đăng nhập lại được ngay.`,
+                // Nhãn mặc định của hộp thoại là "Xoá" — sai hẳn việc ở
+                // đây. Khoá tài khoản không xoá gì cả, và một cái nút ghi
+                // "Xoá" trong hộp hỏi về việc khoá là cách nhanh nhất để
+                // người ta bấm Thôi vì tưởng mình sắp xoá mất ai đó.
+                nhanDongY: dangMo ? "Tạm khoá" : "Mở khoá",
+                nguyHiem: dangMo,
+              });
+              if (!ok) return;
+              daHoiRoi.current = true;
+              formRef.current?.requestSubmit();
+            }}
           >
-            {dangMo ? (
-              <>
-                <Lock className="size-3.5" />
-                Tạm khoá
-              </>
-            ) : (
-              <>
-                <Unlock className="size-3.5" />
-                Mở khoá
-              </>
-            )}
-          </SubmitButton>
-        </form>
+            <input type="hidden" name="userId" value={userId} />
+            <input
+              type="hidden"
+              name="status"
+              value={dangMo ? "suspended" : "active"}
+            />
+            <SubmitButton
+              variant="secondary"
+              pendingText="Đang xử lý…"
+              className={
+                dangMo
+                  ? "border-rose-200 text-rose-700 hover:border-rose-300 hover:bg-rose-50 dark:border-rose-400/30 dark:text-rose-300 dark:hover:border-rose-400/50 dark:hover:bg-rose-500/10"
+                  : "border-emerald-200 text-emerald-700 hover:border-emerald-300 hover:bg-emerald-50 dark:border-emerald-400/30 dark:text-emerald-300 dark:hover:border-emerald-400/50 dark:hover:bg-emerald-500/10"
+              }
+            >
+              {dangMo ? (
+                <>
+                  <Lock className="size-3.5" />
+                  Tạm khoá
+                </>
+              ) : (
+                <>
+                  <Unlock className="size-3.5" />
+                  Mở khoá
+                </>
+              )}
+            </SubmitButton>
+          </form>
+        )}
       </div>
 
       {error && (

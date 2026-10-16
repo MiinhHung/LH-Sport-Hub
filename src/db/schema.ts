@@ -1,5 +1,6 @@
 import { relations, sql } from "drizzle-orm";
 import {
+  type AnyPgColumn,
   boolean,
   index,
   integer,
@@ -451,6 +452,10 @@ export const comments = pgTable(
     authorId: uuid("author_id")
       .notNull()
       .references(() => profiles.id, { onDelete: "cascade" }),
+    /** Bình luận gốc đang được trả lời. Chỉ một tầng (xem 08-tra-loi-binh-luan.sql). */
+    parentId: uuid("parent_id").references((): AnyPgColumn => comments.id, {
+      onDelete: "cascade",
+    }),
     content: text("content").notNull(),
     status: contentStatusEnum("status").notNull().default("published"),
     createdAt: timestamp("created_at", { withTimezone: true })
@@ -464,6 +469,7 @@ export const comments = pgTable(
   (t) => [
     index("comments_post_idx").on(t.postId, t.createdAt),
     index("comments_author_idx").on(t.authorId),
+    index("comments_parent_idx").on(t.parentId),
   ],
 );
 

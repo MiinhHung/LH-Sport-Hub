@@ -26,10 +26,10 @@ import { Button, LinkButton } from "@/components/ui/button";
  */
 export default function AppError({
   error,
-  reset,
+  retry,
 }: {
   error: Error & { digest?: string };
-  reset: () => void;
+  retry: () => void;
 }) {
   React.useEffect(() => {
     // Ghi ra console trình duyệt để lúc gỡ lỗi còn có chỗ mà nhìn.
@@ -55,7 +55,7 @@ export default function AppError({
       </p>
 
       <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
-        <Button type="button" onClick={reset}>
+        <Button type="button" onClick={() => retry()}>
           <RotateCcw className="size-4" aria-hidden />
           Thử lại
         </Button>

@@ -46,10 +46,13 @@ export function AttendanceButtons({
   sessionId,
   isGoing,
   isNotGoing,
+  daDayNguoi = false,
 }: {
   sessionId: string;
   isGoing: boolean;
   isNotGoing: boolean;
+  /** Đã đủ người và mình chưa nhận đi: không cho bấm "Tôi đi" nữa (như bao-di.tsx). */
+  daDayNguoi?: boolean;
 }) {
   const [state, action] = useActionState(setAttendanceAction, idleState);
 
@@ -61,10 +64,12 @@ export function AttendanceButtons({
         aria-label="Bạn có đi buổi này không"
         className="flex gap-2"
       >
-        <Choice value="going" active={isGoing} tone="gold">
-          {isGoing && <Check className="size-4" aria-hidden />}
-          {isGoing ? "Bạn sẽ đi" : "Tôi đi"}
-        </Choice>
+        {!(daDayNguoi && !isGoing) && (
+          <Choice value="going" active={isGoing} tone="gold">
+            {isGoing && <Check className="size-4" aria-hidden />}
+            {isGoing ? "Bạn sẽ đi" : "Tôi đi"}
+          </Choice>
+        )}
         <Choice value="not_going" active={isNotGoing} tone="rose">
           {isNotGoing && <X className="size-4" aria-hidden />}
           {isNotGoing ? "Bạn không đi" : "Không đi"}

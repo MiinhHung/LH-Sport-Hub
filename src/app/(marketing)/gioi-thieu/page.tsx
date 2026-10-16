@@ -131,7 +131,9 @@ export default async function GioiThieuPage() {
       <JourneyLine />
 
       {/* Phim: một khối rộng, chỉ tải khi sắp cuộn tới. */}
-      <section className="bg-white px-5 pb-24 sm:px-8 sm:pb-32">
+      {/* pt: JourneyLine ghim kín màn hình nên đáy của nó sát mép; không có
+          khoảng đệm thì video dính ngay dưới tấm ảnh cuối. */}
+      <section className="bg-white px-5 pt-16 pb-24 sm:px-8 sm:pt-24 sm:pb-32">
         <Reveal className="mx-auto max-w-6xl">
           <div
             data-on-navy

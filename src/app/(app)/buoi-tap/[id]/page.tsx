@@ -104,6 +104,11 @@ export default async function SessionDetailPage({
   const conThieu =
     session.maxPlayers !== null ? session.maxPlayers - going.length : null;
 
+  // Buổi đã qua giờ kết thúc thì không báo đi/huỷ nữa — server cũng chặn
+  // ("Buổi tập đã kết thúc."), giấu nút cho khỏi bấm rồi mới biết.
+  // eslint-disable-next-line react-hooks/purity -- trang server, dựng mỗi lần tải
+  const daKetThuc = session.endsAt.getTime() < Date.now();
+
   return (
     <div className="space-y-6">
       <Link
@@ -262,12 +267,13 @@ export default async function SessionDetailPage({
                 className="mt-3"
               />
 
-              {session.status === "open" && (
+              {session.status === "open" && !daKetThuc && (
                 <div className="mt-4">
                   <AttendanceButtons
                     sessionId={session.id}
                     isGoing={mine?.status === "going"}
                     isNotGoing={mine?.status === "not_going"}
+                    daDayNguoi={conThieu !== null && conThieu <= 0}
                   />
                 </div>
               )}
@@ -408,7 +414,7 @@ export default async function SessionDetailPage({
               <div className="mt-4 border-t border-ink-800 pt-4">
                 <SessionOwnerActions
                   sessionId={session.id}
-                  canCancel={session.status === "open"}
+                  canCancel={session.status === "open" && !daKetThuc}
                   canEdit={session.status !== "cancelled"}
                   goingCount={going.length}
                 />

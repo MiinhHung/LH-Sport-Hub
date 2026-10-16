@@ -25,6 +25,25 @@ function displayNameFrom(email: string, metadata: Record<string, unknown>) {
 }
 
 /**
+ * Ảnh đại diện từ nhà cung cấp đăng nhập (Google…). `user_metadata` do
+ * người dùng tự đặt được, nên bỏ qua URL trỏ vào kho ảnh của mình —
+ * nếu không, đổi avatar sẽ xoá mất ảnh của người khác.
+ */
+function externalAvatarFrom(metadata: Record<string, unknown>): string | null {
+  const raw = metadata.avatar_url;
+  if (typeof raw !== "string") return null;
+  try {
+    const url = new URL(raw);
+    if (url.protocol !== "https:" || url.pathname.includes("/storage/v1/")) {
+      return null;
+    }
+    return url.toString();
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Lấy profile của người đang đăng nhập; tạo mới nếu đây là lần đầu.
  * Kết quả được cache trong phạm vi một request.
  */
@@ -67,7 +86,10 @@ export const getCurrentProfile = cache(async (): Promise<Profile | null> => {
     return existing;
   }
 
-  const isBootstrapAdmin = bootstrapAdminEmails().includes(email);
+  // Chỉ cấp admin khi email đã xác minh — nếu không, ai đăng ký trước
+  // bằng đúng địa chỉ đó sẽ thành admin.
+  const isBootstrapAdmin =
+    Boolean(user.email_confirmed_at) && bootstrapAdminEmails().includes(email);
 
   const [created] = await db
     .insert(profiles)
@@ -75,10 +97,7 @@ export const getCurrentProfile = cache(async (): Promise<Profile | null> => {
       id: user.id,
       email,
       fullName: displayNameFrom(email, user.user_metadata ?? {}),
-      avatarUrl:
-        typeof user.user_metadata?.avatar_url === "string"
-          ? user.user_metadata.avatar_url
-          : null,
+      avatarUrl: externalAvatarFrom(user.user_metadata ?? {}),
       role: isBootstrapAdmin ? "admin" : "member",
     })
     .onConflictDoUpdate({

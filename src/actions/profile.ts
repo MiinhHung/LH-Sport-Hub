@@ -26,11 +26,10 @@ export async function updateProfileAction(
 
     const avatar = formData.get("avatar");
     let avatarUrl = actor.avatarUrl;
+    let replaced: string | null = null;
     if (avatar instanceof File && avatar.size > 0) {
-      const uploaded = (await uploadImage(avatar, "avatars", "avatar")).url;
-      const previous = actor.avatarUrl;
-      avatarUrl = uploaded;
-      if (previous) void deleteImage(previous);
+      replaced = actor.avatarUrl;
+      avatarUrl = (await uploadImage(avatar, "avatars", "avatar")).url;
     }
 
     await db
@@ -44,6 +43,9 @@ export async function updateProfileAction(
         updatedAt: new Date(),
       })
       .where(eq(profiles.id, actor.id));
+
+    // Xoá ảnh cũ sau khi đã lưu, để lưu lỗi thì avatar không thành link chết.
+    if (replaced) void deleteImage(replaced, "avatars");
 
     await audit(db, {
       actorId: actor.id,

@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, asc, count, desc, eq, gt, isNull, or, sql } from "drizzle-orm";
+import { and, asc, count, desc, eq, isNull, or, sql } from "drizzle-orm";
 
 import { db } from "@/db";
 import { conversations, messages, profiles } from "@/db/schema";
@@ -215,7 +215,14 @@ export async function listMessages(
   return rows.reverse();
 }
 
-/** Chỉ lấy tin mới hơn mốc đã biết — dùng cho vòng lặp hỏi tin mới. */
+/**
+ * Chỉ lấy tin mới hơn mốc đã biết — dùng cho vòng lặp hỏi tin mới.
+ *
+ * Postgres lưu `created_at` tới micro giây, còn mốc `since` từ máy người
+ * dùng là chuỗi ISO chỉ tới mili giây (cắt bớt phần lẻ). So thẳng thì tin
+ * cuối cùng LUÔN "mới hơn" chính mốc của nó => lần hỏi nào cũng trả lại tin
+ * đó. Cắt `created_at` về mili giây trước khi so để hai bên cùng độ chính xác.
+ */
 export async function listMessagesSince(
   conversationId: string,
   since: Date,
@@ -224,7 +231,7 @@ export async function listMessagesSince(
     where: and(
       eq(messages.conversationId, conversationId),
       isNull(messages.deletedAt),
-      gt(messages.createdAt, since),
+      sql`date_trunc('milliseconds', ${messages.createdAt}) > ${since.toISOString()}::timestamptz`,
     ),
     orderBy: [asc(messages.createdAt)],
     limit: 100,

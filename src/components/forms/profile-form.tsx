@@ -1,10 +1,10 @@
 "use client";
 
 import { Camera } from "@/components/icons";
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 
 import { updateProfileAction } from "@/actions/profile";
-import { idleState } from "@/actions/types";
+import { idleState, type ActionState } from "@/actions/types";
 import { Alert, Avatar, Field, Input, Select, Textarea } from "@/components/ui";
 import { SubmitButton } from "@/components/ui/submit-button";
 import {
@@ -26,9 +26,48 @@ export function ProfileForm({
     bio: string | null;
   };
 }) {
-  const [state, action] = useActionState(updateProfileAction, idleState);
-  const [preview, setPreview] = useState<string | null>(null);
+  // GIỮ DỮ LIỆU KHI MÁY CHỦ BÁO LỖI. React 19 tự `reset()` biểu mẫu sau
+  // mỗi lần chạy action, kể cả khi lỗi: ô `defaultValue` quay về giá trị
+  // cũ, ô chọn ảnh bị xoá trong khi ảnh xem trước vẫn còn — bấm lưu lại
+  // là mất ảnh mà không hay. Nên các ô chữ để có kiểm soát, còn ảnh thì
+  // giữ trong state và tự gắn vào FormData lúc gửi.
+  const [fullName, setFullName] = useState(profile.fullName);
+  const [department, setDepartment] = useState(profile.department ?? "");
+  const [skillLevel, setSkillLevel] = useState(profile.skillLevel);
+  const [bio, setBio] = useState(profile.bio ?? "");
+  const [anhMoi, setAnhMoi] = useState<{ file: File; url: string } | null>(
+    null,
+  );
+
+  // Ref luôn trỏ tới ảnh mới nhất, để lúc rời trang thu hồi đúng object URL.
+  const anhMoiRef = useRef(anhMoi);
+  useEffect(() => {
+    return () => {
+      if (anhMoiRef.current) URL.revokeObjectURL(anhMoiRef.current.url);
+    };
+  }, []);
+
+  /** Đổi ảnh tạm, thu hồi object URL của ảnh trước đó. */
+  function doiAnh(file: File | undefined) {
+    if (anhMoiRef.current) URL.revokeObjectURL(anhMoiRef.current.url);
+    const moi = file ? { file, url: URL.createObjectURL(file) } : null;
+    anhMoiRef.current = moi;
+    setAnhMoi(moi);
+  }
+
+  const [state, action] = useActionState(
+    async (prev: ActionState, formData: FormData) => {
+      // Ô chọn tệp có thể đã bị reset sau lần gửi lỗi trước — lấy ảnh từ state.
+      if (anhMoi) formData.set("avatar", anhMoi.file);
+      const ketQua = await updateProfileAction(prev, formData);
+      // Lưu xong thì ảnh đã lên máy chủ: bỏ ảnh tạm, Avatar hiện ảnh thật.
+      if (ketQua.status === "success") doiAnh(undefined);
+      return ketQua;
+    },
+    idleState,
+  );
   const err = state.errors ?? {};
+  const preview = anhMoi?.url ?? null;
 
   return (
     <form action={action} className="space-y-5">
@@ -56,10 +95,7 @@ export function ProfileForm({
             name="avatar"
             accept={UPLOAD.allowedMimeTypes.join(",")}
             className="sr-only"
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              setPreview(file ? URL.createObjectURL(file) : null);
-            }}
+            onChange={(e) => doiAnh(e.target.files?.[0])}
           />
         </label>
       </div>
@@ -70,7 +106,8 @@ export function ProfileForm({
           name="fullName"
           required
           maxLength={LIMITS.fullName}
-          defaultValue={profile.fullName}
+          value={fullName}
+          onChange={(e) => setFullName(e.target.value)}
         />
       </Field>
 
@@ -80,7 +117,8 @@ export function ProfileForm({
             id="department"
             name="department"
             maxLength={80}
-            defaultValue={profile.department ?? ""}
+            value={department}
+            onChange={(e) => setDepartment(e.target.value)}
             placeholder="Kỹ thuật"
           />
         </Field>
@@ -92,10 +130,15 @@ export function ProfileForm({
           error={err.skillLevel}
           hint="Để người tạo kèo dễ ghép cặp cho vừa sức."
         >
+          {/* <select> có kiểm soát KHÔNG sống sót qua reset (React không đồng
+              bộ `defaultSelected`), nên để không kiểm soát và gắn `key` theo
+              lượt chạy: mỗi lần có kết quả thì dựng lại với giá trị đang chọn. */}
           <Select
+            key={state.runId ?? 0}
             id="skillLevel"
             name="skillLevel"
-            defaultValue={profile.skillLevel}
+            defaultValue={skillLevel}
+            onChange={(e) => setSkillLevel(e.target.value)}
           >
             {SKILL_LEVEL_KEYS.map((key) => (
               <option key={key} value={key}>
@@ -111,7 +154,8 @@ export function ProfileForm({
           id="bio"
           name="bio"
           maxLength={LIMITS.bio}
-          defaultValue={profile.bio ?? ""}
+          value={bio}
+          onChange={(e) => setBio(e.target.value)}
           placeholder="Đánh trái tay hơi yếu, ai thách nhẹ tay giúp."
         />
       </Field>

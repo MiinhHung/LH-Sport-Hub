@@ -2,11 +2,11 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { useFormStatus } from "react-dom";
 
 import { signInAction, signUpAction } from "@/actions/auth";
-import { idleState } from "@/actions/types";
+import { idleState, type ActionState } from "@/actions/types";
 import { AuthField, AuthInput, AuthSubmit } from "@/components/auth/dark-field";
 
 /**
@@ -106,8 +106,13 @@ function ChanTrang({
 
 export function SignInForm({ domainHint }: { domainHint: string | null }) {
   const [state, formAction] = useActionState(signInAction, idleState);
+  // Ô email có kiểm soát: React 19 tự reset biểu mẫu sau mỗi lần gửi, kể
+  // cả khi sai mật khẩu — ô để `defaultValue` sẽ bị xoá trắng.
+  const [email, setEmail] = useState("");
   const params = useSearchParams();
   const next = params.get("next") ?? "";
+  // /auth/callback trả về đây khi đổi mã từ link email thất bại.
+  const linkLoi = params.get("error") === "auth_callback_failed";
 
   return (
     <>
@@ -128,6 +133,8 @@ export function SignInForm({ domainHint }: { domainHint: string | null }) {
             type="email"
             autoComplete="email"
             inputMode="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             required
             placeholder={goiYEmail(domainHint)}
           />
@@ -149,8 +156,15 @@ export function SignInForm({ domainHint }: { domainHint: string | null }) {
           />
         </AuthField>
 
-        {state.status === "error" && state.message && (
+        {state.status === "error" && state.message ? (
           <AuthAlert tone="loi">{state.message}</AuthAlert>
+        ) : (
+          linkLoi && (
+            <AuthAlert tone="loi">
+              Link xác nhận đã hết hạn hoặc đã dùng rồi. Thử đăng nhập — nếu
+              email đã xác nhận thì vẫn vào được.
+            </AuthAlert>
+          )
         )}
 
         <Nut pendingText="Đang đăng nhập…">Đăng nhập</Nut>
@@ -162,7 +176,21 @@ export function SignInForm({ domainHint }: { domainHint: string | null }) {
 }
 
 export function SignUpForm({ domainHint }: { domainHint: string | null }) {
-  const [state, formAction] = useActionState(signUpAction, idleState);
+  // Giữ họ tên và email khi máy chủ báo lỗi (xem SignInForm); đăng ký
+  // thành công thì vẫn dọn trắng như trước.
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [state, formAction] = useActionState(
+    async (prev: ActionState, formData: FormData) => {
+      const ketQua = await signUpAction(prev, formData);
+      if (ketQua.status === "success") {
+        setFullName("");
+        setEmail("");
+      }
+      return ketQua;
+    },
+    idleState,
+  );
 
   return (
     <>
@@ -180,6 +208,8 @@ export function SignUpForm({ domainHint }: { domainHint: string | null }) {
             name="fullName"
             autoComplete="name"
             required
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
             maxLength={80}
             placeholder="Nguyễn Minh Hưng"
           />
@@ -197,6 +227,8 @@ export function SignUpForm({ domainHint }: { domainHint: string | null }) {
             type="email"
             autoComplete="email"
             inputMode="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             required
             placeholder={goiYEmail(domainHint)}
           />
