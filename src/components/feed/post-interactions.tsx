@@ -472,6 +472,7 @@ function OTraLoi({
               maxLength={LIMITS.commentContent}
               placeholder={`Trả lời ${ten}…`}
               aria-label={`Trả lời ${ten}`}
+              data-tu-vien-focus
               className="max-h-28 min-h-8 w-full resize-none bg-transparent py-1.5 text-[13.5px] text-ink-200 outline-none placeholder:text-ink-500"
             />
             <button
@@ -805,6 +806,7 @@ export function PostInteractions({
                   maxLength={LIMITS.commentContent}
                   placeholder="Viết bình luận…"
                   aria-label="Viết bình luận"
+                  data-tu-vien-focus
                   className="max-h-32 min-h-8 w-full resize-none bg-transparent py-1.5 text-[14px] text-ink-200 outline-none placeholder:text-ink-500"
                 />
                 <button

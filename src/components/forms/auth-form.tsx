@@ -112,7 +112,15 @@ export function SignInForm({ domainHint }: { domainHint: string | null }) {
   const params = useSearchParams();
   const next = params.get("next") ?? "";
   // /auth/callback trả về đây khi đổi mã từ link email thất bại.
-  const linkLoi = params.get("error") === "auth_callback_failed";
+  /*
+   * /auth/callback trả về đây khi không tự đăng nhập được sau link email.
+   * `da_xac_nhan`: Supabase đã xác nhận email, chỉ hỏng bước tự đăng nhập
+   * (thường do mở link ở trình duyệt khác) — báo XANH, không phải lỗi.
+   */
+  const loiLink = params.get("error");
+  const daXacNhan = loiLink === "da_xac_nhan";
+  const linkLoi =
+    loiLink === "link_het_han" || loiLink === "auth_callback_failed";
 
   return (
     <>
@@ -159,12 +167,20 @@ export function SignInForm({ domainHint }: { domainHint: string | null }) {
         {state.status === "error" && state.message ? (
           <AuthAlert tone="loi">{state.message}</AuthAlert>
         ) : (
-          linkLoi && (
-            <AuthAlert tone="loi">
-              Link xác nhận đã hết hạn hoặc đã dùng rồi. Thử đăng nhập — nếu
-              email đã xác nhận thì vẫn vào được.
-            </AuthAlert>
-          )
+          <>
+            {daXacNhan && (
+              <AuthAlert tone="xong">
+                Email đã được xác nhận. Đăng nhập bằng email và mật khẩu bạn
+                vừa tạo là vào được.
+              </AuthAlert>
+            )}
+            {linkLoi && (
+              <AuthAlert tone="loi">
+                Link xác nhận đã hết hạn hoặc đã dùng rồi. Thử đăng nhập — nếu
+                email đã xác nhận thì vẫn vào được.
+              </AuthAlert>
+            )}
+          </>
         )}
 
         <Nut pendingText="Đang đăng nhập…">Đăng nhập</Nut>

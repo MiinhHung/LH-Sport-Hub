@@ -474,9 +474,19 @@ function Anh({
 
   return (
     <div className="min-w-0" style={{ gridArea: area }}>
+      {/*
+        CHIỀU CAO ẢNH CHẶN THEO CHIỀU CAO MÀN HÌNH. Khung ghim cao đúng một
+        màn; ảnh chỉ theo bề ngang thì ở màn rộng mà thấp (hay khi người
+        dùng Ctrl+phóng to) hai hàng ảnh cao hơn chỗ trống, lưới căn giữa
+        nên phần thừa tràn NGƯỢC LÊN đè tiêu đề. 360px ≈ đệm trên + tiêu đề
+        + hai dòng chú thích + khoảng giữa hai hàng.
+      */}
       <div
         ref={boxRef}
-        className={cn("relative aspect-[4/3] overflow-hidden md:aspect-[16/10]", skin.frame)}
+        className={cn(
+          "relative aspect-[4/3] w-full overflow-hidden md:aspect-[16/10] md:max-h-[max(96px,calc((100svh-360px)/2))]",
+          skin.frame,
+        )}
       >
         <motion.div className="absolute inset-0" style={{ opacity, scale }}>
           <Image

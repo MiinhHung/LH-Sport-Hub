@@ -45,6 +45,27 @@ export async function updateSession(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
 
   /*
+   * LINK XÁC NHẬN EMAIL RƠI NHẦM CHỖ. Supabase chỉ chuyển về
+   * `/auth/callback` khi địa chỉ đó nằm trong danh sách Redirect URLs;
+   * không thì nó về Site URL — tức trang chủ — kèm `?code=…`, và trang chủ
+   * lờ mã đó đi: người mới bấm link xác nhận xong vẫn chưa đăng nhập, tưởng
+   * là đăng ký hỏng. Đón mã ở đây, đẩy sang callback cho đúng việc.
+   */
+  const sp = request.nextUrl.searchParams;
+  if (
+    pathname !== "/auth/callback" &&
+    (sp.has("code") || sp.has("token_hash")) &&
+    !pathname.startsWith("/api/")
+  ) {
+    const dich = request.nextUrl.clone();
+    dich.pathname = "/auth/callback";
+    if (!dich.searchParams.has("next")) {
+      dich.searchParams.set("next", "/bang-tin");
+    }
+    return NextResponse.redirect(dich);
+  }
+
+  /*
    * KHÔNG CÓ COOKIE PHIÊN THÌ KHỎI HỎI SUPABASE.
    *
    * `auth.getUser()` là một vòng mạng ra máy chủ Supabase để xác minh

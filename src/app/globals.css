@@ -465,6 +465,17 @@ select option:disabled {
   border-radius: 4px;
 }
 
+/*
+ * Ô nhập TỰ VẼ dấu focus của riêng nó (khung ngoài sáng viền bằng
+ * focus-within, hoặc chính ô đổi viền khi focus): bỏ vòng chung, kẻo hai
+ * lớp viền vàng lồng nhau. Quy tắc trên không nằm trong layer nào nên
+ * `outline-none` của Tailwind không tắt được — phải tắt ở đây. Dấu focus
+ * vẫn còn (viền riêng của ô), nên không mất gì về tiếp cận.
+ */
+[data-tu-vien-focus]:focus-visible {
+  outline: none;
+}
+
 /* Link "bỏ qua tới nội dung" cho người dùng bàn phím. */
 .skip-link {
   position: absolute;

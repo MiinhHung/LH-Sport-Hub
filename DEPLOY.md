@@ -71,6 +71,26 @@ git init && git add . && git commit -m "LH Sport Hub"
   **Site URL** và **Redirect URLs**.
 - Đăng nhập bằng email trong `BOOTSTRAP_ADMIN_EMAILS` để có quyền admin.
 
+### Xác nhận email khi đăng ký (nếu bật "Confirm email")
+
+Người mới bấm link xác nhận xong phải được ĐĂNG NHẬP LUÔN. Ba chỗ cần đúng:
+
+1. **Site URL** = `https://<domain thật>` (không để `http://localhost:3000`).
+2. **Redirect URLs** có `https://<domain thật>/**`.
+3. **Mẫu email** (Authentication → Emails → Templates → *Confirm signup*):
+   đổi link thành kiểu `token_hash` để bấm trên thiết bị nào cũng vào được
+   (kiểu mặc định chỉ vào được nếu mở link đúng trình duyệt lúc đăng ký):
+
+   ```html
+   <a href="{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=email&next=/bang-tin">
+     Xác nhận email
+   </a>
+   ```
+
+Gói Supabase miễn phí dùng máy gửi mail có sẵn, mỗi giờ chỉ gửi được vài
+email. Team đông thì gắn SMTP riêng (Resend, Brevo… gói miễn phí là đủ) ở
+Authentication → SMTP Settings.
+
 ## Giới hạn gói miễn phí (đủ dùng cho ~20 người)
 
 - Supabase free: 500MB database, 1GB storage. Ảnh đã được nén về WebP

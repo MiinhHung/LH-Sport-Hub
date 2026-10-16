@@ -100,7 +100,15 @@ export async function unreadConversationCount(
         ),
         sql`${conversations.lastSenderId} is not null`,
         sql`${conversations.lastSenderId} <> ${viewerId}`,
-        sql`
+        /*
+          NGOẶC QUANH CẢ VẾ OR LÀ BẮT BUỘC. `and()` của drizzle KHÔNG tự bọc
+          ngoặc cho từng mảnh sql``: thiếu ngoặc thì SQL đọc thành
+          "(lọc người xem AND … AND mốc đọc is null) OR mốc đọc < tin cuối",
+          vế sau thoát hết điều kiện lọc — chấm đỏ đếm cả cuộc mình nhắn cuối,
+          thậm chí cuộc của người khác. Đã gặp thật: badge báo 1, vào xem
+          không có tin nào mới.
+        */
+        sql`(
           case
             when ${conversations.userAId} = ${viewerId} then ${conversations.readAtA}
             else ${conversations.readAtB}
@@ -110,7 +118,7 @@ export async function unreadConversationCount(
             when ${conversations.userAId} = ${viewerId} then ${conversations.readAtA}
             else ${conversations.readAtB}
           end < ${conversations.lastMessageAt}
-        `,
+        )`,
       ),
     );
 

@@ -763,6 +763,7 @@ export function ChatThread({
             maxLength={LIMITS.commentContent}
             placeholder={`Nhắn cho ${partnerName}…`}
             aria-label="Nội dung tin nhắn"
+            data-tu-vien-focus
             className="max-h-32 min-h-10 flex-1 resize-none bg-transparent px-1.5 py-[9px] text-[15px] text-ink-200 outline-none placeholder:text-ink-500"
           />
 

@@ -202,6 +202,7 @@ export function PostComposer({
                   : `${author.fullName.split(" ").slice(-1)[0]} ơi, có gì mới không?`
               }
               aria-label="Nội dung bài viết"
+              data-tu-vien-focus
               className={cn(
                 "w-full resize-none rounded-lg border border-transparent bg-ink-850 px-3.5 py-2.5 text-[15px] leading-relaxed text-ink-200 outline-none transition-[background-color,border-color,box-shadow] duration-200",
                 "placeholder:text-ink-500 hover:border-ink-700",
