@@ -1,5 +1,11 @@
 import { SportIcon } from "@/components/domain-icons";
-import { ArrowUpRight, Clock, MapPin, Wallet } from "@/components/icons";
+import {
+  ArrowUpRight,
+  ChevronRight,
+  Clock,
+  MapPin,
+  Wallet,
+} from "@/components/icons";
 import Link from "next/link";
 
 import { AvatarStack } from "@/components/ui";
@@ -297,6 +303,17 @@ export function SessionRow({
         <ThanhCho di={di} toiDa={session.maxPlayers} />
 
         {rsvp}
+
+        <Link
+          href={`/buoi-tap/${session.id}`}
+          className="group inline-flex h-9 items-center justify-center gap-1 rounded-lg border border-ink-700 text-[13px] font-semibold text-ink-300 transition-colors hover:border-gold-400 hover:text-gold-700 dark:hover:text-gold-300"
+        >
+          Xem chi tiết
+          <ChevronRight
+            className="size-4 transition-transform group-hover:translate-x-0.5"
+            aria-hidden
+          />
+        </Link>
       </div>
     </article>
   );

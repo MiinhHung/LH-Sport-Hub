@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { CSSProperties } from "react";
+import { Fragment, type CSSProperties } from "react";
 
 import { ArrowRight } from "@/components/icons";
 import { HeroVisual } from "./hero-visual";
@@ -84,20 +84,46 @@ export function LandingHero({ signedIn }: { signedIn: boolean }) {
       </div>
 
       <div className="mx-auto grid max-w-7xl grid-cols-1 items-center gap-12 px-5 pt-28 pb-16 sm:px-8 lg:min-h-[100dvh] lg:grid-cols-12 lg:gap-10 lg:pt-24 lg:pb-20">
-        <div className="lg:col-span-6">
+        <div className="group/hero lg:col-span-6">
           <p
-            className="hero-in text-[14px] font-semibold text-gold-300"
+            className="hero-in flex items-center gap-3 text-[14px] font-semibold text-gold-300"
             style={step(0)}
           >
+            {/* Vạch vàng dài ra khi rê vào khối chữ */}
+            <span
+              aria-hidden
+              className="h-0.5 w-6 rounded-full bg-gold-400 transition-[width] duration-500 ease-out group-hover/hero:w-12 motion-reduce:transition-none"
+            />
             LH Sport Hub
           </p>
 
+          {/*
+            RÊ CHUỘT VÀO TỪNG CHỮ: chữ nảy lên, nghiêng nhẹ, sáng vàng (lớp
+            `hero-tu`). Rê vào cả tiêu đề: một vệt sáng quét qua "Light
+            Human" như ánh kim loại (lớp `hero-vang`). Chỉ CSS, server
+            component vẫn không cần một dòng JavaScript. aria-label giữ
+            nguyên câu cho trình đọc màn hình, khỏi đọc rời từng chữ.
+          */}
           <h1
-            className="hero-in font-sport mt-4 text-white text-[clamp(2.9rem,6.4vw,5.1rem)] leading-[0.98] font-extrabold tracking-tight uppercase"
+            className="hero-in hero-tieu-de font-sport mt-4 text-white text-[clamp(2.9rem,6.4vw,5.1rem)] leading-[0.98] font-extrabold tracking-tight uppercase"
             style={step(1)}
+            aria-label="Sân cầu lông của team Light Human"
           >
-            Sân cầu lông của team{" "}
-            <span className="text-gold-400">Light Human</span>
+            {/* Dấu cách nằm NGOÀI ô chữ: ô inline-block nuốt dấu cách ở
+                cuối, đặt bên trong thì các chữ dính liền nhau. */}
+            <span aria-hidden>
+              {["Sân", "cầu", "lông", "của", "team"].map((tu) => (
+                <Fragment key={tu}>
+                  <span className="hero-tu">{tu}</span>{" "}
+                </Fragment>
+              ))}
+              <span className="hero-tu hero-tu-vang">
+                <span className="hero-vang">Light</span>
+              </span>{" "}
+              <span className="hero-tu hero-tu-vang">
+                <span className="hero-vang">Human</span>
+              </span>
+            </span>
           </h1>
 
           <p
@@ -112,18 +138,30 @@ export function LandingHero({ signedIn }: { signedIn: boolean }) {
             className="hero-in mt-9 flex flex-wrap items-center gap-3"
             style={step(3)}
           >
+            {/* Nút chính: nhô lên, phát sáng, một vệt sáng quét qua */}
             <Link
               href={signedIn ? "/bang-tin" : "/dang-nhap"}
-              className="group inline-flex items-center gap-2 rounded-full bg-gold-400 px-7 py-3.5 text-[15px] font-bold whitespace-nowrap text-navy-950 transition-[transform,background-color] duration-200 hover:bg-gold-300 active:scale-[0.98]"
+              className="group relative inline-flex items-center gap-2 overflow-hidden rounded-full bg-gold-400 px-7 py-3.5 text-[15px] font-bold whitespace-nowrap text-navy-950 transition-[transform,background-color,box-shadow] duration-300 ease-out hover:-translate-y-0.5 hover:bg-gold-300 hover:shadow-[0_14px_34px_-10px_rgba(220,174,66,0.75)] active:translate-y-0 active:scale-[0.98] motion-reduce:hover:translate-y-0"
             >
-              {signedIn ? "Vào bảng tin" : "Đăng nhập"}
-              <ArrowRight className="size-4 transition-transform duration-200 group-hover:translate-x-0.5" />
+              <span
+                aria-hidden
+                className="pointer-events-none absolute inset-y-0 -left-[60%] w-1/2 -skew-x-[20deg] bg-gradient-to-r from-transparent via-white/55 to-transparent transition-[left] duration-700 ease-out group-hover:left-[130%] motion-reduce:hidden"
+              />
+              <span className="relative">
+                {signedIn ? "Vào bảng tin" : "Đăng nhập"}
+              </span>
+              <ArrowRight className="relative size-4 transition-transform duration-300 group-hover:translate-x-1" />
             </Link>
+            {/* Nút phụ: nền sáng lên, viền vàng, mũi tên chỉ xuống nhún nhẹ */}
             <a
               href="#trong-nay-co-gi"
-              className="inline-flex items-center rounded-full border border-white/20 px-6 py-3.5 text-[15px] font-semibold whitespace-nowrap text-white/90 transition-colors duration-200 hover:border-gold-300 hover:text-white active:scale-[0.98]"
+              className="group inline-flex items-center gap-2 rounded-full border border-white/20 px-6 py-3.5 text-[15px] font-semibold whitespace-nowrap text-white/90 transition-[background-color,border-color,color,transform] duration-300 hover:-translate-y-0.5 hover:border-gold-300 hover:bg-white/[0.08] hover:text-white active:translate-y-0 active:scale-[0.98] motion-reduce:hover:translate-y-0"
             >
               Xem có gì
+              <ArrowRight
+                aria-hidden
+                className="size-4 rotate-90 text-gold-300 opacity-60 transition-[opacity,transform] duration-300 group-hover:translate-y-0.5 group-hover:opacity-100 motion-safe:group-hover:animate-bounce"
+              />
             </a>
           </div>
         </div>

@@ -1,5 +1,6 @@
 import {
   CalendarDays,
+  ChevronRight,
   Clock,
   MapPin,
   Navigation,
@@ -187,13 +188,23 @@ function BuoiGanNhat({ session, meId }: { session: Session; meId: string }) {
               </p>
             )}
           </div>
-          <div className="sm:w-[200px]">
+          <div className="flex flex-col gap-2 sm:w-[200px]">
             <BaoDi
               sessionId={session.id}
               isGoing={toi}
               isNotGoing={ban}
               daDayNguoi={day}
             />
+            <Link
+              href={`/buoi-tap/${session.id}`}
+              className="group inline-flex h-10 items-center justify-center gap-1.5 rounded-lg bg-gold-400 px-4 text-[13.5px] font-bold text-navy-950 transition-colors hover:bg-gold-300"
+            >
+              Xem chi tiết
+              <ChevronRight
+                className="size-4 transition-transform group-hover:translate-x-0.5"
+                aria-hidden
+              />
+            </Link>
           </div>
         </div>
       </div>

@@ -2,7 +2,12 @@
 
 import Image from "next/image";
 import * as React from "react";
-import { motion, useMotionValue, useSpring, useTransform } from "motion/react";
+import {
+  motion,
+  useMotionValue,
+  useSpring,
+  useTransform,
+} from "motion/react";
 import { TeamSignaturesLayer } from "./team-signatures";
 import { useCalm } from "./use-calm";
 
@@ -21,16 +26,23 @@ export function HeroVisual() {
   const rotateX = useTransform(smoothMouseY, [-1, 1], [6, -6]);
   const rotateY = useTransform(smoothMouseX, [-1, 1], [-6, 6]);
 
-  // Quả cầu đi theo chuột: lò xo riêng, MỀM VÀ NẶNG, giảm chấn gần tới hạn
-  // (ζ ≈ 1,05) — cầu trôi chậm theo con trỏ, chừng một giây mới tới, rồi
-  // dừng êm không rung lắc. Biên độ tính theo % khung nên màn nào cũng
-  // vừa, không văng ra khỏi chữ ký.
-  const LO_XO_CAU = { stiffness: 18, damping: 10.5, mass: 1.4 };
+  /*
+   * Quả cầu đi theo chuột: CHẬM VÀ DỊU, KHÔNG LẮC.
+   *
+   * Lò xo rất mềm và nặng, giảm chấn hơi quá tới hạn (ζ ≈ 1,1): cầu trôi
+   * từ từ theo con trỏ, chừng hai giây mới tới, và tới nơi là đứng yên —
+   * không vọt quá, không lắc qua lắc lại. Góc nghiêng và độ quay 3D chỉ
+   * theo VỊ TRÍ (không theo vận tốc), nên đổi rất đều, không giật.
+   * Biên độ tính theo % khung nên màn nào cũng vừa, không đè chữ ký.
+   */
+  const LO_XO_CAU = { stiffness: 7, damping: 7, mass: 1.6 };
   const cauX = useSpring(mouseX, LO_XO_CAU);
   const cauY = useSpring(mouseY, LO_XO_CAU);
-  const shuttleX = useTransform(cauX, [-1, 1], ["-14%", "14%"]);
-  const shuttleY = useTransform(cauY, [-1, 1], ["-10%", "10%"]);
-  const shuttleRotate = useTransform(cauX, [-1, 1], [-6, 6]);
+  const shuttleX = useTransform(cauX, [-1, 1], ["-8%", "8%"]);
+  const shuttleY = useTransform(cauY, [-1, 1], ["-6%", "6%"]);
+  const shuttleRotate = useTransform(cauX, [-1, 1], [-4, 4]);
+  const quayY = useTransform(cauX, [-1, 1], [-8, 8]);
+  const quayX = useTransform(cauY, [-1, 1], [5, -5]);
 
   // Nghe chuột trên cả cửa sổ chứ không chỉ trong khung, để rê ở phần chữ
   // bên trái hero cầu vẫn nhìn theo. Chỉ chuột thật: chạm trên điện thoại
@@ -104,7 +116,18 @@ export function HeroVisual() {
           style={{ "--i": 1 } as React.CSSProperties}
         >
           <motion.div
-            style={{ x: shuttleX, y: shuttleY, rotate: shuttleRotate }}
+            // Gốc xoay ở đế bần (phần nặng), chùm lông lắc quanh nó như
+            // con lắc. Ảnh lệch phải và đế nằm thấp nên gốc ở ~(62%, 72%).
+            style={{
+              x: shuttleX,
+              y: shuttleY,
+              rotate: shuttleRotate,
+              rotateX: quayX,
+              rotateY: quayY,
+              transformPerspective: 1400,
+              originX: 0.62,
+              originY: 0.72,
+            }}
             className="relative size-full"
           >
             <div data-hero-shuttle className="hero-float relative size-full">
