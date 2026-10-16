@@ -2,6 +2,8 @@
 
 import * as React from "react";
 
+import { cn } from "@/lib/utils";
+
 import {
   DELAY,
   EASE_OUT_CSS,
@@ -42,6 +44,7 @@ export function CutReveal({
   gachChan,
   mauGach = "var(--color-gold-700)",
   chay,
+  tuClassName,
 }: {
   text: string;
   className?: string;
@@ -74,6 +77,8 @@ export function CutReveal({
    * hiện ra thì chẳng còn gì để xem.
    */
   chay?: boolean;
+  /** Lớp thêm cho TỪNG TỪ (ví dụ hiệu ứng rê chuột của mỗi chữ). */
+  tuClassName?: string;
 }) {
   const ref = React.useRef<HTMLElement>(null);
   const [tuChay, setTuChay] = React.useState(false);
@@ -155,7 +160,7 @@ export function CutReveal({
       }}
     >
       <span
-        className="inline-block will-change-transform"
+        className={cn("inline-block will-change-transform", tuClassName)}
         style={{
           // Trước khi được trang bị thì để nguyên vị trí: nếu
           // JavaScript không chạy, chữ vẫn đọc bình thường.

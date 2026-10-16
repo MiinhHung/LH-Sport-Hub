@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 
 import { IntroOverlay } from "@/components/intro/intro-overlay";
 import { DoVui } from "@/components/landing/do-vui";
 import { LandingFeatures } from "@/components/landing/features";
 import { LandingHero } from "@/components/landing/hero";
 import { JourneyLine } from "@/components/landing/journey-line";
+import { AnhNghieng, SoLieuDem } from "@/components/landing/khong-gian";
 import { DELAY } from "@/components/landing/motion";
 import { Reveal } from "@/components/landing/reveal";
 import { ShowcaseVideo } from "@/components/landing/showcase-video";
@@ -97,32 +97,17 @@ export default async function GioiThieuPage() {
 
             {soLieu.length > 0 && (
               <Reveal delay={DELAY.body + DELAY.item}>
-                <dl className="mt-10 flex flex-wrap gap-x-10 gap-y-6">
-                  {soLieu.map((s) => (
-                    <div key={s.label} className="flex flex-col-reverse">
-                      <dt className="mt-2 text-[14px] font-medium text-ink-400">
-                        {s.label}
-                      </dt>
-                      <dd className="font-sport text-[44px] leading-none font-extrabold text-navy-900 tabular-nums">
-                        {s.value}
-                      </dd>
-                    </div>
-                  ))}
-                </dl>
+                <SoLieuDem items={soLieu} />
               </Reveal>
             )}
           </div>
 
-          <Reveal delay={DELAY.body} className="lg:col-span-7">
-            <div className="relative aspect-[1024/666] overflow-hidden rounded-2xl bg-ink-850">
-              <Image
-                src="/images/landing/khong-gian-thu-gian.webp"
-                alt="Hai người chơi cầu lông ngoài trời, cười với nhau"
-                fill
-                sizes="(max-width: 1024px) 100vw, 700px"
-                className="object-cover"
-              />
-            </div>
+          {/* pr/pb chừa chỗ cho khung vàng lệch phía sau ảnh */}
+          <Reveal delay={DELAY.body} className="pr-6 pb-6 lg:col-span-7">
+            <AnhNghieng
+              src="/images/landing/khong-gian-team.webp"
+              alt="Cả team Light Human chụp ảnh chung trên sân cầu lông WaveStation"
+            />
           </Reveal>
         </div>
       </section>
@@ -150,20 +135,35 @@ export default async function GioiThieuPage() {
 
       <LandingFeatures />
 
-      {/* Luật nhà: một câu, chữ lớn, lệch trái. */}
+      {/*
+        Luật nhà: một câu, chữ lớn, lệch trái.
+
+        Rê chuột: từng chữ chuyển vàng (lớp `luat-tu`), hai dấu ngoặc
+        nghiêng nhẹ ra hai bên và gạch vàng dưới "Luật nhà của team" dài
+        ra khi rê vào cả câu (nhóm `luat`).
+      */}
       <section className="bg-white px-5 py-24 sm:px-8 sm:py-36">
         <div className="mx-auto grid max-w-7xl grid-cols-1 lg:grid-cols-12">
-          <blockquote className="lg:col-span-10 lg:col-start-2">
+          <blockquote className="group/luat lg:col-span-10 lg:col-start-2">
             <p className="font-display text-[38px] leading-[1.1] font-bold text-navy-900 sm:text-[60px] lg:text-[76px]">
-              <span className="text-gold-700">“</span>
+              <span className="inline-block origin-bottom-right text-gold-700 transition-transform duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover/luat:-translate-x-1 group-hover/luat:-rotate-12 motion-reduce:transition-none">
+                “
+              </span>
               <CutReveal
                 text="Thua thì bao, đừng quỵt."
                 className="inline"
+                tuClassName="luat-tu"
                 delay={DELAY.heading}
               />
-              <span className="text-gold-700">”</span>
+              <span className="inline-block origin-bottom-left text-gold-700 transition-transform duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover/luat:translate-x-1 group-hover/luat:rotate-12 motion-reduce:transition-none">
+                ”
+              </span>
             </p>
-            <footer className="mt-6 text-[14px] font-semibold text-ink-400">
+            <footer className="mt-6 flex items-center gap-3 text-[14px] font-semibold text-ink-400">
+              <span
+                aria-hidden
+                className="h-0.5 w-6 rounded-full bg-gold-400 transition-[width] duration-500 ease-out group-hover/luat:w-14 motion-reduce:transition-none"
+              />
               Luật nhà của team
             </footer>
           </blockquote>
@@ -172,6 +172,12 @@ export default async function GioiThieuPage() {
 
       {/* Đố vui rồi vào app. */}
       <section className="border-t border-ink-800 bg-white px-5 py-24 text-center sm:px-8 sm:py-32">
+        <Reveal>
+          <p className="mb-5 inline-flex items-center gap-2 rounded-full bg-gold-100 px-4 py-1.5 font-sport text-[13px] font-bold tracking-[0.25em] text-gold-700 uppercase ring-1 ring-gold-400/40">
+            <span aria-hidden className="size-1.5 rounded-full bg-gold-500" />
+            Đố vui
+          </p>
+        </Reveal>
         <CutReveal
           as="h2"
           text="Light Human được thành lập ngày nào?"

@@ -880,6 +880,14 @@ html[data-intro="play"] .intro-skip {
   background-position: 0% 0;
 }
 
+/* Câu "luật nhà" ở trang chủ: rê vào chữ nào, chữ đó chuyển vàng. */
+.luat-tu {
+  cursor: default;
+}
+.luat-tu:hover {
+  color: var(--color-gold-700);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .hero-tu,
   .hero-vang {

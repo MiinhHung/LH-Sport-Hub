@@ -96,7 +96,7 @@ const STOPS = [
   },
   {
     title: "Tạo thêm năng lượng tích cực cho tuần mới",
-    photo: "/images/feed-4.jpg",
+    photo: "/images/nang-luong-tich-cuc.webp",
   },
   {
     title: "Kết nối và gắn bó hơn",
