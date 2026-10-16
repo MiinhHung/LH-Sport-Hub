@@ -183,6 +183,8 @@ export function ChatThread({
 
   const listRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  /** Đang kéo một tệp ngang qua khung soạn tin. */
+  const [dangKeoAnh, setDangKeoAnh] = useState(false);
   const textRef = useRef<HTMLTextAreaElement>(null);
   const emojiRef = useRef<HTMLDivElement>(null);
 
@@ -299,7 +301,28 @@ export function ChatThread({
 
   function pickImage(list: FileList | null) {
     const file = list?.[0];
-    if (!file) return;
+    if (file) nhanAnh(file);
+  }
+
+  /**
+   * Lấy ảnh từ khay nhớ tạm (Ctrl+V) hoặc từ cú kéo thả. Trả về true nếu
+   * có ảnh — khi đó nơi gọi chặn hành vi mặc định (không dán chữ rác / mở
+   * ảnh ra tab mới).
+   */
+  function layAnhTu(data: DataTransfer | null): boolean {
+    const file = Array.from(data?.files ?? []).find((f) =>
+      f.type.startsWith("image/"),
+    );
+    if (!file) return false;
+    nhanAnh(file);
+    return true;
+  }
+
+  function nhanAnh(file: File) {
+    if (!(UPLOAD.allowedMimeTypes as readonly string[]).includes(file.type)) {
+      setError("Chỉ gửi được ảnh JPG, PNG hoặc WEBP.");
+      return;
+    }
     if (file.size > UPLOAD.maxBytes) {
       setError(`Ảnh tối đa ${Math.round(UPLOAD.maxBytes / 1024 / 1024)}MB.`);
       return;
@@ -674,23 +697,45 @@ export function ChatThread({
       </div>
 
       {/* Ô soạn tin — cùng dáng ô bình luận ở bảng tin */}
+      {/*
+        Kéo ảnh từ máy thả vào khung soạn tin là đính kèm luôn, có viền vàng
+        đứt báo chỗ thả.
+      */}
       <form
         onSubmit={send}
-        className="border-t border-ink-800 bg-ink-900 px-3 pt-3 pb-3 sm:px-4"
+        onDragOver={(e) => {
+          if (!Array.from(e.dataTransfer.types).includes("Files")) return;
+          e.preventDefault();
+          setDangKeoAnh(true);
+        }}
+        onDragLeave={(e) => {
+          if (!e.currentTarget.contains(e.relatedTarget as Node | null)) {
+            setDangKeoAnh(false);
+          }
+        }}
+        onDrop={(e) => {
+          setDangKeoAnh(false);
+          if (layAnhTu(e.dataTransfer)) e.preventDefault();
+        }}
+        className={cn(
+          "relative border-t border-ink-800 bg-ink-900 px-3 pt-3 pb-3 sm:px-4",
+          dangKeoAnh &&
+            "after:pointer-events-none after:absolute after:inset-1.5 after:rounded-xl after:border-2 after:border-dashed after:border-gold-400 after:bg-gold-400/5",
+        )}
       >
         {attachment && (
-          <div className="relative mb-2.5 ml-1 inline-block">
+          <div className="animate-rise relative mb-2.5 ml-1 inline-block">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={attachment.url}
               alt="Ảnh sắp gửi"
-              className="h-24 w-auto rounded-lg object-cover ring-1 ring-ink-800"
+              className="size-28 rounded-2xl object-cover ring-1 ring-ink-800 sm:size-32"
             />
             <button
               type="button"
               onClick={clearAttachment}
               aria-label="Bỏ ảnh"
-              className="absolute -top-2 -right-2 grid size-6 place-items-center rounded-full bg-navy-900 text-white ring-2 ring-ink-900 transition-colors hover:bg-navy-800 pointer-coarse:size-8"
+              className="absolute top-1.5 right-1.5 grid size-7 place-items-center rounded-full bg-black/60 text-white backdrop-blur-sm transition-colors hover:bg-black/80 pointer-coarse:size-8"
             >
               <X className="size-3.5" strokeWidth={3} />
             </button>
@@ -759,6 +804,15 @@ export function ChatThread({
                 e.currentTarget.form?.requestSubmit();
               }
             }}
+            /*
+              DÁN ẢNH (Ctrl+V): ảnh copy từ web, ảnh chụp màn hình… thành
+              ảnh đính kèm. Khay nhớ chỉ có ảnh thì chặn dán mặc định; có cả
+              chữ (copy một đoạn kèm hình) thì vẫn để chữ dán vào như thường.
+            */
+            onPaste={(e) => {
+              const coChu = e.clipboardData.getData("text/plain").trim() !== "";
+              if (layAnhTu(e.clipboardData) && !coChu) e.preventDefault();
+            }}
             rows={1}
             maxLength={LIMITS.commentContent}
             placeholder={`Nhắn cho ${partnerName}…`}
@@ -778,7 +832,7 @@ export function ChatThread({
         </div>
 
         <p className="mt-1.5 hidden px-1 text-[12px] text-ink-500 sm:block">
-          Enter để gửi · Shift+Enter để xuống dòng
+          Enter để gửi · Shift+Enter để xuống dòng · Ctrl+V để dán ảnh
         </p>
 
         <input
