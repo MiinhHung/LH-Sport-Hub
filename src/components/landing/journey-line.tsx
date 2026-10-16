@@ -11,6 +11,8 @@ import {
 import Image from "next/image";
 import * as React from "react";
 
+import { CONTACT_POINT, VIEW } from "@/components/intro/athlete-rig";
+import { CauThu, NHIP } from "@/components/landing/cau-thu";
 import { SPRING } from "@/components/landing/motion";
 import { cn } from "@/lib/utils";
 import { useCalm } from "@/components/landing/use-calm";
@@ -41,11 +43,9 @@ import { useCalm } from "@/components/landing/use-calm";
  *   0.82-0.93  đáp xuống ảnh: vòng sáng, cầu nhỏ dần, ảnh hiện ra
  *   0.43-1.00  thu vợt (follow-through) về thế nghỉ
  *
- * HÌNH NGƯỜI. Tài sản chỉ có MỘT tư thế (bóng đen trên nền trắng). Nên
- * chuyển động dựng bằng transform trên hai lớp cắt từ cùng một tấm ảnh bằng
- * `clip-path`: lớp thân, và lớp tay + vợt xoay quanh trục vai. Lớp tay dùng
- * `mix-blend-mode: multiply` để chỗ chồng lên thân (cùng màu đen) không để
- * lộ góc trắng của khung ảnh. Không vẽ lại người bằng SVG.
+ * HÌNH NGƯỜI. Cùng bộ xương SVG với màn mở đầu và đố vui (CauThu), lái
+ * theo tiến độ cuộn qua `mocNguoi`: mỗi cú đủ pha vung, khuỵu, bật nhảy,
+ * chạm cầu, tiếp đất. Người bên phải lật gương.
  *
  * GIẢM CHUYỂN ĐỘNG: không ghim, hiện tĩnh đủ bóng người, bốn ảnh có chữ, và
  * bốn đường bay vẽ mờ.
@@ -104,15 +104,6 @@ const STOPS = [
   },
 ];
 
-/** Cùng bóng người áo navy viền vàng với màn mở đầu, cho đồng bộ. */
-const PHOTO = "/images/landing/lh-player-uniform.webp";
-
-/** Trục vai và tâm mặt vợt theo ảnh nhân vật mới 500x720. */
-const PIVOT = { x: 220 / 500, y: 250 / 720 };
-const HEAD = { x: 250 / 500, y: 100 / 720 };
-/** Góc tay lúc chạm cầu, độ, chiều kim đồng hồ là dương. */
-const GOC_CHAM = 18;
-
 const LEGS = 4;
 const START = 0.05;
 const DUR = 0.235;
@@ -122,60 +113,11 @@ const DUR = 0.235;
 /* ------------------------------------------------------------------ */
 
 const clamp = (v: number, a = 0, b = 1) => Math.min(b, Math.max(a, v));
-const smooth = (t: number) => t * t * (3 - 2 * t);
-
-/** Nội suy qua các mốc [u, giá trị], làm mềm từng đoạn. */
-function keys(u: number, pts: [number, number][]) {
-  if (u <= pts[0][0]) return pts[0][1];
-  for (let i = 1; i < pts.length; i++) {
-    const [u1, v1] = pts[i];
-    if (u <= u1) {
-      const [u0, v0] = pts[i - 1];
-      return v0 + (v1 - v0) * smooth((u - u0) / (u1 - u0));
-    }
-  }
-  return pts[pts.length - 1][1];
-}
-
-const ARM: [number, number][] = [
-  [0, 0],
-  [0.26, -40],
-  [0.34, -40],
-  [0.43, GOC_CHAM],
-  [0.56, 40],
-  [0.82, 8],
-  [1, 0],
-];
-const LEAN: [number, number][] = [
-  [0, 0],
-  [0.26, -4],
-  [0.34, -4],
-  [0.43, 4],
-  [0.62, 3],
-  [1, 0],
-];
-/** Nhún xuống rồi bật lên, tính theo phần trăm chiều cao người. */
-const HOP: [number, number][] = [
-  [0, 0],
-  [0.26, 2.5],
-  [0.34, 2.5],
-  [0.43, -4],
-  [0.56, -1.5],
-  [0.82, 0],
-  [1, 0],
-];
 
 /** Cú đánh số i, và tiến độ nội bộ u của nó tại tiến độ khối v. */
 function leg(v: number) {
   const i = clamp(Math.floor((v - START) / DUR), 0, LEGS - 1);
   return { i, u: (v - START - i * DUR) / DUR };
-}
-
-/** Giá trị theo mốc cho người chơi `side` (0 trái, 1 phải) tại tiến độ v. */
-function theoNguoi(v: number, side: 0 | 1, pts: [number, number][]) {
-  const { i, u } = leg(v);
-  if (i % 2 !== side || u < 0 || u > 1) return 0;
-  return keys(u, pts);
 }
 
 /* ------------------------------------------------------------------ */
@@ -279,6 +221,34 @@ function diemTai(lut: Float32Array, e: number) {
 /* Người chơi                                                          */
 /* ------------------------------------------------------------------ */
 
+/**
+ * Mốc trên dòng thời gian bộ xương (athlete-rig) của người chơi `side` tại
+ * tiến độ v.
+ *
+ * Tới lượt mình đánh: nửa đầu cú (u 0 → 0,42) chạy từ thế sẵn sàng qua
+ * vung ra sau, khuỵu gối, bật nhảy tới đúng khung CHẠM CẦU — trùng lúc quả
+ * cầu rời vợt ở đây; nửa sau chạy bẻ cổ tay, tiếp đất, về thế sẵn sàng.
+ * Không tới lượt: nhún thở nhẹ theo độ cuộn (đoạn 0 → 480 lặp liền mạch).
+ */
+const CHAM_U = 0.42;
+function mocNguoi(v: number, side: 0 | 1) {
+  const { i, u } = leg(v);
+  if (i % 2 === side && u >= 0 && u <= 1) {
+    return u < CHAM_U
+      ? NHIP.daTu + (u / CHAM_U) * (NHIP.cham - NHIP.daTu)
+      : NHIP.cham + ((u - CHAM_U) / (1 - CHAM_U)) * (NHIP.het - NHIP.cham);
+  }
+  return (v * 6000) % NHIP.thoDen;
+}
+
+/**
+ * Người chơi: CÙNG bộ xương với màn mở đầu và đố vui, lái theo độ cuộn.
+ *
+ * Bản trước là MỘT tấm ảnh bóng người tĩnh, chỉ dịch lên xuống và nghiêng
+ * cả khối — tay, chân, vợt không nhúc nhích nên nhìn cứng đơ. Giờ mỗi cú
+ * có đủ pha như màn mở đầu, kèm lò xo của vợt, tóc, vạt áo; vẫn là hàm
+ * thuần của tiến độ nên cuộn ngược chạy ngược mượt như nhau.
+ */
 function NguoiChoi({
   P,
   side,
@@ -288,13 +258,7 @@ function NguoiChoi({
   side: 0 | 1;
   boxRef: React.Ref<HTMLDivElement>;
 }) {
-  const lat = side === 1;
-
-  const than = useTransform(P, (v) => {
-    const lean = theoNguoi(v, side, LEAN) * (lat ? -1 : 1);
-    const hop = theoNguoi(v, side, HOP);
-    return `translateY(${hop}%) rotate(${lean}deg)`;
-  });
+  const nhip = useTransform(P, (v) => mocNguoi(v, side));
 
   return (
     <div
@@ -304,25 +268,17 @@ function NguoiChoi({
       aria-label={side === 0 ? "Người chơi bật nhảy đập cầu" : undefined}
       className="relative aspect-[500/720] h-full max-h-[232px] md:max-h-[360px]"
     >
-      <motion.div
-        className="relative size-full origin-[50%_90%]"
-        style={{ transform: than }}
+      {/* Người bên phải lật gương để đánh sang trái */}
+      <div
+        className="relative size-full"
+        style={{ transform: side === 1 ? "scaleX(-1)" : undefined }}
       >
-        <div
-          className="relative size-full"
-          style={{
-            transform: lat ? "scaleX(-1)" : undefined,
-          }}
-        >
-          <Image
-            src={PHOTO}
-            alt="Người chơi đập cầu"
-            fill
-            sizes="(max-width: 768px) 170px, 260px"
-            className="object-contain"
-          />
-        </div>
-      </motion.div>
+        <CauThu
+          nhip={nhip}
+          k={side === 0 ? "jt" : "jp"}
+          className="size-full overflow-visible"
+        />
+      </div>
     </div>
   );
 }
@@ -572,7 +528,6 @@ export function JourneyLine({
     const measure = () => {
       const sr = stage.getBoundingClientRect();
       if (sr.width === 0) return;
-      const th = (GOC_CHAM * Math.PI) / 180;
       const legs: Geom["legs"] = [];
       for (let i = 0; i < LEGS; i++) {
         const pl = playerRefs.current[i % 2];
@@ -581,10 +536,10 @@ export function JourneyLine({
         const pr = pl.getBoundingClientRect();
         const cw = pr.width;
         const ch = pr.height;
-        const vx = (HEAD.x - PIVOT.x) * cw;
-        const vy = (HEAD.y - PIVOT.y) * ch;
-        let hx = PIVOT.x * cw + vx * Math.cos(th) - vy * Math.sin(th);
-        const hy = PIVOT.y * ch + vx * Math.sin(th) + vy * Math.cos(th);
+        // Cầu rời vợt đúng ĐIỂM CHẠM của bộ xương (khung 500×720, cùng tỉ
+        // lệ với hộp người chơi). Người bên phải lật gương.
+        let hx = (CONTACT_POINT.x / VIEW.w) * cw;
+        const hy = (CONTACT_POINT.y / VIEW.h) * ch;
         if (i % 2 === 1) hx = cw - hx;
         const x0 = pr.left - sr.left + hx;
         const y0 = pr.top - sr.top + hy;

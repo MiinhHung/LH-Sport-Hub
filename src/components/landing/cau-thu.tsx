@@ -96,17 +96,23 @@ export function cauTrenTay(ms: number): Pt {
   return { x: (p.x / VIEW.w) * 100, y: (p.y / VIEW.h) * 100 };
 }
 
+
 /** Các track được lái: bỏ hai quả cầu riêng của màn mở đầu. */
 const LAI = TRACKS.filter((t) => t.name !== "shin" && t.name !== "shout");
 
-/** Gốc toạ độ khớp + dáng đứng yên trước khi JavaScript chạy (SSR). */
-const CSS_TINH = [
-  `.${K}{transform-box:view-box;transform-origin:0 0}`,
-  ...LAI.map((t) => {
-    const v = t.name === "root" ? [ROOT_X, rootYAt(0), 1] : t.at(0);
-    return `.${K}-${t.name}{${t.css(v)}}`;
-  }),
-].join("\n");
+/**
+ * Gốc toạ độ khớp + dáng đứng yên trước khi JavaScript chạy (SSR), theo
+ * tiền tố `k`. Mỗi nhân vật trên trang có tiền tố riêng: class khớp và id
+ * gradient không giẫm lên nhau.
+ */
+const cssTinh = (k: string) =>
+  [
+    `.${k}{transform-box:view-box;transform-origin:0 0}`,
+    ...LAI.map((t) => {
+      const v = t.name === "root" ? [ROOT_X, rootYAt(0), 1] : t.at(0);
+      return `.${k}-${t.name}{${t.css(v)}}`;
+    }),
+  ].join("\n");
 
 /** "a:1;b:2 3" → [["a","1"],["b","2 3"]] */
 const tachCss = (s: string) =>
@@ -118,38 +124,42 @@ const tachCss = (s: string) =>
 export function CauThu({
   nhip,
   className,
+  k = K,
 }: {
   nhip: MotionValue<number>;
   className?: string;
+  /** Tiền tố class/id, riêng cho từng nhân vật trên cùng một trang. */
+  k?: string;
 }) {
   const ref = React.useRef<SVGSVGElement | null>(null);
+  const css = React.useMemo(() => cssTinh(k), [k]);
 
   React.useEffect(() => {
     const svg = ref.current;
     if (!svg) return;
     const khop = LAI.map(
       (t) =>
-        [t, Array.from(svg.querySelectorAll<SVGElement>(`.${K}-${t.name}`))] as const,
+        [t, Array.from(svg.querySelectorAll<SVGElement>(`.${k}-${t.name}`))] as const,
     );
     const ve = (ms: number) => {
       for (const [t, els] of khop) {
         const v = t.at(ms);
         // Gốc luôn hiện rõ: độ mờ lúc mở màn chỉ dành cho màn mở đầu.
         if (t.name === "root") v[2] = 1;
-        const css = tachCss(t.css(v));
+        const cap = tachCss(t.css(v));
         for (const el of els) {
-          for (const [p, val] of css) el.style.setProperty(p, val);
+          for (const [p, val] of cap) el.style.setProperty(p, val);
         }
       }
     };
     ve(nhip.get());
     return nhip.on("change", ve);
-  }, [nhip]);
+  }, [nhip, k]);
 
   return (
     <>
-      <style suppressHydrationWarning>{CSS_TINH}</style>
-      <AthleteSvgRef svgRef={ref} className={className} />
+      <style suppressHydrationWarning>{css}</style>
+      <AthleteSvgRef svgRef={ref} className={className} k={k} />
     </>
   );
 }
@@ -158,9 +168,11 @@ export function CauThu({
 function AthleteSvgRef({
   svgRef,
   className,
+  k,
 }: {
   svgRef: React.RefObject<SVGSVGElement | null>;
   className?: string;
+  k: string;
 }) {
   const boc = React.useRef<HTMLSpanElement>(null);
   React.useLayoutEffect(() => {
@@ -168,7 +180,7 @@ function AthleteSvgRef({
   }, [svgRef]);
   return (
     <span ref={boc} className="contents">
-      <AthleteSvg k={K} className={className} />
+      <AthleteSvg k={k} className={className} />
     </span>
   );
 }
