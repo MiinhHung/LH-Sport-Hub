@@ -19,7 +19,33 @@ export const publicEnv = {
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ??
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
     "",
-  siteUrl: process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
+  /*
+    Địa chỉ thật của trang, dùng cho `metadataBase` — tức gốc để dựng
+    đường dẫn tuyệt đối cho `og:image`.
+
+    BA BẬC, VÌ BẬC ĐẦU HAY BỊ QUÊN. Đã đo trên bản đã deploy: thẻ
+    `og:image` trả về `http://localhost:3000/logo.png`, nên mọi nơi dán
+    link (Zalo, Messenger, Facebook) đều đi tìm ảnh ở máy người dùng và
+    không thấy gì.
+
+      1. NEXT_PUBLIC_SITE_URL — đặt tay, thắng tất cả. Dùng khi có tên
+         miền riêng.
+      2. VERCEL_PROJECT_PRODUCTION_URL — Vercel tự đặt, là tên miền
+         production ổn định. Nhờ bậc này mà không đặt gì vẫn đúng.
+      3. localhost — chỉ còn đúng cho lúc chạy ở máy.
+
+    Bậc 2 KHÔNG phải `VERCEL_URL`: biến đó đổi theo từng lần deploy, nên
+    ảnh xem trước của một link cũ sẽ trỏ vào bản deploy đã chết.
+
+    Biến bậc 2 không mang tiền tố NEXT_PUBLIC nên chỉ đọc được ở server.
+    Không sao: chỗ duy nhất dùng `siteUrl` là `metadataBase` trong
+    `app/layout.tsx`, vốn chạy ở server.
+  */
+  siteUrl:
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    (process.env.VERCEL_PROJECT_PRODUCTION_URL
+      ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+      : "http://localhost:3000"),
 };
 
 export function requirePublicEnv() {
