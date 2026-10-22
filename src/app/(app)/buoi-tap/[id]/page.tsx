@@ -22,11 +22,14 @@ import { getSessionDetail } from "@/lib/queries";
 import {
   dayLabel,
   formatDate,
+  formatDateTime,
   formatTime,
   formatVnd,
   timeUntil,
   weekdayLabel,
 } from "@/lib/utils";
+
+import { NutChiaSe } from "@/components/buoi-tap/nut-chia-se";
 
 import { AttendanceButtons } from "./attendance";
 import { SessionOwnerActions } from "./session-actions";
@@ -267,16 +270,29 @@ export default async function SessionDetailPage({
                 className="mt-3"
               />
 
-              {session.status === "open" && !daKetThuc && (
-                <div className="mt-4">
+              {/*
+                Nút chia sẻ đặt CẠNH nút điểm danh, không nhét vào menu
+                của chủ buổi: ai cũng rủ người khác được, không riêng
+                người đặt sân. Và đây đúng là lúc người ta nghĩ tới
+                chuyện rủ — vừa xem xong giờ và sân.
+
+                Vẫn hiện cả khi buổi đã đóng hoặc đã qua: gửi lại link
+                cho người hỏi "hôm đó đánh ở đâu" là việc có thật.
+              */}
+              <div className="mt-4 flex flex-wrap items-center gap-2">
+                {session.status === "open" && !daKetThuc && (
                   <AttendanceButtons
                     sessionId={session.id}
                     isGoing={mine?.status === "going"}
                     isNotGoing={mine?.status === "not_going"}
                     daDayNguoi={conThieu !== null && conThieu <= 0}
                   />
-                </div>
-              )}
+                )}
+                <NutChiaSe
+                  tieuDe={session.title}
+                  moTa={`${formatDateTime(session.startsAt)} • ${session.venueName}`}
+                />
+              </div>
             </Card>
           </section>
 
