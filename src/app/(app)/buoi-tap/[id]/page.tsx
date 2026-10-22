@@ -8,6 +8,7 @@ import {
   Users,
 } from "@/components/icons";
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -460,6 +461,65 @@ export default async function SessionDetailPage({
                   )}
                 </div>
               </dl>
+
+              {/*
+                MÃ QR CỦA NGƯỜI TẠO BUỔI.
+
+                Chỉ hiện khi buổi có tính tiền (đã nằm trong điều kiện của
+                cả thẻ này) và người tạo đã tải mã lên. Chưa có mã thì
+                nhắc đúng một câu, và CHỈ nhắc chính chủ — người khác đọc
+                câu đó cũng chẳng làm gì được.
+
+                Nền TRẮNG dưới mã, kể cả ở chế độ tối: máy quét đọc mã QR
+                bằng tương phản đen trên trắng, đảo màu là nhiều máy chịu
+                thua.
+              */}
+              {session.creator.qrUrl ? (
+                <div className="mt-4 border-t border-ink-800 pt-4">
+                  <p className="text-[12.5px] text-ink-500">
+                    Quét để chuyển cho{" "}
+                    <span className="font-semibold text-ink-300">
+                      {session.creator.fullName}
+                    </span>
+                  </p>
+                  <a
+                    href={session.creator.qrUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`Mở mã QR của ${session.creator.fullName} cỡ lớn`}
+                    className="mt-2 block rounded-lg bg-white p-2 ring-1 ring-ink-800 transition-opacity hover:opacity-90"
+                  >
+                    <Image
+                      src={session.creator.qrUrl}
+                      alt={`Mã QR nhận tiền của ${session.creator.fullName}`}
+                      width={320}
+                      height={320}
+                      sizes="240px"
+                      className="h-auto w-full object-contain"
+                    />
+                  </a>
+                  <p className="mt-2 text-[12px] leading-relaxed text-ink-500">
+                    Mã không kèm sẵn số tiền — tự nhập{" "}
+                    {perHead === null ? "số tiền" : formatVnd(perHead)} khi
+                    chuyển.
+                  </p>
+                </div>
+              ) : (
+                isOwner && (
+                  <div className="mt-4 border-t border-ink-800 pt-4">
+                    <p className="text-[12.5px] leading-relaxed text-ink-500">
+                      Thêm mã QR trong{" "}
+                      <Link
+                        href="/ho-so"
+                        className="font-semibold text-link underline-offset-2 hover:underline"
+                      >
+                        hồ sơ
+                      </Link>{" "}
+                      để anh em quét trả tiền sân, khỏi phải hỏi số tài khoản.
+                    </p>
+                  </div>
+                )
+              )}
             </RailCard>
           )}
 

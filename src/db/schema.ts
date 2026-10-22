@@ -176,6 +176,18 @@ export const profiles = pgTable(
     department: text("department"),
     skillLevel: skillLevelEnum("skill_level").notNull().default("trung_binh"),
     bio: text("bio"),
+    /*
+      Ảnh mã QR nhận tiền.
+
+      LƯU ẢNH, KHÔNG LƯU SỐ TÀI KHOẢN — lý do đầy đủ trong
+      `supabase/08-ma-qr-nhan-tien.sql`. Tóm tắt: app đang để đăng ký tự
+      do nên lưu số tài khoản là ai đăng ký cũng đọc được, mà ảnh QR thì
+      ai cũng có sẵn trong app ngân hàng và chạy với mọi ngân hàng.
+
+      Chỉ hiện ở trang buổi tập có tính tiền, và chỉ của người tạo buổi
+      đó — không bày ở hồ sơ cho ai cũng xem.
+    */
+    qrUrl: text("qr_url"),
     role: userRoleEnum("role").notNull().default("member"),
     status: userStatusEnum("status").notNull().default("active"),
     createdAt: timestamp("created_at", { withTimezone: true })

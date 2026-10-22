@@ -205,7 +205,17 @@ export async function getSessionDetail(id: string) {
   return db.query.playSessions.findFirst({
     where: eq(playSessions.id, id),
     with: {
-      creator: { columns: publicProfileColumns },
+      /*
+        Riêng người TẠO buổi thì lấy thêm `qrUrl`, để trang này hiện mã
+        QR nhận tiền sân.
+
+        KHÔNG thêm `qrUrl` vào `publicProfileColumns`. Bộ cột đó dùng
+        chung cho kèo, danh sách thành viên, người điểm danh… — nhét vào
+        đó là phát tán mã QR của mọi người ra khắp nơi, trong khi mã QR
+        mã hoá số tài khoản và chỉ nên xuất hiện đúng chỗ cần trả tiền.
+        Xem ghi chú trong `supabase/08-ma-qr-nhan-tien.sql`.
+      */
+      creator: { columns: { ...publicProfileColumns, qrUrl: true } },
       attendees: {
         with: { user: { columns: publicProfileColumns } },
         orderBy: (p: any, { asc }: any) => [asc(p.createdAt)],

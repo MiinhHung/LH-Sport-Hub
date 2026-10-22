@@ -1,6 +1,6 @@
 "use client";
 
-import { Camera } from "@/components/icons";
+import { Camera, QrCode } from "@/components/icons";
 import { useActionState, useEffect, useRef, useState } from "react";
 
 import { updateProfileAction } from "@/actions/profile";
@@ -24,6 +24,7 @@ export function ProfileForm({
     department: string | null;
     skillLevel: string;
     bio: string | null;
+    qrUrl: string | null;
   };
 }) {
   // GIỮ DỮ LIỆU KHI MÁY CHỦ BÁO LỖI. React 19 tự `reset()` biểu mẫu sau
@@ -38,12 +39,17 @@ export function ProfileForm({
   const [anhMoi, setAnhMoi] = useState<{ file: File; url: string } | null>(
     null,
   );
+  // Mã QR: cùng cách giữ state như ảnh đại diện, thêm một cờ để gỡ hẳn.
+  const [qrMoi, setQrMoi] = useState<{ file: File; url: string } | null>(null);
+  const [xoaQr, setXoaQr] = useState(false);
 
   // Ref luôn trỏ tới ảnh mới nhất, để lúc rời trang thu hồi đúng object URL.
   const anhMoiRef = useRef(anhMoi);
+  const qrMoiRef = useRef(qrMoi);
   useEffect(() => {
     return () => {
       if (anhMoiRef.current) URL.revokeObjectURL(anhMoiRef.current.url);
+      if (qrMoiRef.current) URL.revokeObjectURL(qrMoiRef.current.url);
     };
   }, []);
 
@@ -55,19 +61,40 @@ export function ProfileForm({
     setAnhMoi(moi);
   }
 
+  /** Như trên, cho ảnh mã QR. */
+  function doiQr(file: File | undefined) {
+    if (qrMoiRef.current) URL.revokeObjectURL(qrMoiRef.current.url);
+    const moi = file ? { file, url: URL.createObjectURL(file) } : null;
+    qrMoiRef.current = moi;
+    setQrMoi(moi);
+    // Chọn ảnh mới thì ý định là THAY, không còn là gỡ.
+    if (file) setXoaQr(false);
+  }
+
   const [state, action] = useActionState(
     async (prev: ActionState, formData: FormData) => {
       // Ô chọn tệp có thể đã bị reset sau lần gửi lỗi trước — lấy ảnh từ state.
       if (anhMoi) formData.set("avatar", anhMoi.file);
+      if (qrMoi) formData.set("qr", qrMoi.file);
+      // Cờ gỡ chỉ gửi khi KHÔNG kèm ảnh mới: chọn ảnh mới nghĩa là thay,
+      // không phải gỡ, mà gửi cả hai thì phía server phải đoán ý.
+      if (xoaQr && !qrMoi) formData.set("xoaQr", "1");
       const ketQua = await updateProfileAction(prev, formData);
       // Lưu xong thì ảnh đã lên máy chủ: bỏ ảnh tạm, Avatar hiện ảnh thật.
-      if (ketQua.status === "success") doiAnh(undefined);
+      if (ketQua.status === "success") {
+        doiAnh(undefined);
+        doiQr(undefined);
+        setXoaQr(false);
+      }
       return ketQua;
     },
     idleState,
   );
   const err = state.errors ?? {};
   const preview = anhMoi?.url ?? null;
+  /* Ảnh QR đang hiện: ưu tiên ảnh vừa chọn, rồi tới ảnh đã lưu — trừ khi
+     người dùng đã bấm gỡ. */
+  const qrHienTai = qrMoi?.url ?? (xoaQr ? null : profile.qrUrl);
 
   return (
     <form action={action} className="space-y-5">
@@ -98,6 +125,77 @@ export function ProfileForm({
             onChange={(e) => doiAnh(e.target.files?.[0])}
           />
         </label>
+      </div>
+
+      {/*
+        MÃ QR NHẬN TIỀN.
+
+        Đặt ngay dưới ảnh đại diện vì cùng loại việc: tải một tấm ảnh
+        lên. Nhưng nói rõ nó dùng ở đâu, kẻo người ta tưởng đây là thứ
+        bày công khai trên hồ sơ — nó chỉ hiện ở buổi tập do chính mình
+        tạo và có tính tiền.
+      */}
+      <div className="rounded-lg bg-ink-850 p-3.5">
+        <div className="flex items-start gap-4">
+          {qrHienTai ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={qrHienTai}
+              alt="Mã QR nhận tiền của bạn"
+              className="size-16 shrink-0 rounded-md bg-white object-contain p-1 ring-1 ring-ink-800"
+            />
+          ) : (
+            <span
+              aria-hidden
+              className="grid size-16 shrink-0 place-items-center rounded-md bg-ink-900 text-ink-500 ring-1 ring-ink-800"
+            >
+              <QrCode className="size-7" />
+            </span>
+          )}
+
+          <div className="min-w-0 flex-1">
+            <p className="text-[13px] font-semibold text-ink-300">
+              Mã QR nhận tiền
+            </p>
+            <p className="mt-0.5 text-xs leading-relaxed text-ink-500">
+              Chụp màn hình mã QR trong app ngân hàng rồi tải lên. Anh em
+              quét để trả tiền sân những buổi do bạn tạo.
+            </p>
+
+            <div className="mt-2.5 flex flex-wrap items-center gap-2">
+              <label className="inline-flex h-9 cursor-pointer items-center gap-2 rounded-lg border border-ink-700 bg-ink-900 px-3 text-[13px] font-semibold text-ink-200 transition-[border-color,background-color] focus-within:ring-2 focus-within:ring-gold-400/40 hover:border-ink-600 hover:bg-ink-850 active:scale-[0.98]">
+                <QrCode className="size-4" aria-hidden />
+                {qrHienTai ? "Đổi mã" : "Tải mã lên"}
+                <input
+                  type="file"
+                  name="qr"
+                  accept={UPLOAD.allowedMimeTypes.join(",")}
+                  className="sr-only"
+                  onChange={(e) => doiQr(e.target.files?.[0])}
+                />
+              </label>
+
+              {qrHienTai && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    doiQr(undefined);
+                    setXoaQr(true);
+                  }}
+                  className="inline-flex h-9 items-center rounded-lg px-3 text-[13px] font-semibold text-ink-500 transition-colors hover:bg-ink-800 hover:text-rose-600 dark:hover:text-rose-300"
+                >
+                  Gỡ mã
+                </button>
+              )}
+            </div>
+
+            {xoaQr && !qrMoi && (
+              <p className="mt-2 text-xs font-semibold text-rose-600 dark:text-rose-300">
+                Sẽ gỡ sau khi bấm Lưu.
+              </p>
+            )}
+          </div>
+        </div>
       </div>
 
       <Field label="Họ và tên" htmlFor="fullName" required error={err.fullName}>

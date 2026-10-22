@@ -130,6 +130,7 @@ export default async function ProfilePage() {
                 department: profile.department,
                 skillLevel: profile.skillLevel,
                 bio: profile.bio,
+                qrUrl: profile.qrUrl,
               }}
             />
           </CardBody>

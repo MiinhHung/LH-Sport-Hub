@@ -1,0 +1,42 @@
+-- Mã QR nhận tiền của từng người
+--
+-- Buổi tập đã tính sẵn mỗi người phải trả bao nhiêu (costTotal chia cho
+-- số người nhận đi), nhưng đến lúc chuyển khoản thì vẫn phải đi hỏi số
+-- tài khoản của người đặt sân.
+--
+-- ------------------------------------------------------------------
+-- LƯU ẢNH QR, KHÔNG LƯU SỐ TÀI KHOẢN
+-- ------------------------------------------------------------------
+-- Cách thường thấy là thêm ba cột: mã ngân hàng, số tài khoản, tên chủ
+-- tài khoản — rồi sinh mã VietQR kèm sẵn số tiền. Nghe tiện hơn, nhưng:
+--
+--   · phải lưu số tài khoản của mọi người trong database, mà app đang
+--     để đăng ký tự do nên ai đăng ký cũng đọc được;
+--   · phải khớp đúng danh sách mã ngân hàng, ngân hàng nào không có
+--     trong danh sách thì chịu;
+--   · thêm ba ô bắt người dùng gõ đúng, gõ sai một số là tiền đi nhầm
+--     chỗ.
+--
+-- Ảnh QR thì ai cũng đã có sẵn trong app ngân hàng, lưu một lần dùng
+-- mãi, chạy với mọi ngân hàng, và trong database không có số tài khoản
+-- nào cả.
+--
+-- Đánh đổi: mã QR cá nhân là mã TĨNH, không kèm sẵn số tiền — người
+-- quét phải tự gõ. Chấp nhận được, vì ngay cạnh mã app đã hiện rõ số
+-- tiền mỗi người phải trả.
+--
+-- ------------------------------------------------------------------
+-- VỀ RIÊNG TƯ
+-- ------------------------------------------------------------------
+-- Ảnh QR mã hoá số tài khoản, nên nó không phải thứ hoàn toàn công
+-- khai. Vì vậy chỉ hiện ở ĐÚNG trang buổi tập có tính tiền, và chỉ của
+-- người tạo buổi đó — không bày ở hồ sơ cho ai cũng xem.
+--
+-- Bản thân tệp ảnh nằm trong kho công khai như mọi ảnh khác của app,
+-- đường dẫn là một chuỗi ngẫu nhiên. Ai cầm được đường dẫn thì xem
+-- được, giống hệt ảnh bài viết và ảnh trong tin nhắn.
+--
+-- Chạy lại nhiều lần không sao.
+
+ALTER TABLE "public"."profiles"
+  ADD COLUMN IF NOT EXISTS "qr_url" text;

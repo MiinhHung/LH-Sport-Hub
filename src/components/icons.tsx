@@ -12,6 +12,8 @@ import {
   CalendarDays as LucideCalendarDays,
   CalendarX as LucideCalendarX,
   Camera as LucideCamera,
+  QrCode as LucideQrCode,
+  Share2 as LucideShare2,
   Check as LucideCheck,
   CheckCheck as LucideCheckCheck,
   CheckCircle2 as LucideCheckCircle2,
@@ -174,6 +176,8 @@ export const SendHorizontal = ve(LucideSendHorizontal);
 export const Search = ve(LucideSearch);
 export const Download = ve(LucideDownload);
 export const Camera = ve(LucideCamera);
+export const QrCode = ve(LucideQrCode);
+export const Share2 = ve(LucideShare2);
 export const ImagePlus = ve(LucideImagePlus);
 export const Link = ve(LucideLink);
 export const Link2 = ve(LucideLink2);
