@@ -3,6 +3,7 @@ import Image from "next/image";
 import { AuthReveal } from "@/components/auth-reveal";
 import { GlassCard } from "@/components/auth/glass-card";
 import { HeroVideo } from "@/components/hero-video";
+import { HoaTietThuongHieu } from "@/components/hoa-tiet-thuong-hieu";
 import { BookOpen, Swords, Trophy } from "@/components/icons";
 
 /** Ba thứ app làm, kể bằng một danh sách dọc chứ không phải ba ô bằng nhau. */
@@ -26,6 +27,26 @@ export default function AuthLayout({
         {/* Phủ đậm: video chỉ còn là chuyển động mờ phía sau, chữ vẫn đọc
             được và mọi thương hiệu của YouTube đều bị che. */}
         <div className="absolute inset-0 bg-navy-950/90" />
+
+        {/*
+          Hoạ tiết nhận diện, ĐẶT TRÊN lớp phủ chứ không dưới.
+
+          Dưới lớp phủ thì `bg-navy-950/90` nuốt mất gần hết nét vàng.
+          Trên lớp phủ nhưng dưới nội dung thì nó là nền có vân, còn chữ
+          và logo vẫn nằm trên cùng.
+
+          ĐẶT GÓC TRÊN-PHẢI, KHÔNG PHỦ CẢ BẢNG. Bản đầu tôi cho nó cao
+          bằng cả cột: nét vàng cắt thẳng qua dòng tiêu đề, đọc chữ thì
+          vướng mà hoạ tiết cũng chẳng ra hình gì. Trong banner gốc nó
+          nằm gọn một bên, chừa hẳn chỗ cho chữ.
+
+          Logo ở góc trên-TRÁI, tiêu đề ở giữa-trái, ba dòng giới thiệu
+          ở dưới — nên góc trên-phải là mảng trống duy nhất.
+
+          Tràn qua mép phải để trông như một mảng lớn hơn khung, chứ
+          không phải một cái hình dán vào giữa.
+        */}
+        <HoaTietThuongHieu className="absolute -top-20 -right-28 aspect-square w-[78%]" />
 
         <div className="relative flex h-full flex-col justify-between p-12 xl:p-16">
           {/*
