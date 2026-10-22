@@ -201,7 +201,6 @@ export function DoVui({
   const [daNhap, setDaNhap] = React.useState<string[]>([]);
   const [dangCam, setDangCam] = React.useState<number | null>(null);
   const [dangBay, setDangBay] = React.useState(false);
-  const [ketQua, setKetQua] = React.useState<null | "dung" | "sai">(null);
 
   const khungRef = React.useRef<HTMLDivElement>(null);
   const tayRef = React.useRef<HTMLSpanElement>(null);
@@ -322,6 +321,30 @@ export function DoVui({
   const oDangCho = daNhap.length;
   const xong = daNhap.length === soO;
 
+  /*
+    Đúng hay sai: TÍNH RA, không giữ trong state.
+
+    Trước đây đây là một ô `useState` kèm một `useEffect` theo dõi
+    `daNhap` để đặt giá trị — mà `react-hooks` bắt đúng chỗ đó
+    (`set-state-in-effect`), và bắt có lý: kết quả không phải một thông
+    tin độc lập, nó LUÔN suy ra được từ những gì đã điền.
+
+    Giữ bằng state thì phải trả ba cái giá: thêm một vòng render sau khi
+    điền xong, phải nhớ đặt lại `null` trong "Chơi lại", và tồn tại một
+    nhịp mà ô đã điền đủ nhưng kết quả vẫn còn `null`. Tính ra thì cả ba
+    biến mất — "Chơi lại" xoá `daNhap` là kết quả tự về `null`.
+
+    Đổi lại, kết quả hiện sớm hơn đúng một nhịp render. Đã xem: khối kết
+    quả dùng `initial`/`animate` của motion nên vẫn chạy hiệu ứng vào
+    như cũ, chỉ bắt đầu sớm hơn; `aria-live` vẫn báo vì nội dung đổi từ
+    rỗng sang có.
+  */
+  const ketQua: null | "dung" | "sai" = !xong
+    ? null
+    : daNhap.join("") === dapAn
+      ? "dung"
+      : "sai";
+
   /**
    * Số lượt chơi. "Chơi lại" giữa lúc quả cầu đang bay thì tăng số này,
    * cú bay cũ đáp xuống sau đó thấy lệch lượt nên không ghi số vào ô nữa.
@@ -332,9 +355,9 @@ export function DoVui({
     luotRef.current += 1;
     tienDo.stop();
     bayHien.set(0);
+    // Không cần đặt lại kết quả: nó tính từ `daNhap`, xoá mảng là tự về null.
     setDaNhap([]);
     setDangCam(null);
-    setKetQua(null);
     setDangBay(false);
     dungTho();
   };
@@ -428,11 +451,6 @@ export function DoVui({
       });
     });
   }, [bay, dangBay, dangCam, dungTho, lai, nhip, xong]);
-
-  React.useEffect(() => {
-    if (daNhap.length !== soO) return;
-    setKetQua(daNhap.join("") === dapAn ? "dung" : "sai");
-  }, [daNhap, dapAn, soO]);
 
   const loiNhac =
     dangCam === null
