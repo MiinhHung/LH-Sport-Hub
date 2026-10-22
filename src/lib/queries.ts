@@ -200,6 +200,57 @@ export type PlaySessionDetail = NonNullable<
   Awaited<ReturnType<typeof getSessionDetail>>
 >;
 
+/**
+ * Buổi tập cho TRANG MỜI CÔNG KHAI `/moi/<id>`.
+ *
+ * ================================================================
+ * TRẢ VỀ ÍT NHẤT CÓ THỂ. Trang gọi hàm này ai cũng mở được, kể cả
+ * trình thu thập của Zalo/Messenger — đó là mục đích, vì không cho
+ * khách vô danh đọc thì không có thẻ xem trước.
+ * ================================================================
+ *
+ * Được công khai: tên buổi, giờ, sân, trạng thái, và ĐẾM số người nhận
+ * đi. Chừng đó đủ để quyết định có đi hay không.
+ *
+ * KHÔNG công khai: tên người tham gia, tiền sân, ghi chú, địa chỉ chi
+ * tiết, mã QR. Muốn xem những thứ đó thì đăng nhập rồi vào trang buổi
+ * tập thật.
+ *
+ * Đếm bằng truy vấn riêng chứ không `with: { attendees }`: lấy cả mảng
+ * về rồi `.length` là kéo luôn danh sách người, tức mang ra ngoài đúng
+ * thứ vừa nói là không công khai — chỉ vì cần một con số.
+ */
+export async function getSessionMoi(id: string) {
+  if (!isUuid(id)) return null;
+
+  const buoi = await db.query.playSessions.findFirst({
+    where: eq(playSessions.id, id),
+    columns: {
+      id: true,
+      title: true,
+      sport: true,
+      venueName: true,
+      startsAt: true,
+      endsAt: true,
+      maxPlayers: true,
+      status: true,
+    },
+  });
+  if (!buoi) return null;
+
+  const [dem] = await db
+    .select({ n: sql<number>`count(*)::int` })
+    .from(playSessionAttendees)
+    .where(
+      and(
+        eq(playSessionAttendees.sessionId, id),
+        eq(playSessionAttendees.status, "going"),
+      ),
+    );
+
+  return { ...buoi, soNguoiDi: dem?.n ?? 0 };
+}
+
 export async function getSessionDetail(id: string) {
   if (!isUuid(id)) return null;
   return db.query.playSessions.findFirst({

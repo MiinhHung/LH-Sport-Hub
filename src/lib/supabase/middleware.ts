@@ -15,6 +15,17 @@ const PUBLIC_PATHS = [
   "/gioi-thieu",
   "/dang-nhap",
   "/dang-ky",
+  /*
+    Trang mời một buổi tập. PHẢI công khai, nếu không thì vô nghĩa:
+    trình thu thập của Zalo/Messenger là khách vô danh, chặn nó là thẻ
+    xem trước lại rơi về câu chung chung của trang đăng nhập — đúng cái
+    trang này sinh ra để sửa.
+
+    Nó chỉ trả tên buổi, giờ, sân và số người đã nhận đi; tên người
+    tham gia, tiền sân và ghi chú vẫn nằm sau đăng nhập. Xem
+    `getSessionMoi` trong `lib/queries.ts`.
+  */
+  "/moi",
   "/auth/callback",
   "/api/cron",
   // Ô thông báo ở trang chủ gọi vào đây. Phải công khai ở lớp này, nếu

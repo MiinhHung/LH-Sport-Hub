@@ -290,6 +290,7 @@ export default async function SessionDetailPage({
                   />
                 )}
                 <NutChiaSe
+                  duongDan={`/moi/${session.id}`}
                   tieuDe={session.title}
                   moTa={`${formatDateTime(session.startsAt)} • ${session.venueName}`}
                 />

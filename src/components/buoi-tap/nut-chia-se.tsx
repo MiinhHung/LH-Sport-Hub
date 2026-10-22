@@ -29,10 +29,22 @@ import { Button } from "@/components/ui/button";
 export function NutChiaSe({
   tieuDe,
   moTa,
+  duongDan,
 }: {
   tieuDe: string;
   /** Dòng phụ gửi kèm, ví dụ giờ và sân. */
   moTa?: string;
+  /**
+   * Đường dẫn gửi đi, ví dụ `/moi/<id>`. Bỏ trống thì gửi chính trang
+   * đang mở.
+   *
+   * GỬI TRANG MỜI, KHÔNG GỬI TRANG BUỔI TẬP. Trang buổi tập nằm sau
+   * đăng nhập, nên trình thu thập của Zalo nhận 307 đá sang trang đăng
+   * nhập rồi đọc thẻ của trang đó — mọi link gửi đi đều ra cùng một
+   * câu chung chung. Trang mời thì công khai và mang đúng tên buổi,
+   * giờ, sân.
+   */
+  duongDan?: string;
 }) {
   const [daChep, setDaChep] = React.useState(false);
 
@@ -45,7 +57,9 @@ export function NutChiaSe({
     mà người dùng đang mở.
   */
   const chiaSe = async () => {
-    const url = window.location.href;
+    const url = duongDan
+      ? new URL(duongDan, window.location.origin).toString()
+      : window.location.href;
 
     if (navigator.share) {
       try {
