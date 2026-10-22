@@ -87,8 +87,42 @@ export function PageIntro({
 }) {
   return (
     // Không tự chừa lề dưới: trang nào cũng đã bọc trong `space-y-*`.
-    <header className={cn("animate-rise", className)}>
+    <header
+      className={cn(
+        "animate-rise border-l-[3px] border-gold-500 pl-3.5 dark:border-gold-400",
+        className,
+      )}
+    >
       <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-4">
+        {/*
+          VẠCH VÀNG DỌC — lấy từ banner nhận diện của Light Human, nơi
+          một vạch vàng mảnh đứng trước cụm tiêu đề.
+
+          Đặt ở `PageIntro` chứ không rải tay từng trang: 25 tệp dùng
+          thành phần này, nên sửa một chỗ là cả app có cùng một dấu
+          nhận diện, và không ai quên ở trang mới.
+
+          KHÔNG phạm quy ước của DESIGN.md. Mục 5 cấm "nhãn phụ phía
+          trên tiêu đề" — đây là vạch bên TRÁI, không phải nhãn, và
+          không thêm chữ nào.
+
+          SẮC VÀNG KHÁC NHAU GIỮA HAI NỀN, vì cùng một màu không thể
+          hợp cả hai. Đo tương phản của vạch với nền:
+
+            gold-400   1,94 trên nền sáng   ·   9,19 trên nền tối
+            gold-500   2,54 trên nền sáng   ·   7,01 trên nền tối
+
+          Trên nền sáng gold-400 gần như biến mất, nên dùng gold-500 —
+          cũng đúng là sắc accent DESIGN.md đã chọn. Nền tối thì
+          gold-400 nổi hơn hẳn. Vạch trang trí nên WCAG miễn trừ, nhưng
+          một dấu nhận diện không ai thấy thì chẳng để làm gì.
+
+          VẠCH ĐẶT TRÊN `<header>`, KHÔNG PHẢI TRÊN KHỐI TIÊU ĐỀ. Bản
+          đầu tôi để nó bọc riêng khối tiêu đề: vạch đẩy tiêu đề sang
+          phải 14px còn dòng dẫn bên dưới vẫn sát lề trái, nên hai dòng
+          lệch nhau trông như đặt nhầm. Banner gốc cũng cho vạch ôm cả
+          cụm chữ.
+        */}
         <div className="min-w-0">
           {eyebrow && (
             <p className="mb-1 text-[13px] font-semibold text-gold-700 dark:text-gold-300">
